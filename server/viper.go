@@ -18,10 +18,7 @@ func (a *API) SetupViper() error {
 		filename = ".env.prod"
 	}
 
-	err := godotenv.Overload(filename)
-	if err != nil {
-		return err
-	}
+	godotenv.Overload(filename)
 
 	a.Config.SetEnvPrefix("iothings")
 	a.Config.AutomaticEnv()
