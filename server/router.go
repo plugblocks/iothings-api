@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adrien3d/things-api/controllers"
-	"github.com/adrien3d/things-api/middlewares"
+	"gitlab.com/plugblocks/iothings-api/controllers"
+	"gitlab.com/plugblocks/iothings-api/middlewares"
 
 	"gopkg.in/gin-gonic/gin.v1"
 )
@@ -37,6 +37,7 @@ func (a *API) SetupRouter() {
 	router.Use(middlewares.RateMiddleware())
 
 	authMiddleware := middlewares.AuthMiddleware()
+	adminMiddleware := middlewares.AdminMiddleware()
 
 	v1 := router.Group("/v1")
 	{
@@ -47,27 +48,10 @@ func (a *API) SetupRouter() {
 		{
 			users.POST("/", userController.CreateUser)
 			users.GET("/:id/activate/:activationKey", userController.ActivateUser)
-			//users.POST("/:id/reset_password", userController.ResetPassword)
-
 			users.Use(authMiddleware)
 			users.GET("/:id", userController.GetUser)
-		}
-
-		cards := v1.Group("/cards")
-		{
-			cards.Use(authMiddleware)
-			cardController := controllers.NewCardController()
-			cards.POST("/", cardController.AddCard)
-			cards.GET("/", cardController.GetCards)
-			cards.PUT("/:id/set_default", cardController.SetDefaultCard)
-			cards.DELETE("/:id", cardController.DeleteCard)
-		}
-
-		sigfox := v1.Group("/sigfox")
-		{
-			sigfoxController := controllers.NewSigfoxController()
-			sigfox.POST("/locations", sigfoxController.CreateLocation)
-			sigfox.POST("/messages", sigfoxController.CreateMessage)
+			users.Use(adminMiddleware)
+			users.GET("/", userController.GetUsers)
 		}
 
 		devices := v1.Group("/devices")
@@ -79,44 +63,13 @@ func (a *API) SetupRouter() {
 			devices.PUT("/:id", deviceController.UpdateDevice)
 			devices.GET("/:id", deviceController.GetDevice)
 			devices.DELETE("/:id", deviceController.DeleteDevice)
-			devices.GET("/:id/locations", deviceController.GetLastLocations)
-			devices.GET("/:id/messages", deviceController.GetLastMessages)
-		}
-
-		locations := v1.Group("/locations")
-		{
-			locations.Use(authMiddleware)
-			locationController := controllers.NewLocationController()
-			locations.GET("/", locationController.GetAllLocations)
-
 		}
 
 		authentication := v1.Group("/auth")
 		{
 			authController := controllers.NewAuthController()
 			authentication.POST("/", authController.Authentication)
-			authentication.Use(authMiddleware)
-			authentication.GET("/logout", authController.LogOut)
-		}
-
-		billing := v1.Group("/billing")
-		{
-			billingController := controllers.NewBillingController()
-			billing.Use(authMiddleware)
-
-			plans := billing.Group("/plans")
-			{
-				plans.GET("/", billingController.GetPlans)
-				plans.POST("/", middlewares.AdminMiddleware(), billingController.CreatePlan)
-			}
-
-			subscriptionController := controllers.NewStripeSubscriptionController()
-			subscriptions := billing.Group("/subscriptions")
-			{
-				subscriptions.POST("/", subscriptionController.CreateSubscription)
-				subscriptions.GET("/", subscriptionController.GetSubscriptions)
-				subscriptions.DELETE("/:id", subscriptionController.DeleteSubscription)
-			}
+			authentication.POST("/refresh", authController.RefreshToken)
 		}
 	}
 }

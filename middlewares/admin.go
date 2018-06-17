@@ -3,9 +3,10 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/adrien3d/things-api/helpers"
-	"github.com/adrien3d/things-api/store"
+	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/store"
 	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/pkg/errors"
 )
 
 func AdminMiddleware() gin.HandlerFunc {
@@ -13,7 +14,7 @@ func AdminMiddleware() gin.HandlerFunc {
 		user := store.Current(c)
 
 		if !user.Admin {
-			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("admin_required", "The user is not administrator"))
+			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("admin_required", "The user is not administrator", errors.New("The user is not administrator")))
 			return
 		}
 

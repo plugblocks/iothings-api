@@ -3,11 +3,11 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/adrien3d/things-api/config"
-	"github.com/adrien3d/things-api/helpers"
-	"github.com/adrien3d/things-api/models"
-	"github.com/adrien3d/things-api/services"
-	"github.com/adrien3d/things-api/store"
+	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/services"
+	"gitlab.com/plugblocks/iothings-api/store"
 
 	"gopkg.in/gin-gonic/gin.v1"
 )
@@ -22,7 +22,7 @@ func (uc UserController) GetUser(c *gin.Context) {
 	user, err := store.FindUserById(c, c.Param("id"))
 
 	if err != nil {
-		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist"))
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
 		return
 	}
 
@@ -33,7 +33,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	user := &models.User{}
 
 	if err := c.BindJSON(user); err != nil {
-		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data"))
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
 
@@ -43,9 +43,10 @@ func (uc UserController) CreateUser(c *gin.Context) {
 		return
 	}
 
+	//TODO: Remove business logic from controller
 	appName := config.GetString(c, "sendgrid_name")
 	subject := "Welcome to " + appName + "! Account confirmation"
-	templateLink := "./templates/mail_activate_account.html"
+	templateLink := "./templates/html/mail_activate_account.html"
 	services.GetEmailSender(c).SendEmailFromTemplate(user, subject, templateLink)
 
 	c.JSON(http.StatusCreated, user.Sanitize())
@@ -59,4 +60,19 @@ func (uc UserController) ActivateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, nil)
+}
+
+func (uc UserController) GetUsers(c *gin.Context) {
+	users, err := store.GetUsers(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
+func (uc UserController) ImpersonateUser(c *gin.Context) {
+
 }

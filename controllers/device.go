@@ -3,10 +3,10 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/adrien3d/things-api/helpers"
-	"github.com/adrien3d/things-api/helpers/params"
-	"github.com/adrien3d/things-api/models"
-	"github.com/adrien3d/things-api/store"
+	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/store"
 	"gopkg.in/gin-gonic/gin.v1"
 )
 
@@ -22,7 +22,7 @@ func (dc DeviceController) CreateDevice(c *gin.Context) {
 
 	err := c.BindJSON(device)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data"))
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
 
@@ -36,7 +36,7 @@ func (dc DeviceController) CreateDevice(c *gin.Context) {
 }
 
 func (dc DeviceController) GetDevices(c *gin.Context) {
-	devices, err := store.GetDevices(c)
+	devices, err := store.GetDevices(c, c.Param("id"))
 
 	if err != nil {
 		c.Error(err)
@@ -52,13 +52,13 @@ func (dc DeviceController) UpdateDevice(c *gin.Context) {
 
 	err := c.BindJSON(&device)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data"))
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
 
 	user := store.Current(c)
 
-	changes := params.M{"$set": params.M{"name": device.Name, "userId": user.Id, "bleMac": device.BLEMac, "lastAcc": device.LastAcc, "active": device.Active}}
+	changes := params.M{"$set": params.M{"name": device.Name, "userId": user.Id, "last_access": device.LastAccess, "active": device.Active}}
 	err = store.UpdateDevice(
 		c,
 		c.Param("id"),
@@ -96,28 +96,4 @@ func (dc DeviceController) GetDevice(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, device)
-}
-
-func (dc DeviceController) GetLastMessages(c *gin.Context) {
-	sigfoxMessages, err := store.GetLastMessages(c, c.Param("id"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, sigfoxMessages)
-}
-
-func (dc DeviceController) GetLastLocations(c *gin.Context) {
-	locations, err := store.GetLastLocations(c, c.Param("id"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, locations)
 }

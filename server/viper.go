@@ -11,7 +11,7 @@ import (
 func (a *API) SetupViper() error {
 
 	filename := ".env"
-	switch os.Getenv("BASEAPI_ENV") {
+	switch os.Getenv("IOTHINGS_ENV") {
 	case "testing":
 		filename = "../.env.testing"
 	case "prod":
@@ -23,7 +23,7 @@ func (a *API) SetupViper() error {
 		return err
 	}
 
-	a.Config.SetEnvPrefix("baseapi")
+	a.Config.SetEnvPrefix("iothings")
 	a.Config.AutomaticEnv()
 
 	a.SetupViperDefaults()

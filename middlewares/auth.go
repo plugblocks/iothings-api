@@ -2,20 +2,14 @@ package middlewares
 
 import (
 	"errors"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
-	"time"
-
-	"github.com/adrien3d/things-api/helpers"
-	"github.com/adrien3d/things-api/helpers/params"
-	"github.com/adrien3d/things-api/models"
-	"github.com/adrien3d/things-api/services"
-	"github.com/adrien3d/things-api/store"
-	"github.com/dgrijalva/jwt-go"
+	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/services"
+	"gitlab.com/plugblocks/iothings-api/store"
 	"gopkg.in/gin-gonic/gin.v1"
+	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -28,55 +22,23 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		publicKeyFile, _ := ioutil.ReadFile(os.Getenv("BASEAPI_RSA_PUBLIC"))
-		publicKey, _ := jwt.ParseRSAPublicKeyFromPEM(publicKeyFile)
-
-		token, err := jwt.Parse(authHeaderParts[1], func(token *jwt.Token) (interface{}, error) {
-			return publicKey, nil
-		})
-
+		encodedKey := []byte(config.GetString(c, "rsa_private"))
+		claims, err := helpers.ValidateJwtToken(authHeaderParts[1], encodedKey, "access")
 		if err != nil {
-			c.AbortWithError(http.StatusUnauthorized, errors.New("Error parsing token"))
+			c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_token", "the given token is invalid", err))
 			return
 		}
-
-		if token.Header["alg"] != jwt.SigningMethodRS256.Alg() {
-			c.AbortWithError(http.StatusUnauthorized, errors.New("Signing method not valid"))
-			return
-		}
-
-		if !token.Valid {
-			c.AbortWithError(http.StatusUnauthorized, errors.New("LoginToken invalid"))
-			return
-		}
-
-		claims, _ := token.Claims.(jwt.MapClaims)
 
 		user := &models.User{}
 
 		// Gets the user from the redis store
-		hasFetchedRedis := true
 		err = services.GetRedis(c).GetValueForKey(claims["id"].(string), &user)
 		if err != nil {
-			hasFetchedRedis = false
 			user, _ = store.FindUserById(c, claims["id"].(string))
 			services.GetRedis(c).SetValueForKey(user.Id, &user)
 		}
 
-		// Check if the token is still valid in the database
-		loginToken := claims["token"].(string)
-		tokenIndex, hasToken := user.HasToken(loginToken)
-		if !hasToken {
-			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("token_invalidated", "This token isn't valid anymore"))
-			return
-		}
-
 		c.Set(store.CurrentKey, user)
-		c.Set(store.LoginTokenKey, loginToken)
-
-		if !hasFetchedRedis {
-			store.UpdateUser(c, params.M{"$set": params.M{"tokens." + strconv.Itoa(tokenIndex) + ".last_access": time.Now().Unix()}})
-		}
 
 		c.Next()
 	}

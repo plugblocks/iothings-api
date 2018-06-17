@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/adrien3d/things-api/config"
-	"github.com/adrien3d/things-api/helpers"
-	"github.com/adrien3d/things-api/services"
+	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/services"
 	"gopkg.in/gin-gonic/gin.v1"
 )
 
@@ -37,7 +37,7 @@ func RateMiddleware() gin.HandlerFunc {
 		}
 
 		if count != -1 && count >= config.GetInt(c, "rate_limit_requests_per_second") {
-			c.AbortWithError(http.StatusTooManyRequests, helpers.ErrorWithCode("too_many_requests", "You sent too many requests over the last second."))
+			c.AbortWithError(http.StatusTooManyRequests, helpers.ErrorWithCode("too_many_requests", "You sent too many requests over the last second.", err))
 		} else {
 			conn.Do("INCR", keyName)
 			conn.Do("EXPIRE", keyName, 10)

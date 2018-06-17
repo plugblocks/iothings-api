@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/adrien3d/things-api/server"
-	"github.com/adrien3d/things-api/services"
+	"gitlab.com/plugblocks/iothings-api/server"
+	"gitlab.com/plugblocks/iothings-api/services"
 
 	"github.com/spf13/viper"
 	"gopkg.in/gin-gonic/gin.v1"

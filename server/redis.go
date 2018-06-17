@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/adrien3d/things-api/services"
+	"gitlab.com/plugblocks/iothings-api/services"
 	"github.com/garyburd/redigo/redis"
 )
 

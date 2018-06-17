@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/adrien3d/things-api/config"
+	"gitlab.com/plugblocks/iothings-api/config"
 	"github.com/spf13/viper"
 	"gopkg.in/gin-gonic/gin.v1"
 )

@@ -3,53 +3,37 @@ package mongodb
 import (
 	"net/http"
 
-	"github.com/adrien3d/things-api/helpers"
-	"github.com/adrien3d/things-api/helpers/params"
-	"github.com/adrien3d/things-api/models"
+	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/models"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (db *mongo) CreateDevice(device *models.Device, user *models.User) error {
+func (db *mongo) CreateDevice(device *models.Device) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)
 
-	device.UserId = user.Id
 	device.BeforeCreate()
-
-	if device.SigfoxId != "" {
-		count, _ := devices.Find(params.M{"sigfoxId": device.SigfoxId}).Count()
-		if count > 0 {
-			return helpers.NewError(http.StatusConflict, "device_already_exists", "Device already exists")
-		}
-	}
-
-	if device.BLEMac != "" {
-		count, _ := devices.Find(params.M{"bleMac": device.BLEMac}).Count()
-		if count > 0 {
-			return helpers.NewError(http.StatusConflict, "device_already_exists", "Device already exists")
-		}
-	}
-
 	err := devices.Insert(device)
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "device_creation_failed", "Failed to create the device")
+		return helpers.NewError(http.StatusInternalServerError, "device_creation_failed", "Failed to create the device", err)
 	}
 
 	return nil
 }
 
-func (db *mongo) GetDevices(user *models.User) ([]*models.Device, error) {
+func (db *mongo) GetDevices(customerId string) ([]*models.Device, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
 	devices := db.C(models.DevicesCollection).With(session)
 
 	list := []*models.Device{}
-	err := devices.Find(params.M{"userId": user.Id}).All(&list)
+	err := devices.Find(params.M{"customer_id": customerId}).All(&list)
 	if err != nil {
-		return nil, helpers.NewError(http.StatusNotFound, "devices_not_found", "Devices not found")
+		return nil, helpers.NewError(http.StatusNotFound, "devices_not_found", "Devices not found", err)
 	}
 
 	return list, nil
@@ -69,7 +53,7 @@ func (db *mongo) UpdateDevice(id string, m params.M) error {
 	_, err := devices.Find(bson.M{"_id": id}).Apply(change, nil)
 
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update the device")
+		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update the device", err)
 	}
 
 	return nil
@@ -82,13 +66,13 @@ func (db *mongo) DeleteDevice(id string) error {
 
 	err := devices.RemoveId(id)
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "device_delete_failed", "Failed to delete the device")
+		return helpers.NewError(http.StatusInternalServerError, "device_delete_failed", "Failed to delete the device", err)
 	}
 
 	return nil
 }
 
-func (db *mongo) GetDevice(user *models.User, id string) (*models.Device, error) {
+func (db *mongo) GetDevice(id string) (*models.Device, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -97,52 +81,9 @@ func (db *mongo) GetDevice(user *models.User, id string) (*models.Device, error)
 
 	err := devices.FindId(id).One(device)
 	if err != nil {
-		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found")
+		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
 	}
 
 	return device, nil
 }
 
-func (db *mongo) GetLastMessages(id string) ([]*models.SigfoxMessage, error) {
-	session := db.Session.Copy()
-	defer session.Close()
-	devices := db.C(models.DevicesCollection).With(session)
-	sigfoxMessages := db.C(models.SigfoxMessagesCollection).With(session)
-
-	device := &models.Device{}
-
-	err := devices.FindId(id).One(device)
-	if err != nil {
-		return nil, helpers.NewError(http.StatusInternalServerError, "query_failed", "Failed to find the device")
-	}
-
-	list := []*models.SigfoxMessage{}
-	err = sigfoxMessages.Find(bson.M{"sigfoxId": device.SigfoxId}).Limit(10).Sort("-$natural").All(&list)
-	if err != nil {
-		return nil, helpers.NewError(http.StatusInternalServerError, "query_failed", "Failed to query the Database")
-	}
-
-	return list, nil
-}
-
-func (db *mongo) GetLastLocations(id string) ([]*models.Location, error) {
-	session := db.Session.Copy()
-	defer session.Close()
-	devices := db.C(models.DevicesCollection).With(session)
-	locations := db.C(models.LocationsCollection).With(session)
-
-	device := &models.Device{}
-
-	err := devices.FindId(id).One(device)
-	if err != nil {
-		return nil, helpers.NewError(http.StatusInternalServerError, "query_failed", "Failed to find the device")
-	}
-
-	list := []*models.Location{}
-	err = locations.Find(bson.M{"sigfoxId": device.SigfoxId}).Limit(10).Sort("-$natural").All(&list)
-	if err != nil {
-		return nil, helpers.NewError(http.StatusInternalServerError, "query_failed", "Failed to query the Database")
-	}
-
-	return list, nil
-}

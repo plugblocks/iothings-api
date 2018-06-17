@@ -3,10 +3,10 @@
 FROM golang
 
 # Copy the local package files to the container's workspace.
-ADD . /go/src/github.com/adrien3d/things-api
+ADD . /go/src/gitlab.com/plugblocks/iothings-api
 
 # Change workdir
-WORKDIR /go/src/github.com/adrien3d/things-api
+WORKDIR /go/src/gitlab.com/plugblocks/iothings-api
 
 # Install the dependencies
 RUN go get -t -v ./...
@@ -14,7 +14,7 @@ RUN go get -t -v ./...
 # Build the outyet command inside the container.
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
-RUN go install github.com/adrien3d/things-api
+RUN go install gitlab.com/plugblocks/iothings-api
 
 ENV GIN_MODE release
 ENV BASEAPI_ENV prod

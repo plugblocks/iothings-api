@@ -1,13 +1,12 @@
 package store
 
 import (
-	"github.com/adrien3d/things-api/models"
+	"gitlab.com/plugblocks/iothings-api/models"
 	"golang.org/x/net/context"
 )
 
 const (
 	CurrentKey    = "currentUser"
-	LoginTokenKey = "currentLoginToken"
 	StoreKey      = "store"
 )
 
