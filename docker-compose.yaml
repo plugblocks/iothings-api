@@ -1,23 +1,19 @@
 version: '2'
 services:
-  mongo-db:
-      image: mongo:latest
-
   redis-db:
-      image: redis:latest
-
-  serve:
-    container_name: iothings
+    image: redis:latest
+  mongo-db:
+    image: mongo:latest
+  api:
+    container_name: iothings-api
     build: .
-    #command: go run main.go
-
-    #environment:
-    #  ENV: prod
-    links:
-      - mongo-db
-      - redis-db
     ports:
       - "4000:4000"
+    environment:
+      ENV: prod
+    links:
+      - mongo-db:mongo
+      - redis-db:redis
 
   # FIXME(hoatle): $ docker-compose up test should work repeatedly
   test:
