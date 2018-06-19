@@ -86,4 +86,3 @@ func (db *mongo) GetDevice(id string) (*models.Device, error) {
 
 	return device, nil
 }
-

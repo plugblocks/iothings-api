@@ -1,8 +1,8 @@
 package server
 
 import (
-	"gitlab.com/plugblocks/iothings-api/services"
 	"github.com/spf13/viper"
+	"gitlab.com/plugblocks/iothings-api/services"
 	"gopkg.in/gin-gonic/gin.v1"
 	"gopkg.in/mgo.v2"
 )

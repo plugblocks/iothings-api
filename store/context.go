@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	CurrentKey    = "currentUser"
-	StoreKey      = "store"
+	CurrentKey = "currentUser"
+	StoreKey   = "store"
 )
 
 type Setter interface {

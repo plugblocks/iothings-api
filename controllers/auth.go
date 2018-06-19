@@ -33,8 +33,6 @@ func (ac AuthController) Authentication(c *gin.Context) {
 		return
 	}
 
-
-
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userInput.Password))
 	if err != nil {
 		c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("incorrect_password", "Password is not correct", err))

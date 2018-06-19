@@ -1,11 +1,11 @@
 package helpers
 
 import (
-"crypto/rsa"
-"encoding/base64"
-"errors"
-"github.com/dgrijalva/jwt-go"
-"time"
+	"crypto/rsa"
+	"encoding/base64"
+	"errors"
+	"github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 func GetRSAPrivateKey(encodedKey []byte) (*rsa.PrivateKey, error) {

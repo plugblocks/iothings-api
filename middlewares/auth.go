@@ -2,14 +2,14 @@ package middlewares
 
 import (
 	"errors"
-	"net/http"
-	"strings"
+	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"gopkg.in/gin-gonic/gin.v1"
-	"gitlab.com/plugblocks/iothings-api/config"
-	"gitlab.com/plugblocks/iothings-api/helpers"
+	"net/http"
+	"strings"
 )
 
 func AuthMiddleware() gin.HandlerFunc {

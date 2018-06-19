@@ -1,8 +1,8 @@
 package server
 
 import (
-	"gitlab.com/plugblocks/iothings-api/services"
 	"github.com/garyburd/redigo/redis"
+	"gitlab.com/plugblocks/iothings-api/services"
 )
 
 func (a *API) SetupRedis() {
