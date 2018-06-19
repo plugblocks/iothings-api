@@ -100,3 +100,51 @@ func (db *mongo) GetUsers() ([]*models.User, error) {
 
 	return list, nil
 }
+
+func (db *mongo) UserIsAdmin(userId string) (bool, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	users := db.C(models.UsersCollection).With(session)
+
+	user := &models.User{}
+	err := users.FindId(userId).One(user)
+	if err != nil {
+		return false, helpers.NewError(http.StatusNotFound, "user_not_found", "User not found", err)
+	}
+	return user.Admin, nil
+}
+
+
+func (db *mongo) UserAttachFleet(userId string, fleetId string) (*models.User, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	users := db.C(models.UsersCollection).With(session)
+	user := &models.User{}
+
+	err := users.FindId(userId).One(user)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "user_not_found", "User not found", err)
+	}
+
+	fleets := db.C(models.FleetsCollection).With(session)
+	fleet := &models.Fleet{}
+
+	err = fleets.FindId(fleetId).One(fleet)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "fleet_not_found", "Fleet not found", err)
+	}
+
+	user.FleetIds = append(user.FleetIds, fleet.Id)
+
+	err = users.Update(bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"fleet_ids": user.FleetIds}})
+	if err != nil {
+		return user, helpers.NewError(http.StatusInternalServerError, "user_update_failed", "Failed to update the user", err)
+	}
+
+	return user, err
+}
+/*	UserAttachFleet(string, string) (*models.User, error)
+	UserDetachFleet(string, string) (*models.User, error)
+	UserGetFleet(string, string) (*models.User, error)
+	UserGetFleets(string) ([]*models.User, error)
+*/

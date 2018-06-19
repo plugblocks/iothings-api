@@ -73,6 +73,65 @@ func (uc UserController) GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
+func (uc UserController) UserIsAdmin(c *gin.Context) {
+	admin, err := store.UserIsAdmin(c, c.Param("id"))
+
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, admin)
+}
+
+func (uc UserController) UserAttachFleet(c *gin.Context) {
+	user, err := store.UserAttachFleet(c, c.Param("id"))
+	//TODO: UserAttachFleet at store Level
+
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.Sanitize())
+}
+
+func (uc UserController) UserDetachFleet(c *gin.Context) {
+	user, err := store.UserDetachFleet(c, c.Param("id"))
+	//TODO: UserDetachFleet at store Level
+
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.Sanitize())
+}
+
+func (uc UserController) UserGetFleet(c *gin.Context) {
+	user, err := store.UserGetFleet(c, c.Param("id"))
+	//TODO: UserGetFleet at store Level
+
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.Sanitize())
+}
+
+func (uc UserController) UserGetFleets(c *gin.Context) {
+	user, err := store.UserGetFleets(c, c.Param("id"))
+	//TODO: UserGetFleets at store Level
+
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.Sanitize())
+}
+
 func (uc UserController) ImpersonateUser(c *gin.Context) {
 
 }

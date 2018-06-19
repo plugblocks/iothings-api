@@ -7,12 +7,12 @@ import (
 )
 
 type Device struct {
-	Id       string `json:"id" bson:"_id,omitempty" valid:"-"`
-	CustomerId   string `json:"customer_id" bson:"customer_id" valid:"-"`
-	Name     string `json:"name" bson:"name" valid:"-"`
-	Type 	 string `json:"type" bson:"type"`
-	LastAccess  int64  `json:"last_access" bson:"last_access" valid:"-"`
-	Active   bool   `json:"active" bson:"active" valid:"-"`
+	Id         string `json:"id" bson:"_id,omitempty" valid:"-"`
+	CustomerId string `json:"customer_id" bson:"customer_id" valid:"-"`
+	Name       string `json:"name" bson:"name" valid:"-"`
+	Type       string `json:"type" bson:"type"`
+	LastAccess int64  `json:"last_access" bson:"last_access" valid:"-"`
+	Active     bool   `json:"active" bson:"active" valid:"-"`
 }
 
 func (d *Device) BeforeCreate() {
