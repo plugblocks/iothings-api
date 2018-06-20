@@ -10,23 +10,22 @@ import (
 )
 
 type User struct {
-	Id            string   `json:"id" bson:"_id,omitempty" valid:"-"`
-	Firstname     string   `json:"first_name" bson:"first_name"`
-	Lastname      string   `json:"last_name" bson:"last_name"`
-	Password      string   `json:"password" bson:"password" valid:"required"`
-	Email         string   `json:"email" bson:"email" valid:"email,required"`
-	Phone         string   `json:"phone" bson:"phone"`
-	Active        bool     `json:"active" bson:"active"`
-	ActivationKey string   `json:"activationKey" bson:"activationKey"`
-	ResetKey      string   `json:"resetKey" bson:"resetKey"`
-	Admin         bool     `json:"admin" bson:"admin"`
-	FleetIds      []string `json:"fleet_ids" bson:"fleet_ids"`
+	Id            string `json:"id" bson:"_id,omitempty" valid:"-"`
+	Firstname     string `json:"first_name" bson:"first_name"`
+	Lastname      string `json:"last_name" bson:"last_name"`
+	Password      string `json:"password" bson:"password" valid:"required"`
+	Email         string `json:"email" bson:"email" valid:"email,required"`
+	Phone         string `json:"phone" bson:"phone"`
+	Active        bool   `json:"active" bson:"active"`
+	ActivationKey string `json:"activationKey" bson:"activationKey"`
+	ResetKey      string `json:"resetKey" bson:"resetKey"`
+	Admin         bool   `json:"admin" bson:"admin"`
 }
 
 type SanitizedUser struct {
 	Id        string `json:"id" bson:"_id,omitempty"`
-	Firstname string `json:"firstname" bson:"firstname"`
-	Lastname  string `json:"lastname" bson:"lastname"`
+	Firstname string `json:"first_name" bson:"first_name"`
+	Lastname  string `json:"last_name" bson:"last_name"`
 	Email     string `json:"email" bson:"email"`
 }
 

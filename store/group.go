@@ -6,5 +6,5 @@ import (
 )
 
 func CreateGroup(c context.Context, record *models.Group) error {
-	return FromContext(c).CreateGroup(record)
+	return FromContext(c).CreateGroup(Current(c), record)
 }

@@ -1,16 +1,16 @@
 package controllers
 
 import (
-	"net/http"
-	"gopkg.in/gin-gonic/gin.v1"
-	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
+	"gopkg.in/gin-gonic/gin.v1"
+	"net/http"
 )
 
 type GroupController struct {
-
 }
+
 func NewGroupController() GroupController {
 	return GroupController{}
 }

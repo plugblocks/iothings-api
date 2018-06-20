@@ -5,3 +5,8 @@ base.rsa.pub
 .env
 .env.prod
 .env.testing
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

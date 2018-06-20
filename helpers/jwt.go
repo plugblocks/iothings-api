@@ -22,46 +22,25 @@ func GetRSAPrivateKey(encodedKey []byte) (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func GenerateRefreshToken(encodedKey []byte, subject string) (*string, error) {
-	privateKey, err := GetRSAPrivateKey(encodedKey)
-	if err != nil {
-		return nil, err
-	}
-
-	refresh := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"sub": subject,
-		"aud": "refresh",
-		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(time.Hour * time.Duration(8760)).Unix(),
-	})
-
-	refreshString, err := refresh.SignedString(privateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return &refreshString, nil
-}
-
 func GenerateAccessToken(encodedKey []byte, subject string) (*string, error) {
 	privateKey, err := GetRSAPrivateKey(encodedKey)
 	if err != nil {
 		return nil, err
 	}
 
-	refresh := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+	access := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"sub": subject,
 		"aud": "access",
 		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(time.Minute * time.Duration(5)).Unix(),
+		"exp": time.Now().Add(time.Minute * time.Duration(8760)).Unix(),
 	})
 
-	refreshString, err := refresh.SignedString(privateKey)
+	accessString, err := access.SignedString(privateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return &refreshString, nil
+	return &accessString, nil
 }
 
 func ValidateJwtToken(token string, encodedKey []byte, audience string) (jwt.MapClaims, error) {

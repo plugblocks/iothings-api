@@ -17,7 +17,7 @@ RUN go get -t -v ./...
 RUN go install gitlab.com/plugblocks/iothings-api
 
 ENV GIN_MODE release
-ENV BASEAPI_ENV prod
+ENV IOTHINGS_ENV prod
 
 # Run the outyet command by default when the container starts.
 ENTRYPOINT /go/bin/iothings-api

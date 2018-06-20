@@ -69,7 +69,6 @@ func (a *API) SetupRouter() {
 		{
 			authController := controllers.NewAuthController()
 			authentication.POST("/", authController.Authentication)
-			authentication.POST("/refresh", authController.RefreshToken)
 		}
 	}
 }

@@ -13,17 +13,11 @@ type Store interface {
 	UpdateUser(*models.User, params.M) error
 	GetUsers() ([]*models.User, error)
 
-	UserIsAdmin(string) (bool, error)
-	UserAttachFleet(string, string) (*models.User, error)
-	UserDetachFleet(string, string) (*models.User, error)
-	UserGetFleet(string, string) (*models.User, error)
-	UserGetFleets(string) ([]*models.User, error)
-
 	CreateDevice(*models.Device) error
 	GetDevices(string) ([]*models.Device, error)
 	UpdateDevice(string, params.M) error
 	DeleteDevice(string) error
 	GetDevice(string) (*models.Device, error)
 
-	CreateGroup(*models.Group) error
+	CreateGroup(*models.User, *models.Group) error
 }

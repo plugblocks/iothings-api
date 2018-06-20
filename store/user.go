@@ -30,24 +30,3 @@ func ActivateUser(c context.Context, activationKey string, id string) error {
 func UpdateUser(c context.Context, params params.M) error {
 	return FromContext(c).UpdateUser(Current(c), params)
 }
-
-
-func UserIsAdmin(c context.Context, userId string) (bool, error) {
-	return FromContext(c).UserIsAdmin(userId)
-}
-
-func UserAttachFleet(c context.Context, userId string, fleetId string) (*models.User, error) {
-	return FromContext(c).UserAttachFleet(userId, fleetId)
-}
-
-func UserDetachFleet(c context.Context, userId string, fleetId string) (*models.User, error) {
-	return FromContext(c).UserDetachFleet(userId, fleetId)
-}
-
-func UserGetFleet(c context.Context, userId string, fleetId string) (*models.User, error) {
-	return FromContext(c).UserGetFleet(userId, fleetId)
-}
-
-func UserGetFleets(c context.Context, userId string) ([]*models.User, error) {
-	return FromContext(c).UserGetFleets(userId)
-}
