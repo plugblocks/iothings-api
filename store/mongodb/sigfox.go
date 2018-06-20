@@ -27,19 +27,33 @@ func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
 	devices := db.C(models.DevicesCollection).With(session)
 	device := &models.Device{}
 
-	err = devices.Find(params.M{"sigfoxId": message.SigfoxId}).One(device)
+	err = devices.Find(params.M{"sigfox_id": message.SigfoxId}).One(device)
 	if err != nil {
 		return helpers.NewError(http.StatusPartialContent, "sigfox_device_id_not_found", "Device Sigfox ID not found", err)
 	} else {
-		err = devices.Update(bson.M{"sigfoxId": message.SigfoxId}, bson.M{"$set": bson.M{"lastAcc": message.Timestamp}})
+		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
 		if err != nil {
 			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
 		}
 
-		err = devices.Update(bson.M{"sigfoxId": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
+		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
 		if err != nil {
 			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
 		}
+	}
+
+	return nil
+}
+
+func (db *mongo) CreateSigfoxLocation(location *sigfox.Location) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	locations := db.C(sigfox.SigfoxLocationsCollection).With(session)
+
+	location.BeforeCreate()
+	err := locations.Insert(location)
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "location_creation_failed", "Failed to insert the location", err)
 	}
 
 	return nil

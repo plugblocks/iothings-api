@@ -3,8 +3,6 @@ package server
 import (
 	"os"
 
-	"time"
-
 	"fmt"
 	"github.com/joho/godotenv"
 )
