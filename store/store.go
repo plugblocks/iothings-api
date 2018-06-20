@@ -3,6 +3,7 @@ package store
 import (
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 )
 
 type Store interface {

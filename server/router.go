@@ -101,5 +101,12 @@ func (a *API) SetupRouter() {
 			authController := controllers.NewAuthController()
 			authentication.POST("/", authController.Authentication)
 		}
+
+		sigfox := v1.Group("/sigfox")
+		{
+			sigfoxController := controllers.NewSigfoxController()
+			sigfox.POST("/message", sigfoxController.CreateSigfoxMessage)
+			sigfox.POST("/location", sigfoxController.CreateSigfoxLocation)
+		}
 	}
 }
