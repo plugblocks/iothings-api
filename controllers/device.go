@@ -3,11 +3,11 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
-	"github.com/gin-gonic/gin"
 )
 
 type DeviceController struct {

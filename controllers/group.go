@@ -1,25 +1,48 @@
 package controllers
 
 import (
+	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
-	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-type GroupController struct {
-}
+type GroupController struct{}
 
 func NewGroupController() GroupController {
 	return GroupController{}
 }
 
-func (gc GroupController) CreateGroup(c *gin.Context) {
+func (gtc GroupController) GetGroups(c *gin.Context) {
+	groups, err := store.GetAllGroups(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, groups)
+}
+
+func (gtc GroupController) GetGroupById(c *gin.Context) {
+	id := c.Param("id")
+
+	group, err := store.GetGroupById(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, group)
+}
+
+func (gtc GroupController) CreateGroup(c *gin.Context) {
 	group := &models.Group{}
 
-	err := c.BindJSON(group)
-	if err != nil {
+	if err := c.BindJSON(group); err != nil {
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
@@ -31,4 +54,34 @@ func (gc GroupController) CreateGroup(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, group)
+}
+
+func (gtc GroupController) EditGroup(c *gin.Context) {
+	group := &models.Group{}
+	id := c.Param("id")
+
+	if err := c.BindJSON(group); err != nil {
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
+		return
+	}
+
+	if err := store.UpdateGroup(c, id, params.M{"$set": group}); err != nil {
+		c.Error(err)
+		c.Abort()
+	}
+
+	c.JSON(http.StatusOK, group)
+}
+
+func (fc GroupController) DeleteGroup(c *gin.Context) {
+	err := store.DeleteGroup(c, c.Param("id"))
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+
 }

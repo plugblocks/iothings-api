@@ -3,11 +3,11 @@ package mongodb
 import (
 	"net/http"
 
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
 )
 
 func (db *mongo) CreateDevice(device *models.Device) error {

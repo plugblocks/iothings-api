@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"gitlab.com/plugblocks/iothings-api/services"
 	"github.com/gin-gonic/gin"
+	"gitlab.com/plugblocks/iothings-api/services"
 )
 
 func EmailMiddleware(emailSender services.EmailSender) gin.HandlerFunc {

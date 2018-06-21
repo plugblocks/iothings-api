@@ -20,4 +20,14 @@ type Store interface {
 	GetDevice(string) (*models.Device, error)
 
 	CreateGroup(*models.User, *models.Group) error
+	GetGroupById(*models.User, string) (*models.Group, error)
+	UpdateGroup(*models.User, string, params.M) error
+	GetAllGroups(*models.User) ([]models.Group, error)
+	DeleteGroup(*models.User, string) error
+
+	CreateFleet(*models.User, *models.Fleet) error
+	GetFleetById(*models.User, string) (*models.Fleet, error)
+	UpdateFleet(*models.User, string, params.M) error
+	GetAllFleets(*models.User) ([]models.Fleet, error)
+	DeleteFleet(*models.User, string) error
 }
