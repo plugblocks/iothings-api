@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"gitlab.com/plugblocks/iothings-api/helpers"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 func ErrorMiddleware() gin.HandlerFunc {

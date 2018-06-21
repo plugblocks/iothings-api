@@ -3,7 +3,7 @@ package server
 import (
 	"gitlab.com/plugblocks/iothings-api/models"
 
-	"gopkg.in/mgo.v2"
+	"github.com/globalsign/mgo"
 )
 
 func (a *API) SetupIndexes() error {

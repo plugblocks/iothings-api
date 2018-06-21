@@ -3,7 +3,7 @@ package middlewares
 import (
 	"github.com/spf13/viper"
 	"gitlab.com/plugblocks/iothings-api/config"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 func ConfigMiddleware(viper *viper.Viper) gin.HandlerFunc {

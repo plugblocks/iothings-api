@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/store"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 func AdminMiddleware() gin.HandlerFunc {

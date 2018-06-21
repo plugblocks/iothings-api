@@ -3,8 +3,8 @@ package middlewares
 import (
 	"gitlab.com/plugblocks/iothings-api/store"
 	"gitlab.com/plugblocks/iothings-api/store/mongodb"
-	"gopkg.in/gin-gonic/gin.v1"
-	mgo "gopkg.in/mgo.v2"
+	"github.com/gin-gonic/gin"
+	mgo "github.com/globalsign/mgo"
 )
 
 func StoreMiddleware(db *mgo.Database) gin.HandlerFunc {

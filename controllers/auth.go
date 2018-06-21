@@ -10,7 +10,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/store"
 	"golang.org/x/crypto/bcrypt"
 
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {

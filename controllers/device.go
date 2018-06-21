@@ -7,7 +7,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 type DeviceController struct {

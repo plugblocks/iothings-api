@@ -7,7 +7,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/controllers"
 	"gitlab.com/plugblocks/iothings-api/middlewares"
 
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 func Index(c *gin.Context) {

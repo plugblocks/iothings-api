@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 type SigfoxController struct {

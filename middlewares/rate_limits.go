@@ -9,7 +9,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/services"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 func RateMiddleware() gin.HandlerFunc {

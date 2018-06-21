@@ -9,7 +9,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct{}

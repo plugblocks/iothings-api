@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/spf13/viper"
 	"gitlab.com/plugblocks/iothings-api/services"
-	"gopkg.in/gin-gonic/gin.v1"
-	"gopkg.in/mgo.v2"
+	"github.com/gin-gonic/gin"
+	"github.com/globalsign/mgo"
 )
 
 type API struct {
