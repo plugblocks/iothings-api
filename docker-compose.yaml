@@ -10,15 +10,15 @@ services:
     ports:
       - "4000:4000"
     environment:
-      ENV: prod
+      IOTHINGS_ENV: prod
     links:
       - mongo-db:mongo
       - redis-db:redis
 
   # FIXME(hoatle): $ docker-compose up test should work repeatedly
-  test:
-    build: .
-    command: go run tests/main_test.go
+  #test:
+    #build: .
+    #command: go run tests/main_test.go
     #environment:
     #  NODE_ENV: development
 
