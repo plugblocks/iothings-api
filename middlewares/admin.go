@@ -3,10 +3,10 @@ package middlewares
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/store"
-	"github.com/gin-gonic/gin"
 )
 
 func AdminMiddleware() gin.HandlerFunc {

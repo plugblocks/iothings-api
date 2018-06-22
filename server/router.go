@@ -54,6 +54,28 @@ func (a *API) SetupRouter() {
 			users.GET("/", userController.GetUsers)
 		}
 
+		fleets := v1.Group("/fleets")
+		{
+			fleets.Use(authMiddleware)
+			fleetsController := controllers.NewFleetController()
+			fleets.GET("/", fleetsController.GetFleets)
+			fleets.POST("/", fleetsController.CreateFleet)
+			fleets.PUT("/:id", fleetsController.EditFleet)
+			fleets.GET("/:id", fleetsController.GetFleetById)
+			fleets.DELETE("/:id", fleetsController.DeleteFleet)
+		}
+
+		groups := v1.Group("/groups")
+		{
+			groups.Use(authMiddleware)
+			groupsController := controllers.NewGroupController()
+			groups.GET("/", groupsController.GetGroups)
+			groups.POST("/", groupsController.CreateGroup)
+			groups.PUT("/:id", groupsController.EditGroup)
+			groups.GET("/:id", groupsController.GetGroupById)
+			groups.DELETE("/:id", groupsController.DeleteGroup)
+		}
+
 		devices := v1.Group("/devices")
 		{
 			devices.Use(authMiddleware)

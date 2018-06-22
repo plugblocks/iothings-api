@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/services"
-	"github.com/gin-gonic/gin"
 )
 
 func RateMiddleware() gin.HandlerFunc {

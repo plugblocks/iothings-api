@@ -4,8 +4,8 @@ import (
 	"gitlab.com/plugblocks/iothings-api/server"
 	"gitlab.com/plugblocks/iothings-api/services"
 
-	"github.com/spf13/viper"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func main() {

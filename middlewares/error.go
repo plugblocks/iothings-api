@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"gitlab.com/plugblocks/iothings-api/helpers"
 	"github.com/gin-gonic/gin"
+	"gitlab.com/plugblocks/iothings-api/helpers"
 )
 
 func ErrorMiddleware() gin.HandlerFunc {
