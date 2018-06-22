@@ -11,6 +11,9 @@ WORKDIR /go/src/gitlab.com/plugblocks/iothings-api
 # Install the dependencies
 RUN go get -t -v ./...
 
+#openssl genrsa -out base.rsa 2048
+#openssl base64 -in base.rsa -out 64.rsa
+
 # Build the outyet command inside the container.
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)

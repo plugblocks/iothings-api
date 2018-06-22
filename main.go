@@ -4,12 +4,16 @@ import (
 	"gitlab.com/plugblocks/iothings-api/server"
 	"gitlab.com/plugblocks/iothings-api/services"
 
-	"github.com/spf13/viper"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func main() {
 	api := &server.API{Router: gin.Default(), Config: viper.New()}
+
+	fmt.Println("Config: Host Address" + api.Config.GetString("host_address"))
+	fmt.Println("Config: Databases: Mongo:" + api.Config.GetString("DB_HOST"))
 
 	// Configuration setup
 	err := api.SetupViper()
@@ -36,7 +40,6 @@ func main() {
 	//services.SetStripeKeyAndBackend(api.Config)
 
 	// Redis setup
-	api.SetupRedis()
 
 	// Router setup
 	api.SetupRouter()

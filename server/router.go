@@ -31,7 +31,6 @@ func (a *API) SetupRouter() {
 
 	router.Use(middlewares.StoreMiddleware(a.Database))
 	router.Use(middlewares.ConfigMiddleware(a.Config))
-	router.Use(middlewares.RedisMiddleware(a.Redis))
 
 	router.Use(middlewares.EmailMiddleware(a.EmailSender))
 	router.Use(middlewares.RateMiddleware())
@@ -63,6 +62,11 @@ func (a *API) SetupRouter() {
 			devices.PUT("/:id", deviceController.UpdateDevice)
 			devices.GET("/:id", deviceController.GetDevice)
 			devices.DELETE("/:id", deviceController.DeleteDevice)
+
+			/*devices.GET("/:id/states", deviceController.GetLastDeviceState)
+			devices.GET("/:id/locations", deviceController.GetLastDeviceLocation)
+			devices.GET("/:id/states/last", deviceController.GetAllDeviceStates)
+			devices.GET("/:id/locations/last", deviceController.GetAllDeviceLocations)*/
 		}
 
 		authentication := v1.Group("/auth")

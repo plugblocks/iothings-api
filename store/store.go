@@ -13,11 +13,13 @@ type Store interface {
 	UpdateUser(*models.User, params.M) error
 	GetUsers() ([]*models.User, error)
 
+	CreateGroup(*models.User, *models.Group) error
+
 	CreateDevice(*models.Device) error
 	GetDevices(string) ([]*models.Device, error)
 	UpdateDevice(string, params.M) error
 	DeleteDevice(string) error
 	GetDevice(string) (*models.Device, error)
 
-	CreateGroup(*models.User, *models.Group) error
+	//TODO: Fleets
 }

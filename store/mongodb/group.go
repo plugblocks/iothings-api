@@ -1,9 +1,9 @@
 package mongodb
 
 import (
+	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"github.com/globalsign/mgo/bson"
 	"net/http"
 )
 
