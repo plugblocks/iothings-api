@@ -1,11 +1,19 @@
 package middlewares
 
 import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+	"time"
+
+	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/services"
 	"github.com/gin-gonic/gin"
 )
 
 func RateMiddleware() gin.HandlerFunc {
-	/*return func(c *gin.Context) {
+	return func(c *gin.Context) {
 		conn := services.GetRedis(c).Pool.Get()
 		defer conn.Close()
 
@@ -36,6 +44,5 @@ func RateMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
-	}*/
-	return nil
+	}
 }

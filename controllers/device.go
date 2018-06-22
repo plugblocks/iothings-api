@@ -3,11 +3,11 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
+	"github.com/gin-gonic/gin"
 )
 
 type DeviceController struct {
@@ -97,55 +97,3 @@ func (dc DeviceController) GetDevice(c *gin.Context) {
 
 	c.JSON(http.StatusOK, device)
 }
-
-// Getting last messages from a specific device
-/*func (dc DeviceController) GetLastDeviceState(c *gin.Context) {
-	sigfoxMessages, err := store.GetLastDeviceState(c, c.Param("id"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, sigfoxMessages)
-}
-
-// Getting last locations from a specific device
-func (dc DeviceController) GetLastDeviceLocation(c *gin.Context) {
-	locations, err := store.GetLastDeviceLocation(c, c.Param("id"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, locations)
-}
-
-// Getting all messages from a specific device
-func (dc DeviceController) GetAllDeviceStates(c *gin.Context) {
-	sigfoxMessages, err := store.GetAllDeviceStates(c, c.Param("id"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, sigfoxMessages)
-}
-
-// Getting all locations from a specific device
-func (dc DeviceController) GetAllDeviceLocations(c *gin.Context) {
-	locations, err := store.GetAllDeviceLocations(c, c.Param("id"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, locations)
-}*/
