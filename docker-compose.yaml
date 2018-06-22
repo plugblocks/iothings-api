@@ -1,7 +1,5 @@
 version: '2'
 services:
-  redis-db:
-    image: redis:latest
   mongo-db:
     image: mongo:latest
   api:
@@ -13,7 +11,6 @@ services:
       IOTHINGS_ENV: prod
     links:
       - mongo-db:mongo
-      - redis-db:redis
 
   # FIXME(hoatle): $ docker-compose up test should work repeatedly
   #test:
