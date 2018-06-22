@@ -32,12 +32,6 @@ func main() {
 		panic(err)
 	}
 
-	// Stripe setup
-	//services.SetStripeKeyAndBackend(api.Config)
-
-	// Redis setup
-	api.SetupRedis()
-
 	// Router setup
 	api.SetupRouter()
 	api.Router.Run(api.Config.GetString("host_address"))

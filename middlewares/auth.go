@@ -5,8 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
-	"gitlab.com/plugblocks/iothings-api/models"
-	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
 	"strings"
@@ -29,14 +27,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		user := &models.User{}
-
-		// Gets the user from the redis store
-		err = services.GetRedis(c).GetValueForKey(claims["id"].(string), &user)
-		if err != nil {
-			user, _ = store.FindUserById(c, claims["id"].(string))
-			services.GetRedis(c).SetValueForKey(user.Id, &user)
-		}
+		user, _ := store.FindUserById(c, claims["id"].(string))
 
 		c.Set(store.CurrentKey, user)
 

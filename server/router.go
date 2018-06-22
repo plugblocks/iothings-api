@@ -11,7 +11,7 @@ import (
 )
 
 func Index(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "You successfully reached the base API."})
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "You successfully reached the iothings API."})
 }
 
 func (a *API) SetupRouter() {
@@ -31,10 +31,7 @@ func (a *API) SetupRouter() {
 
 	router.Use(middlewares.StoreMiddleware(a.Database))
 	router.Use(middlewares.ConfigMiddleware(a.Config))
-	router.Use(middlewares.RedisMiddleware(a.Redis))
-
 	router.Use(middlewares.EmailMiddleware(a.EmailSender))
-	router.Use(middlewares.RateMiddleware())
 
 	authMiddleware := middlewares.AuthMiddleware()
 	adminMiddleware := middlewares.AdminMiddleware()
