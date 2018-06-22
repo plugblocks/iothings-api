@@ -27,7 +27,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		user, _ := store.FindUserById(c, claims["id"].(string))
+		user, _ := store.FindUserById(c, claims["sub"].(string))
 
 		c.Set(store.CurrentKey, user)
 
