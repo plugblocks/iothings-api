@@ -28,10 +28,11 @@ type SanitizedUser struct {
 	Firstname string `json:"first_name" bson:"first_name"`
 	Lastname  string `json:"last_name" bson:"last_name"`
 	Email     string `json:"email" bson:"email"`
+	Admin     bool   `json:"admin" bson:"admin"`
 }
 
 func (user *User) Sanitize() SanitizedUser {
-	return SanitizedUser{user.Id, user.Firstname, user.Lastname, user.Email}
+	return SanitizedUser{user.Id, user.Firstname, user.Lastname, user.Email, user.Admin}
 }
 
 func (user *User) BeforeCreate() error {
