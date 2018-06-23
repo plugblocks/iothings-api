@@ -18,7 +18,7 @@ type Device struct {
 func (d *Device) BeforeCreate(user *User) {
 	d.Id = bson.NewObjectId().Hex()
 	d.LastAccess = time.Now().Unix()
-	d.OrganizationId = user.Id
+	d.OrganizationId = user.OrganizationId
 }
 
 const DevicesCollection = "devices"
