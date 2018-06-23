@@ -32,6 +32,9 @@ func main() {
 		panic(err)
 	}
 
+	// Seeds setup
+	api.SetupSeeds()
+
 	// Router setup
 	api.SetupRouter()
 	api.Router.Run(api.Config.GetString("host_address"))

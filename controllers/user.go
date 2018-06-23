@@ -72,7 +72,3 @@ func (uc UserController) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
-
-func (uc UserController) ImpersonateUser(c *gin.Context) {
-
-}
