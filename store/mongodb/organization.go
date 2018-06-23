@@ -1,11 +1,11 @@
 package mongodb
 
 import (
-	"gitlab.com/plugblocks/iothings-api/models"
-	"net/http"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/models"
+	"net/http"
 )
 
 func (db *mongo) CreateOrganization(organization *models.Organization) error {

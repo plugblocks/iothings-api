@@ -2,8 +2,8 @@ package store
 
 import (
 	"context"
-	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/models"
 )
 
 func CreateOrganization(c context.Context, record *models.Organization) error {

@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"gitlab.com/plugblocks/iothings-api/store"
-	"net/http"
-	"gitlab.com/plugblocks/iothings-api/models"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/store"
+	"net/http"
 )
 
 type OrganizationController struct{}
