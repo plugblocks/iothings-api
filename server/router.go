@@ -43,11 +43,11 @@ func (a *API) SetupRouter() {
 		//v1.POST("/reset_password", userController.ResetPasswordRequest)
 		users := v1.Group("/users")
 		{
-			users.POST("/", userController.CreateUser)
 			users.GET("/:id/activate/:activationKey", userController.ActivateUser)
 			users.Use(authMiddleware)
-			users.GET("/:id", userController.GetUser)
 			users.Use(adminMiddleware)
+			users.POST("/", userController.CreateUser)
+			users.GET("/:id", userController.GetUser)
 			users.GET("/", userController.GetUsers)
 		}
 
@@ -82,6 +82,18 @@ func (a *API) SetupRouter() {
 			devices.PUT("/:id", deviceController.UpdateDevice)
 			devices.GET("/:id", deviceController.GetDevice)
 			devices.DELETE("/:id", deviceController.DeleteDevice)
+		}
+
+		organizations := v1.Group("/organizations")
+		{
+			organizations.Use(authMiddleware)
+			organizations.Use(adminMiddleware)
+			organizationsController := controllers.NewOrganizationController()
+			organizations.GET("/", organizationsController.GetOrganizations)
+			organizations.POST("/", organizationsController.CreateOrganization)
+			organizations.PUT("/:id", organizationsController.UpdateOrganization)
+			organizations.GET("/:id", organizationsController.GetOrganizationById)
+			organizations.DELETE("/:id", organizationsController.DeleteOrganization)
 		}
 
 		authentication := v1.Group("/auth")

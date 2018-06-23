@@ -4,6 +4,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 func (a *API) SetupIndexes() error {
@@ -21,7 +22,9 @@ func (a *API) SetupIndexes() error {
 		},
 	}
 
+	// Devices indexes & validators
 	devices := database.C(models.DevicesCollection)
+	CreateValidator(devices, bson.M{"organization_id": bson.M{"$exists": true}})
 	collectionIndexes[devices] = []mgo.Index{
 		{
 			Key: []string{"userId"},
@@ -41,4 +44,12 @@ func (a *API) SetupIndexes() error {
 		}
 	}
 	return nil
+}
+
+func CreateValidator(collection *mgo.Collection, validator bson.M) {
+	info := &mgo.CollectionInfo{
+		Validator:       validator,
+		ValidationLevel: "strict",
+	}
+	collection.Create(info)
 }

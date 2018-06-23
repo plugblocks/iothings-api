@@ -13,11 +13,11 @@ type Store interface {
 	UpdateUser(*models.User, params.M) error
 	GetUsers() ([]*models.User, error)
 
-	CreateDevice(*models.Device) error
-	GetDevices(string) ([]*models.Device, error)
-	UpdateDevice(string, params.M) error
-	DeleteDevice(string) error
-	GetDevice(string) (*models.Device, error)
+	CreateDevice(*models.User, *models.Device) error
+	GetDevices(*models.User, string) ([]*models.Device, error)
+	UpdateDevice(*models.User, string, params.M) error
+	DeleteDevice(*models.User, string) error
+	GetDevice(*models.User, string) (*models.Device, error)
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)
@@ -30,4 +30,10 @@ type Store interface {
 	UpdateFleet(*models.User, string, params.M) error
 	GetAllFleets(*models.User) ([]models.Fleet, error)
 	DeleteFleet(*models.User, string) error
+
+	CreateOrganization(*models.Organization) error
+	GetOrganizationById(string) (*models.Organization, error)
+	UpdateOrganization(string, params.M) error
+	GetAllOrganizations() ([]models.Organization, error)
+	DeleteOrganization(string) error
 }
