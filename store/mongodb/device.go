@@ -87,3 +87,18 @@ func (db *mongo) GetDevice(user *models.User, id string) (*models.Device, error)
 
 	return device, nil
 }
+
+func (db *mongo) GetDeviceIdFromSigfoxId(sigfoxId string) (*models.Device, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+	device := &models.Device{}
+
+	err := devices.Find(bson.M{"sigfox_id": sigfoxId}).One(device)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
+	}
+
+	return device, nil
+}

@@ -10,10 +10,12 @@ type Message struct {
 	Rssi    float64 `json:"rssi" bson:"rssi" valid:"-"`       //Sigfox: rssi
 	AvgSnr  float64 `json:"avgSnr" bson:"avgSnr" valid:"-"`   //Sigfox: avgSnr
 	Station string  `json:"station" bson:"station" valid:"-"` //Sigfox: station
-	Lat     float64 `json:"lat" bson:"lat" valid:"-"`         //
-	Lng     float64 `json:"lng" bson:"lng" valid:"-"`
+	Lat     int8    `json:"lat" bson:"lat" valid:"-"`         //
+	Lng     int8    `json:"lng" bson:"lng" valid:"-"`
 	/* End of deprecate */
+	Type string `json:"type" bson:"type" valid:"-"` //Custom: message type to dispatch cases
 	Data string `json:"data" bson:"data" valid:"-"` //Sigfox: data
+	//Ack for downlink
 }
 
 const SigfoxMessagesCollection = "sigfoxMessages"

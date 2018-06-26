@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
@@ -29,6 +30,33 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		c.Error(err)
 		c.Abort()
 		return
+	}
+
+	if sigfoxMessage.Type == "wifi" {
+		res, sigfoxLocation, observation := resolveWifiPosition(c, sigfoxMessage)
+		if res == false {
+			fmt.Println("Error while resolving WiFi computed location")
+			return
+		}
+		fmt.Println("Resolved WiFi Frame, contaning: ", sigfoxLocation)
+		sigfoxLocation.SigfoxId = sigfoxMessage.SigfoxId
+
+		err = store.CreateSigfoxLocation(c, sigfoxLocation)
+		fmt.Println("WiFi Sigfox Location created")
+		if err != nil {
+			fmt.Println("Error while creating WiFi Sigfox Location")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing WiFi Sigfox Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
 	}
 
 	c.JSON(http.StatusCreated, sigfoxMessage)

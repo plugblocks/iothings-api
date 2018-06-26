@@ -19,6 +19,7 @@ type Store interface {
 	UpdateDevice(*models.User, string, params.M) error
 	DeleteDevice(*models.User, string) error
 	GetDevice(*models.User, string) (*models.Device, error)
+	GetDeviceIdFromSigfoxId(string) (*models.Device, error)
 
 	CreateSigfoxMessage(*sigfox.Message) error
 	CreateSigfoxLocation(location *sigfox.Location) error
@@ -41,6 +42,7 @@ type Store interface {
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
 
+	CreateObservation(*models.Observation) error
 	GetDeviceObservations(*models.Customer, string) ([]models.Observation, error)
 	GetDeviceLatestObservation(*models.Customer, string) (*models.Observation, error)
 	GetFleetObservations(*models.User, string) ([]models.Observation, error)

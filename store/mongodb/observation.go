@@ -138,6 +138,7 @@ func (db *mongo) GetAllFleetsObservations(user *models.User) ([]models.Observati
 	}
 	return retObservationsList, nil
 }
+
 func (db *mongo) GetAllFleetsLatestObservation(user *models.User) ([]models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
@@ -166,4 +167,19 @@ func (db *mongo) GetAllFleetsLatestObservation(user *models.User) ([]models.Obse
 	}
 
 	return retObservationsList, nil
+}
+
+func (db *mongo) CreateObservation(record *models.Observation) error {
+	//device.LastAccess = time.Now().Unix()
+	//device.BeforeCreate(user)
+	session := db.Session.Copy()
+	defer session.Close()
+	observations := db.C(models.ObservationsCollection).With(session)
+
+	err := observations.Insert(record)
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "observation_creation_failed", "Failed to create the observation", err)
+	}
+
+	return nil
 }

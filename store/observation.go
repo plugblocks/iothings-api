@@ -28,3 +28,7 @@ func GetAllFleetsObservations(c context.Context) ([]models.Observation, error) {
 func GetAllFleetsLatestObservation(c context.Context) ([]models.Observation, error) {
 	return FromContext(c).GetAllFleetsLatestObservation(Current(c))
 }
+
+func CreateObservation(c context.Context, record *models.Observation) error {
+	return FromContext(c).CreateObservation(record)
+}
