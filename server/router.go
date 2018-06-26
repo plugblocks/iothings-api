@@ -94,6 +94,7 @@ func (a *API) SetupRouter() {
 			organizations.PUT("/:id", organizationsController.UpdateOrganization)
 			organizations.GET("/:id", organizationsController.GetOrganizationById)
 			organizations.DELETE("/:id", organizationsController.DeleteOrganization)
+			organizations.GET("/:id/users", organizationsController.GetUsers)
 		}
 
 		authentication := v1.Group("/auth")
