@@ -83,5 +83,16 @@ func (fc OrganizationController) DeleteOrganization(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, nil)
+}
 
+func (fc OrganizationController) GetUsers(c *gin.Context) {
+	users, err := store.GetOrganizationUsers(c, c.Param("id"))
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 }

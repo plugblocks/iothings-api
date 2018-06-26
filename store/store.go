@@ -36,4 +36,5 @@ type Store interface {
 	UpdateOrganization(string, params.M) error
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
+	GetOrganizationUsers(string) ([]models.SanitizedUser, error)
 }

@@ -76,3 +76,18 @@ func (db *mongo) DeleteOrganization(id string) error {
 
 	return nil
 }
+
+func (db *mongo) GetOrganizationUsers(id string) ([]models.SanitizedUser, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	usersCollection := db.C(models.UsersCollection).With(session)
+
+	users := []models.SanitizedUser{}
+
+	err := usersCollection.Find(bson.M{"organization_id": id}).All(&users)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "organization_user_retrieval_failed", "Failed to retrieve the users of the organization", err)
+	}
+
+	return users, nil
+}
