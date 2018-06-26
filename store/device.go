@@ -28,5 +28,5 @@ func GetDevice(c context.Context, id string) (*models.Device, error) {
 }
 
 func GetDeviceIdFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, error) {
-	return FromContext(c).GetDevice(Current(c), sigfoxId)
+	return FromContext(c).GetDeviceIdFromSigfoxId(sigfoxId)
 }
