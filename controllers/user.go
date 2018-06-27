@@ -72,3 +72,40 @@ func (uc UserController) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
+
+func (uc UserController) AssignOrganization(c *gin.Context) {
+	userId := c.Param("id")
+	organizationId := c.Param("organization_id")
+
+	err := store.AssignOrganization(c, userId, organizationId)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+}
+
+func (uc UserController) GetUserOrganization(c *gin.Context) {
+	user := store.Current(c)
+	var err error
+
+	if user.Admin {
+		user, err = store.FindUserById(c, c.Param("id"))
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+	}
+
+	organization, err := store.GetUserOrganization(c, user)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, organization)
+}

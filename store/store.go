@@ -13,6 +13,8 @@ type Store interface {
 	FindUser(params.M) (*models.User, error)
 	UpdateUser(*models.User, params.M) error
 	GetUsers() ([]*models.User, error)
+	AssignOrganization(string, string) error
+	GetUserOrganization(user *models.User) (*models.Organization, error)
 
 	CreateDevice(*models.User, *models.Device) error
 	GetDevices(*models.User, string) ([]*models.Device, error)
