@@ -104,14 +104,15 @@ func (a *API) SetupRouter() {
 
 		observations := v1.Group("/observations")
 		{
-			observations.Use(authMiddleware)
 			observationController := controllers.NewObservationController()
-			observations.GET("/device/:id", observationController.GetDeviceObservations)
-			observations.GET("/device/:id/latest", observationController.GetDeviceLatestObservation)
-			observations.GET("/fleet/:id", observationController.GetFleetObservations)
-			observations.GET("/fleet/:id/latest", observationController.GetFleetLatestObservation)
-			observations.GET("/fleets", observationController.GetAllFleetsObservations)
-			observations.GET("/fleets/latest", observationController.GetAllFleetsLatestObservation)
+			observations.POST("/new", observationController.CreateObservation)
+			observations.Use(authMiddleware)
+			observations.GET("/device/:id/:type", observationController.GetDeviceObservations)
+			observations.GET("/device/:id/:type/latest", observationController.GetDeviceLatestObservation)
+			observations.GET("/fleet/:id/:type", observationController.GetFleetObservations)
+			observations.GET("/fleet/:id/:type/latest", observationController.GetFleetLatestObservation)
+			observations.GET("/fleets/:type", observationController.GetAllFleetsObservations)
+			observations.GET("/fleets/:type/latest", observationController.GetAllFleetsLatestObservation)
 		}
 
 		sigfox := v1.Group("/sigfox")

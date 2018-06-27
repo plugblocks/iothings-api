@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (db *mongo) GetDeviceObservations(customer *models.Customer, deviceId string) ([]models.Observation, error) {
+func (db *mongo) GetDeviceObservations(customer *models.Customer, deviceId string, typ string) ([]models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -30,7 +30,7 @@ func (db *mongo) GetDeviceObservations(customer *models.Customer, deviceId strin
 	return list, nil
 }
 
-func (db *mongo) GetDeviceLatestObservation(customer *models.Customer, deviceId string) (*models.Observation, error) {
+func (db *mongo) GetDeviceLatestObservation(customer *models.Customer, deviceId string, typ string) (*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -54,7 +54,7 @@ func (db *mongo) GetDeviceLatestObservation(customer *models.Customer, deviceId 
 	return observation, nil
 }
 
-func (db *mongo) GetFleetObservations(user *models.User, fleetId string) ([]models.Observation, error) {
+func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ string) ([]models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -82,7 +82,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string) ([]mode
 	return retObservationsList, nil
 }
 
-func (db *mongo) GetFleetLatestObservation(user *models.User, fleetId string) ([]models.Observation, error) {
+func (db *mongo) GetFleetLatestObservation(user *models.User, fleetId string, typ string) ([]models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -110,7 +110,7 @@ func (db *mongo) GetFleetLatestObservation(user *models.User, fleetId string) ([
 	return retObservationsList, nil
 }
 
-func (db *mongo) GetAllFleetsObservations(user *models.User) ([]models.Observation, error) {
+func (db *mongo) GetAllFleetsObservations(user *models.User, typ string) ([]models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -139,7 +139,7 @@ func (db *mongo) GetAllFleetsObservations(user *models.User) ([]models.Observati
 	return retObservationsList, nil
 }
 
-func (db *mongo) GetAllFleetsLatestObservation(user *models.User) ([]models.Observation, error) {
+func (db *mongo) GetAllFleetsLatestObservation(user *models.User, typ string) ([]models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 

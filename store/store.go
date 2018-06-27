@@ -43,10 +43,10 @@ type Store interface {
 	DeleteOrganization(string) error
 
 	CreateObservation(*models.Observation) error
-	GetDeviceObservations(*models.Customer, string) ([]models.Observation, error)
-	GetDeviceLatestObservation(*models.Customer, string) (*models.Observation, error)
-	GetFleetObservations(*models.User, string) ([]models.Observation, error)
-	GetFleetLatestObservation(*models.User, string) ([]models.Observation, error)
-	GetAllFleetsObservations(*models.User) ([]models.Observation, error)
-	GetAllFleetsLatestObservation(*models.User) ([]models.Observation, error)
+	GetDeviceObservations(*models.Customer, string, string) ([]models.Observation, error)
+	GetDeviceLatestObservation(*models.Customer, string, string) (*models.Observation, error)
+	GetFleetObservations(*models.User, string, string) ([]models.Observation, error)
+	GetFleetLatestObservation(*models.User, string, string) ([]models.Observation, error)
+	GetAllFleetsObservations(*models.User, string) ([]models.Observation, error)
+	GetAllFleetsLatestObservation(*models.User, string) ([]models.Observation, error)
 }
