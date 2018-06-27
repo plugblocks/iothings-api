@@ -3,12 +3,13 @@ package mongodb
 import (
 	"net/http"
 
+	"errors"
+	"fmt"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"errors"
 )
 
 func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
@@ -16,33 +17,31 @@ func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)
 
+	fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
 	device.BeforeCreate(user)
 
 	if device.Metadata.SigfoxId != "" {
-		count, _ := devices.Find(params.M{"sigfox_id": device.Metadata.SigfoxId}).Count()
+		count, _ := devices.Find(params.M{"metadata.sigfox_id": device.Metadata.SigfoxId}).Count()
 		if count > 0 {
-			helpers.NewError(http. StatusConflict, "device_creation_failed", "Failed to create the device", errors.New("Sigfox Device already exists"))
-			return nil
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device Sigfox", errors.New("Sigfox Device already exists"))
 		}
 	}
 
 	if device.Metadata.BleMac != "" {
-		count, _ := devices.Find(params.M{"ble_mac": device.Metadata.BleMac}).Count()
+		count, _ := devices.Find(params.M{"metadata.ble_mac": device.Metadata.BleMac}).Count()
 		if count > 0 {
-			helpers.NewError(http. StatusConflict, "device_creation_failed", "Failed to create the device", errors.New("BLE Device already exists"))
-			return nil
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device BLE", errors.New("BLE Device already exists"))
 		}
 	}
 
 	if device.Metadata.WifiMac != "" {
-		count, _ := devices.Find(params.M{"wifi_mac": device.Metadata.WifiMac}).Count()
+		count, _ := devices.Find(params.M{"metadata.wifi_mac": device.Metadata.WifiMac}).Count()
 		if count > 0 {
-			helpers.NewError(http. StatusConflict, "device_creation_failed", "Failed to create the device", errors.New("WiFi Device already exists"))
-			return nil
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device WiFi", errors.New("WiFi Device already exists"))
 		}
 	}
 
-	err := devices.Insert(device)
+	err := devices.Insert(&device)
 	if err != nil {
 		return helpers.NewError(http.StatusInternalServerError, "device_creation_failed", "Failed to create the device", err)
 	}
@@ -50,14 +49,14 @@ func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
 	return nil
 }
 
-func (db *mongo) GetDevices(user *models.User, customerId string) ([]*models.Device, error) {
+func (db *mongo) GetDevices(user *models.User) ([]*models.Device, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
 	devices := db.C(models.DevicesCollection).With(session)
 
 	list := []*models.Device{}
-	err := devices.Find(params.M{"customer_id": customerId, "organization_id": user.OrganizationId}).All(&list)
+	err := devices.Find(params.M{"organization_id": user.OrganizationId}).All(&list)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "devices_not_found", "Devices not found", err)
 	}

@@ -27,10 +27,19 @@ func (a *API) SetupIndexes() error {
 	CreateValidator(devices, bson.M{"organization_id": bson.M{"$exists": true}})
 	collectionIndexes[devices] = []mgo.Index{
 		{
-			Key: []string{"userId"},
+			Key: []string{"organization_id"},
 		},
 		{
-			Key: []string{"tokens._id"},
+			Key:    []string{"metadata.sigfox_id"},
+			Unique: true,
+		},
+		{
+			Key:    []string{"metadata.ble_mac"},
+			Unique: true,
+		},
+		{
+			Key:    []string{"metadata.wifi_mac"},
+			Unique: true,
 		},
 	}
 

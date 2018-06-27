@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"fmt"
 	"github.com/globalsign/mgo/bson"
 )
 
@@ -26,6 +27,7 @@ type Metadata struct {
 func (d *Device) BeforeCreate(user *User) {
 	d.Id = bson.NewObjectId().Hex()
 	d.LastAccess = time.Now().Unix()
+	fmt.Println("Models User: " + user.Email + "OrgaId" + user.OrganizationId)
 	d.OrganizationId = user.OrganizationId
 }
 
