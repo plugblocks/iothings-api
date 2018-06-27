@@ -100,3 +100,30 @@ func (db *mongo) GetUsers() ([]*models.User, error) {
 
 	return list, nil
 }
+
+func (db *mongo) AssignOrganization(user_id string, organization_id string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	users := db.C(models.UsersCollection).With(session)
+	err := users.Update(bson.M{"_id": user_id}, bson.M{"$set": bson.M{"organization_id": organization_id}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "organization_change_failed", "Couldn't change the user organization", err)
+	}
+	return nil
+}
+
+func (db *mongo) GetUserOrganization(user *models.User) (*models.Organization, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	organizations := db.C(models.OrganizationsCollection).With(session)
+
+	organization := &models.Organization{}
+
+	err := organizations.Find(bson.M{"_id": user.OrganizationId}).One(organization)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "organization_not_found", "Organization not found", err)
+	}
+
+	return organization, err
+}

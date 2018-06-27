@@ -45,10 +45,12 @@ func (a *API) SetupRouter() {
 		{
 			users.GET("/:id/activate/:activationKey", userController.ActivateUser)
 			users.Use(authMiddleware)
+			users.GET("/:id/organization", userController.GetUserOrganization)
 			users.Use(adminMiddleware)
 			users.POST("/", userController.CreateUser)
 			users.GET("/:id", userController.GetUser)
 			users.GET("/", userController.GetUsers)
+			users.PUT("/:id/assign/:organization_id", userController.AssignOrganization)
 		}
 
 		fleets := v1.Group("/fleets")

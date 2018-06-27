@@ -30,3 +30,11 @@ func ActivateUser(c context.Context, activationKey string, id string) error {
 func UpdateUser(c context.Context, params params.M) error {
 	return FromContext(c).UpdateUser(Current(c), params)
 }
+
+func AssignOrganization(c context.Context, userId string, organizationId string) error {
+	return FromContext(c).AssignOrganization(userId, organizationId)
+}
+
+func GetUserOrganization(c context.Context, user *models.User) (*models.Organization, error) {
+	return FromContext(c).GetUserOrganization(user)
+}
