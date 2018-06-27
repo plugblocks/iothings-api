@@ -88,7 +88,7 @@ func (db *mongo) GetDevice(user *models.User, id string) (*models.Device, error)
 	return device, nil
 }
 
-func (db *mongo) GetDeviceIdFromSigfoxId(sigfoxId string) (*models.Device, error) {
+func (db *mongo) GetDeviceFromSigfoxId(sigfoxId string) (*models.Device, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 

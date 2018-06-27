@@ -27,6 +27,6 @@ func GetDevice(c context.Context, id string) (*models.Device, error) {
 	return FromContext(c).GetDevice(Current(c), id)
 }
 
-func GetDeviceIdFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, error) {
-	return FromContext(c).GetDeviceIdFromSigfoxId(sigfoxId)
+func GetDeviceFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, error) {
+	return FromContext(c).GetDeviceFromSigfoxId(sigfoxId)
 }

@@ -18,10 +18,6 @@ func Current(c context.Context) *models.User {
 	return c.Value(CurrentKey).(*models.User)
 }
 
-func CurrentCustomer(c context.Context) *models.Customer {
-	return c.Value(CurrentKey).(*models.Customer)
-}
-
 func ToContext(c Setter, store Store) {
 	c.Set(StoreKey, store)
 }

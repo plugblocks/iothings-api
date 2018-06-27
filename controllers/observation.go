@@ -34,7 +34,7 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 }
 
 func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
-	observations, err := store.GetDeviceObservations(c, c.Param("id"), c.Param("type"))
+	observations, err := store.GetDeviceObservations(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"))
 
 	if err != nil {
 		c.Error(err)
@@ -46,7 +46,7 @@ func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
 }
 
 func (oc ObservationController) GetDeviceLatestObservation(c *gin.Context) {
-	observation, err := store.GetDeviceLatestObservation(c, c.Param("id"), c.Param("type"))
+	observation, err := store.GetDeviceLatestObservation(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"))
 
 	if err != nil {
 		c.Error(err)
@@ -69,28 +69,6 @@ func (oc ObservationController) GetFleetObservations(c *gin.Context) {
 }
 func (oc ObservationController) GetFleetLatestObservation(c *gin.Context) {
 	observation, err := store.GetFleetLatestObservation(c, c.Param("id"), c.Param("type"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, observation)
-}
-func (oc ObservationController) GetAllFleetsObservations(c *gin.Context) {
-	observations, err := store.GetAllFleetsObservations(c, c.Param("type"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, observations)
-}
-func (oc ObservationController) GetAllFleetsLatestObservation(c *gin.Context) {
-	observation, err := store.GetAllFleetsLatestObservation(c, c.Param("type"))
 
 	if err != nil {
 		c.Error(err)

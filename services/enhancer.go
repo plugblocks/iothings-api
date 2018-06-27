@@ -1,4 +1,4 @@
-package controllers
+package services
 
 import (
 	"context"
@@ -13,14 +13,7 @@ import (
 	"log"
 )
 
-type EnhancerController struct {
-}
-
-func NewEnhancerController() EnhancerController {
-	return EnhancerController{}
-}
-
-func resolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfox.Location, *models.Observation) {
+func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfox.Location, *models.Observation) {
 	fmt.Print("WiFi frame: \t\t\t")
 	var wifiLoc sigfox.Location
 
@@ -83,7 +76,7 @@ func resolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 
 	var obs *models.Observation
 	var defp *models.DefaultProperty
-	device, _ := store.GetDeviceIdFromSigfoxId(contxt, msg.SigfoxId)
+	device, _ := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
 	defp.SetContext("wifi")
 	defp.SetType("location")
 	/*defp.Type = "location"

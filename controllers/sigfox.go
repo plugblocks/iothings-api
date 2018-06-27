@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
+	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
 )
@@ -33,7 +34,7 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 	}
 
 	if sigfoxMessage.Type == "wifi" {
-		res, sigfoxLocation, observation := resolveWifiPosition(c, sigfoxMessage)
+		res, sigfoxLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while resolving WiFi computed location")
 			return

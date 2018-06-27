@@ -112,8 +112,6 @@ func (a *API) SetupRouter() {
 			observations.GET("/device/:id/:type/latest", observationController.GetDeviceLatestObservation)
 			observations.GET("/fleet/:id/:type", observationController.GetFleetObservations)
 			observations.GET("/fleet/:id/:type/latest", observationController.GetFleetLatestObservation)
-			observations.GET("/fleets/:type", observationController.GetAllFleetsObservations)
-			observations.GET("/fleets/:type/latest", observationController.GetAllFleetsLatestObservation)
 		}
 
 		sigfox := v1.Group("/sigfox")

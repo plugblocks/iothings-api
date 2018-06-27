@@ -15,10 +15,6 @@ func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
 	sigfoxMessages := db.C(sigfox.SigfoxMessagesCollection).With(session)
 
 	message.Id = bson.NewObjectId().Hex()
-	/*err := message.BeforeCreate()
-	if err != nil {
-		return err
-	}*/
 
 	err := sigfoxMessages.Insert(message)
 	if err != nil {
