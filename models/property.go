@@ -17,3 +17,11 @@ func (dp *DefaultProperty) GetType() string {
 func (dp *DefaultProperty) GetContext() string {
 	return dp.Context
 }
+
+func (dp *DefaultProperty) SetContext(ctxt string) {
+	dp.Context = ctxt
+}
+
+func (dp *DefaultProperty) SetType(typ string) {
+	dp.Type = typ
+}

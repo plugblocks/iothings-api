@@ -39,6 +39,19 @@ func (oc OrganizationController) GetOrganizationById(c *gin.Context) {
 	c.JSON(http.StatusOK, organization)
 }
 
+func (oc OrganizationController) GetOrganizationUsers(c *gin.Context) {
+	id := c.Param("id")
+
+	users, err := store.GetOrganizationUsers(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
 func (oc OrganizationController) CreateOrganization(c *gin.Context) {
 	organization := &models.Organization{}
 

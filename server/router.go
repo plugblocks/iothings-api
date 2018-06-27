@@ -93,6 +93,7 @@ func (a *API) SetupRouter() {
 			organizations.POST("/", organizationsController.CreateOrganization)
 			organizations.PUT("/:id", organizationsController.UpdateOrganization)
 			organizations.GET("/:id", organizationsController.GetOrganizationById)
+			organizations.GET("/:id/users", organizationsController.GetOrganizationUsers)
 			organizations.DELETE("/:id", organizationsController.DeleteOrganization)
 			organizations.GET("/:id/users", organizationsController.GetUsers)
 		}
@@ -101,6 +102,26 @@ func (a *API) SetupRouter() {
 		{
 			authController := controllers.NewAuthController()
 			authentication.POST("/", authController.Authentication)
+		}
+
+		observations := v1.Group("/observations")
+		{
+			observationController := controllers.NewObservationController()
+			observations.POST("/new", observationController.CreateObservation)
+			observations.Use(authMiddleware)
+			observations.GET("/device/:id/:type", observationController.GetDeviceObservations)
+			observations.GET("/device/:id/:type/latest", observationController.GetDeviceLatestObservation)
+			observations.GET("/fleet/:id/:type", observationController.GetFleetObservations)
+			observations.GET("/fleet/:id/:type/latest", observationController.GetFleetLatestObservation)
+			observations.GET("/fleets/:type", observationController.GetAllFleetsObservations)
+			observations.GET("/fleets/:type/latest", observationController.GetAllFleetsLatestObservation)
+		}
+
+		sigfox := v1.Group("/sigfox")
+		{
+			sigfoxController := controllers.NewSigfoxController()
+			sigfox.POST("/message", sigfoxController.CreateSigfoxMessage)
+			sigfox.POST("/location", sigfoxController.CreateSigfoxLocation)
 		}
 	}
 }
