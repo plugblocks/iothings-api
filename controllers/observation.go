@@ -34,7 +34,7 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 }
 
 func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
-	observations, err := store.GetDeviceObservations(c, c.Param("id"), c.Param("type")) /*c.Param("customerId") if cannot find customer from context in store*/
+	observations, err := store.GetDeviceObservations(c, c.Param("id"), c.Param("type"))
 
 	if err != nil {
 		c.Error(err)
