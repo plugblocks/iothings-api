@@ -93,7 +93,6 @@ func (a *API) SetupRouter() {
 			organizations.POST("/", organizationsController.CreateOrganization)
 			organizations.PUT("/:id", organizationsController.UpdateOrganization)
 			organizations.GET("/:id", organizationsController.GetOrganizationById)
-			organizations.GET("/:id/users", organizationsController.GetOrganizationUsers)
 			organizations.DELETE("/:id", organizationsController.DeleteOrganization)
 			organizations.GET("/:id/users", organizationsController.GetUsers)
 		}

@@ -38,7 +38,7 @@ type Store interface {
 
 	CreateOrganization(*models.Organization) error
 	GetOrganizationById(string) (*models.Organization, error)
-	GetOrganizationUsers(string) ([]models.User, error)
+	GetOrganizationUsers(string) ([]models.SanitizedUser, error)
 	UpdateOrganization(string, params.M) error
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
@@ -50,5 +50,4 @@ type Store interface {
 	GetFleetLatestObservation(*models.User, string, string) ([]models.Observation, error)
 	GetAllFleetsObservations(*models.User, string) ([]models.Observation, error)
 	GetAllFleetsLatestObservation(*models.User, string) ([]models.Observation, error)
->>>>>>> 857f5e360b1f15b088edbb59b4924fbd7d83bc47
 }

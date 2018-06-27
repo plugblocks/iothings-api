@@ -18,10 +18,6 @@ func GetOrganizationById(c context.Context, id string) (*models.Organization, er
 	return FromContext(c).GetOrganizationById(id)
 }
 
-func GetOrganizationUsers(c context.Context, id string) ([]models.User, error) {
-	return FromContext(c).GetOrganizationUsers(id)
-}
-
 func UpdateOrganization(c context.Context, id string, params params.M) error {
 	return FromContext(c).UpdateOrganization(id, params)
 }
