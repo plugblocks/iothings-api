@@ -24,7 +24,3 @@ func ErrorWithCode(code string, message string, trace error) Error {
 func NewError(httpCode int, code string, message string, trace error) Error {
 	return Error{Code: code, Message: message, HttpCode: httpCode, Trace: trace}
 }
-
-func NewErrorWithTrace(httpCode int, code string, message string, trace error) Error {
-	return Error{Code: code, Message: message, HttpCode: httpCode, Trace: trace}
-}

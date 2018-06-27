@@ -8,6 +8,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"errors"
 )
 
 func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
@@ -16,6 +17,30 @@ func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
 	devices := db.C(models.DevicesCollection).With(session)
 
 	device.BeforeCreate(user)
+
+	if device.Metadata.SigfoxId != "" {
+		count, _ := devices.Find(params.M{"sigfox_id": device.Metadata.SigfoxId}).Count()
+		if count > 0 {
+			helpers.NewError(http. StatusConflict, "device_creation_failed", "Failed to create the device", errors.New("Sigfox Device already exists"))
+			return nil
+		}
+	}
+
+	if device.Metadata.BleMac != "" {
+		count, _ := devices.Find(params.M{"ble_mac": device.Metadata.BleMac}).Count()
+		if count > 0 {
+			helpers.NewError(http. StatusConflict, "device_creation_failed", "Failed to create the device", errors.New("BLE Device already exists"))
+			return nil
+		}
+	}
+
+	if device.Metadata.WifiMac != "" {
+		count, _ := devices.Find(params.M{"wifi_mac": device.Metadata.WifiMac}).Count()
+		if count > 0 {
+			helpers.NewError(http. StatusConflict, "device_creation_failed", "Failed to create the device", errors.New("WiFi Device already exists"))
+			return nil
+		}
+	}
 
 	err := devices.Insert(device)
 	if err != nil {
