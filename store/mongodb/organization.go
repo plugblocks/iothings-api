@@ -51,6 +51,27 @@ func (db *mongo) GetOrganizationById(id string) (*models.Organization, error) {
 	return organization, nil
 }
 
+func (db *mongo) GetOrganizationUsers(id string) ([]models.User, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	organizationCollection := db.C(models.OrganizationsCollection).With(session)
+	userCollection := db.C(models.UsersCollection).With(session)
+
+	organization := &models.Organization{}
+	err := organizationCollection.Find(bson.M{"_id": id}).One(organization)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "organization_not_found", "Could not find the organization", err)
+	}
+
+	users := []models.User{}
+	err = userCollection.Find(bson.M{"organization_id": organization.Id}).All(&users)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_users_failed", "Failed to get the users: "+err.Error(), err)
+	}
+
+	return users, nil
+}
+
 func (db *mongo) UpdateOrganization(id string, params params.M) error {
 	session := db.Session.Copy()
 	defer session.Close()

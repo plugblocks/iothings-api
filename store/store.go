@@ -38,6 +38,7 @@ type Store interface {
 
 	CreateOrganization(*models.Organization) error
 	GetOrganizationById(string) (*models.Organization, error)
+	GetOrganizationUsers(string) ([]models.User, error)
 	UpdateOrganization(string, params.M) error
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
