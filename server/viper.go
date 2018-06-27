@@ -3,12 +3,14 @@ package server
 import (
 	"os"
 
+	"fmt"
 	"github.com/joho/godotenv"
 )
 
 func (a *API) SetupViper() error {
 
 	filename := ".env"
+	fmt.Println("Using env:" + os.Getenv("IOTHINGS_ENV"))
 	switch os.Getenv("IOTHINGS_ENV") {
 	case "testing":
 		filename = "../.env.testing"

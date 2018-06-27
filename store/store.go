@@ -3,6 +3,7 @@ package store
 import (
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 )
 
 type Store interface {
@@ -18,6 +19,10 @@ type Store interface {
 	UpdateDevice(*models.User, string, params.M) error
 	DeleteDevice(*models.User, string) error
 	GetDevice(*models.User, string) (*models.Device, error)
+	GetDeviceFromSigfoxId(string) (*models.Device, error)
+
+	CreateSigfoxMessage(*sigfox.Message) error
+	CreateSigfoxLocation(location *sigfox.Location) error
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)
@@ -33,7 +38,14 @@ type Store interface {
 
 	CreateOrganization(*models.Organization) error
 	GetOrganizationById(string) (*models.Organization, error)
+	GetOrganizationUsers(string) ([]models.SanitizedUser, error)
 	UpdateOrganization(string, params.M) error
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
+
+	CreateObservation(*models.Observation) error
+	GetDeviceObservations(string, string, string) ([]models.Observation, error)
+	GetDeviceLatestObservation(string, string, string) (*models.Observation, error)
+	GetFleetObservations(*models.User, string, string) ([]models.Observation, error)
+	GetFleetLatestObservation(*models.User, string, string) ([]models.Observation, error)
 }

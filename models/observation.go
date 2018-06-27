@@ -1,10 +1,17 @@
 package models
 
+import "time"
+
 type Observation struct {
 	Id         string     `json:"id" bson:"_id"`
-	CustomerId string     `json:"customer_id" bson:"customer_id"`
-	Properties []Property `json:"properties" bson:"properties"`
+	Timestamp  int64      `json:"timestamp" bson:"timestamp" valid:"-"`
 	DeviceId   string     `json:"device_id" bson:"device_id"`
+	Type       string     `json:"type" bson:"type"`
+	Properties []Property `json:"properties" bson:"properties"`
+}
+
+func (o *Observation) BeforeCreate(device *Device) {
+	device.LastAccess = time.Now().Unix()
 }
 
 const ObservationsCollection = "observations"

@@ -25,3 +25,7 @@ func UpdateOrganization(c context.Context, id string, params params.M) error {
 func DeleteOrganization(c context.Context, id string) error {
 	return FromContext(c).DeleteOrganization(id)
 }
+
+func GetOrganizationUsers(c context.Context, id string) ([]models.SanitizedUser, error) {
+	return FromContext(c).GetOrganizationUsers(id)
+}
