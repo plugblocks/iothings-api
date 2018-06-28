@@ -25,23 +25,23 @@ func (a *API) SetupIndexes() error {
 	// Devices indexes & validators
 	devices := database.C(models.DevicesCollection)
 	CreateValidator(devices, bson.M{"organization_id": bson.M{"$exists": true}})
-	collectionIndexes[devices] = []mgo.Index{
+	/*collectionIndexes[devices] = []mgo.Index{
 		{
 			Key: []string{"organization_id"},
 		},
 		{
-			Key:    []string{"metadata.sigfox_id"},
+			Key:    []string{"sigfox_id"},
 			Unique: true,
 		},
 		{
-			Key:    []string{"metadata.ble_mac"},
+			Key:    []string{"ble_mac"},
 			Unique: true,
 		},
 		{
-			Key:    []string{"metadata.wifi_mac"},
+			Key:    []string{"wifi_mac"},
 			Unique: true,
 		},
-	}
+	}*/
 
 	for collection, indexes := range collectionIndexes {
 		for _, index := range indexes {
