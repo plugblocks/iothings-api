@@ -76,15 +76,16 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 
 	var obs *models.Observation
 	var defp *models.DefaultProperty
+	//var SetContext("wifi")
 	device, _ := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
-	defp.SetContext("wifi")
-	defp.SetType("location")
+	/*defp.SetContext("wifi")
+	defp.SetType("location")*/
 	/*defp.Type = "location"
 	defp.Context = "wifi"*/
 	latVal := schema_org.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
 	lngVal := schema_org.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
 	accVal := schema_org.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
-	obs.Properties = append(obs.Properties, latVal, lngVal, accVal)
+	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
 	obs.Type = "wifiLoc"

@@ -29,8 +29,8 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 	err = store.CreateSigfoxMessage(c, sigfoxMessage)
 	if err != nil {
 		c.Error(err)
-		c.Abort()
-		return
+		/*c.Abort()
+		return*/
 	}
 
 	if sigfoxMessage.Type == "wifi" {
