@@ -88,7 +88,5 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
-	obs.Type = "wifiLoc"
-
 	return true, &wifiLoc, obs
 }
