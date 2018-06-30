@@ -20,22 +20,22 @@ func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
 	fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
 	device.BeforeCreate(user)
 
-	if device.Metadata.SigfoxId != "" {
-		count, _ := devices.Find(bson.M{"metadata": bson.M{"sigfox_id": device.Metadata.SigfoxId}}).Count()
+	if device.SigfoxId != "" {
+		count, _ := devices.Find(bson.M{"sigfox_id": device.SigfoxId}).Count()
 		if count > 0 {
 			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device Sigfox", errors.New("Sigfox Device already exists"))
 		}
 	}
 
-	if device.Metadata.BleMac != "" {
-		count, _ := devices.Find(bson.M{"metadata": bson.M{"ble_mac": device.Metadata.BleMac}}).Count()
+	if device.BleMac != "" {
+		count, _ := devices.Find(bson.M{"ble_mac": device.BleMac}).Count()
 		if count > 0 {
 			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device BLE", errors.New("BLE Device already exists"))
 		}
 	}
 
-	if device.Metadata.WifiMac != "" {
-		count, _ := devices.Find(bson.M{"metadata": bson.M{"wifi_mac": device.Metadata.WifiMac}}).Count()
+	if device.WifiMac != "" {
+		count, _ := devices.Find(bson.M{"wifi_mac": device.WifiMac}).Count()
 		if count > 0 {
 			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device WiFi", errors.New("WiFi Device already exists"))
 		}
