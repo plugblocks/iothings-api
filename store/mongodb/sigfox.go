@@ -23,16 +23,16 @@ func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
 	device := &models.Device{}
 
 	//err = devices.Find(params.M{"sigfox_id": message.SigfoxId}).One(device)
-	err = devices.Find(bson.M{"metadata.sigfox_id": message.SigfoxId}).One(device)
+	err = devices.Find(bson.M{"sigfox_id": message.SigfoxId}).One(device)
 	if err != nil {
 		return helpers.NewError(http.StatusPartialContent, "sigfox_device_id_not_found", "Device Sigfox ID not found", err)
 	} else {
-		err = devices.Update(bson.M{"metadata.sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
+		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
 		if err != nil {
 			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
 		}
 
-		err = devices.Update(bson.M{"metadata.sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
+		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
 		if err != nil {
 			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
 		}

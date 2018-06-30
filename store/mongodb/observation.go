@@ -1,6 +1,7 @@
 package mongodb
 
 import (
+	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -130,7 +131,8 @@ func (db *mongo) CreateObservation(record *models.Observation) error {
 
 	err = observations.Insert(record)
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "observation_creation_failed", "Failed to create the observation", err)
+		fmt.Println(err)
+		//return helpers.NewError(http.StatusInternalServerError, "observation_creation_failed", "Failed to create the observation", err)
 	}
 
 	return nil
