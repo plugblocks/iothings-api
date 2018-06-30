@@ -15,7 +15,6 @@ import (
 
 func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfox.Location, *models.Observation) {
 	fmt.Print("WiFi frame: \t\t\t")
-	var wifiLoc sigfox.Location
 
 	if len(msg.Data) <= 12 {
 		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")
@@ -63,6 +62,8 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 
 	//Else, position is resolved
 	fmt.Println("Google Maps Geolocation resolved")
+	//var wifiLoc sigfox.Location
+	wifiLoc := &sigfox.Location{}
 	wifiLoc.Latitude = resp.Location.Lat
 	wifiLoc.Longitude = resp.Location.Lng
 	wifiLoc.Radius = resp.Accuracy
@@ -74,19 +75,18 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 	fmt.Println(resp)
 	fmt.Println(wifiLoc)
 
-	var obs *models.Observation
-	var defp *models.DefaultProperty
-	//var SetContext("wifi")
-	device, _ := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
-	/*defp.SetContext("wifi")
-	defp.SetType("location")*/
-	/*defp.Type = "location"
-	defp.Context = "wifi"*/
+	obs := &models.Observation{}
+	defp := &models.DefaultProperty{"wifi", "location"}
+	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
+	if err != nil {
+		fmt.Println("Enhancer Sigfox Device ID not found", err)
+		return false, nil, nil
+	}
 	latVal := schema_org.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
 	lngVal := schema_org.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
 	accVal := schema_org.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
 	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
-	return true, &wifiLoc, obs
+	return true, wifiLoc, obs
 }
