@@ -15,7 +15,18 @@ func NewFleetController() FleetController {
 	return FleetController{}
 }
 
-func (gtc FleetController) GetFleets(c *gin.Context) {
+func (fc FleetController) AddDeviceToFleet(c *gin.Context) {
+	fleet, err := store.AddDeviceToFleet(c, c.Param("fleetId"), c.Param("deviceId"))
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, fleet)
+}
+
+func (fc FleetController) GetFleets(c *gin.Context) {
 	fleets, err := store.GetAllFleets(c)
 	if err != nil {
 		c.Error(err)
@@ -26,7 +37,7 @@ func (gtc FleetController) GetFleets(c *gin.Context) {
 	c.JSON(http.StatusOK, fleets)
 }
 
-func (gtc FleetController) GetFleetById(c *gin.Context) {
+func (fc FleetController) GetFleetById(c *gin.Context) {
 	id := c.Param("id")
 
 	fleet, err := store.GetFleetById(c, id)
@@ -39,7 +50,7 @@ func (gtc FleetController) GetFleetById(c *gin.Context) {
 	c.JSON(http.StatusOK, fleet)
 }
 
-func (gtc FleetController) CreateFleet(c *gin.Context) {
+func (fc FleetController) CreateFleet(c *gin.Context) {
 	fleet := &models.Fleet{}
 
 	if err := c.BindJSON(fleet); err != nil {
@@ -56,7 +67,7 @@ func (gtc FleetController) CreateFleet(c *gin.Context) {
 	c.JSON(http.StatusCreated, fleet)
 }
 
-func (gtc FleetController) EditFleet(c *gin.Context) {
+func (fc FleetController) EditFleet(c *gin.Context) {
 	fleet := &models.Fleet{}
 	id := c.Param("id")
 

@@ -33,6 +33,7 @@ type Store interface {
 	DeleteGroup(*models.User, string) error
 
 	CreateFleet(*models.User, *models.Fleet) error
+	AddDeviceToFleet(user *models.User, fleetId string, deviceId string) (*models.Fleet, error)
 	GetFleetById(*models.User, string) (*models.Fleet, error)
 	UpdateFleet(*models.User, string, params.M) error
 	GetAllFleets(*models.User) ([]models.Fleet, error)
