@@ -26,6 +26,7 @@ type Store interface {
 	CreateSigfoxMessage(*sigfox.Message) error
 	CreateSigfoxLocation(location *sigfox.Location) error
 	GetSigfoxLocations(*models.User) ([]sigfox.Location, error)
+	GetGeoJSON(*models.User) (*models.GeoJSON, error)
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)

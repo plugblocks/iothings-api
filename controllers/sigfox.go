@@ -92,3 +92,15 @@ func (sc SigfoxController) GetSigfoxLocations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, locations)
 }
+
+
+func (sc SigfoxController) GetGeoJSON(c *gin.Context) {
+	geoJsonStruct, err := store.GetGeoJSON(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, geoJsonStruct)
+}

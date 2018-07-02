@@ -13,13 +13,9 @@ type Feature struct {
 
 type Geometry struct {
 	Type        string       `json:"type" bson:"type"`
-	Coordinates []Coordinate `json:"coordinates" bson:"coordinates"`
+	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
 }
 
-type Coordinate struct {
-	Longitude float64
-	Latitude  float64
-}
 
 /*{
   "type": "FeatureCollection",

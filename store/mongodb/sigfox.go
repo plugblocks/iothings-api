@@ -6,6 +6,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
+	"fmt"
 )
 
 func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
@@ -67,4 +68,36 @@ func (db *mongo) GetSigfoxLocations(user *models.User) ([]sigfox.Location, error
 	}
 
 	return locations, nil
+}
+
+func (db *mongo) GetGeoJSON(user *models.User) (*models.GeoJSON, error){
+	session := db.Session.Copy()
+	defer session.Close()
+	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
+
+
+	locations := []sigfox.Location{}
+	err := locationCollection.Find(bson.M{"wifi": true}).All(&locations)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	features := []models.Feature{}
+
+	for _, location := range locations {
+		coords := []float64{}
+		coords = append(coords, location.Longitude, location.Latitude)
+
+		geometry := models.Geometry{"Point", coords}
+		feature := models.Feature{"Feature", geometry}
+
+		fmt.Println(feature)
+		features = append(features, feature)
+	}
+
+	fmt.Println(features)
+
+	geojson := &models.GeoJSON{"FeatureCollection", features}
+
+	return geojson, nil
 }
