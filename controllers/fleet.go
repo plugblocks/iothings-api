@@ -15,8 +15,8 @@ func NewFleetController() FleetController {
 	return FleetController{}
 }
 
-func (fc FleetController) AddDeviceToFleet(c *gin.Context) {
-	fleet, err := store.AddDeviceToFleet(c, c.Param("fleetId"), c.Param("deviceId"))
+func (fc FleetController) 	AddDeviceToFleet(c *gin.Context) {
+	fleet, err := store.AddDeviceToFleet(c, c.Param("id"), c.Param("deviceId"))
 	if err != nil {
 		c.Error(err)
 		c.Abort()

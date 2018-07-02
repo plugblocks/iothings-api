@@ -48,7 +48,7 @@ func (db *mongo) AddDeviceToFleet(user *models.User, fleetId string, deviceId st
 		return nil, helpers.NewError(http.StatusInternalServerError, "fleet_update_failed", "Failed to update the fleets "+err.Error(), err)
 	}
 
-	return nil, helpers.NewError(http.StatusNotFound, "fleet_device_add_error", "Could not add device to fleet", err)
+	return fleet, nil
 }
 
 func (db *mongo) GetAllFleets(user *models.User) ([]models.Fleet, error) {

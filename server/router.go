@@ -61,7 +61,7 @@ func (a *API) SetupRouter() {
 			fleets.POST("/", fleetsController.CreateFleet)
 			fleets.PUT("/:id", fleetsController.EditFleet)
 			fleets.GET("/:id", fleetsController.GetFleetById)
-			fleets.GET("/:fleetId/:deviceId", fleetsController.AddDeviceToFleet)
+			fleets.POST("/:id/:deviceId", fleetsController.AddDeviceToFleet)
 			fleets.DELETE("/:id", fleetsController.DeleteFleet)
 		}
 
@@ -114,6 +114,8 @@ func (a *API) SetupRouter() {
 			observations.GET("/device/:id/:type", observationController.GetDeviceObservations)
 			observations.GET("/device/:id/:type/latest", observationController.GetDeviceLatestObservation)
 			observations.GET("/fleet/:id/:type", observationController.GetFleetObservations)
+			//observations.GET("/", observationController.GetFleetObservations)
+			//observations.GET("/:type", observationController.GetFleetObservations)
 			observations.GET("/fleet/:id/:type/latest", observationController.GetFleetLatestObservation)
 		}
 
