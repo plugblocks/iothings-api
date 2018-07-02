@@ -81,3 +81,14 @@ func (sc SigfoxController) CreateSigfoxLocation(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, location)
 }
+
+func (sc SigfoxController) GetSigfoxLocations(c *gin.Context) {
+	locations, err := store.GetSigfoxLocations(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, locations)
+}

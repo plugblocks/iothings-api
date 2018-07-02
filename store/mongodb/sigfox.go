@@ -54,3 +54,17 @@ func (db *mongo) CreateSigfoxLocation(location *sigfox.Location) error {
 
 	return nil
 }
+
+func (db *mongo) GetSigfoxLocations(user *models.User) ([]sigfox.Location, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
+
+	locations := []sigfox.Location{}
+	err := locationCollection.Find(bson.M{"wifi": true}).All(&locations)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	return locations, nil
+}

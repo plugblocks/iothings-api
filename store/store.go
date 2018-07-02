@@ -25,6 +25,7 @@ type Store interface {
 
 	CreateSigfoxMessage(*sigfox.Message) error
 	CreateSigfoxLocation(location *sigfox.Location) error
+	GetSigfoxLocations(*models.User) ([]sigfox.Location, error)
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)
@@ -49,6 +50,6 @@ type Store interface {
 	CreateObservation(*models.Observation) error
 	GetDeviceObservations(string, string, string) ([]models.Observation, error)
 	GetDeviceLatestObservation(string, string, string) (*models.Observation, error)
-	GetFleetObservations(*models.User, string, string) ([]models.Observation, error)
+	GetFleetObservations(*models.User, string, string) ([]*models.Observation, error)
 	GetFleetLatestObservation(*models.User, string, string) ([]models.Observation, error)
 }
