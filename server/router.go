@@ -124,7 +124,6 @@ func (a *API) SetupRouter() {
 			sigfoxController := controllers.NewSigfoxController()
 			sigfox.POST("/message", sigfoxController.CreateSigfoxMessage)
 			sigfox.POST("/location", sigfoxController.CreateSigfoxLocation)
-			sigfox.Use(authMiddleware)
 			sigfox.GET("/locations", sigfoxController.GetSigfoxLocations)
 			sigfox.GET("/locations/geojson", sigfoxController.GetGeoJSON)
 		}

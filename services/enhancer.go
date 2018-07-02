@@ -14,8 +14,6 @@ import (
 )
 
 func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfox.Location, *models.Observation) {
-	fmt.Print("WiFi frame: \t\t\t")
-
 	if len(msg.Data) <= 12 {
 		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")
 		return false, nil, nil
