@@ -13,8 +13,8 @@ type Message struct {
 	Lat     int8    `json:"lat" bson:"lat" valid:"-"`         //
 	Lng     int8    `json:"lng" bson:"lng" valid:"-"`
 	/* End of deprecate */
-	Type string `json:"type" bson:"type" valid:"-"` //Custom: message type to dispatch cases
-	Data string `json:"data" bson:"data" valid:"-"` //Sigfox: data
+	Resolver string `json:"resolver" bson:"resolver" valid:"-"` //Custom: message type to dispatch cases
+	Data     string `json:"data" bson:"data" valid:"-"`         //Sigfox: data
 	//Ack for downlink
 }
 

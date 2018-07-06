@@ -33,17 +33,16 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		return*/
 	}
 
-	if sigfoxMessage.Type == "wifi" {
+	if sigfoxMessage.Resolver == "wifi" {
 		res, sigfoxLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while resolving WiFi computed location")
 			return
 		}
-		fmt.Println("Resolved WiFi Frame, contaning: ", sigfoxLocation)
+		fmt.Println("at: ", observation.Timestamp, "\tValues:", observation.Values)
 		sigfoxLocation.SigfoxId = sigfoxMessage.SigfoxId
 
 		err = store.CreateSigfoxLocation(c, sigfoxLocation)
-		fmt.Println("WiFi Sigfox Location created")
 		if err != nil {
 			fmt.Println("Error while creating WiFi Sigfox Location")
 			c.Error(err)
@@ -54,6 +53,22 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		err = store.CreateObservation(c, observation)
 		if err != nil {
 			fmt.Println("Error while storing WiFi Sigfox Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+	} else if sigfoxMessage.Resolver == "sensit" {
+		res, observation := services.DecodeSensitV2Message(c, sigfoxMessage)
+		if res == false {
+			fmt.Println("Error while parsing Sensit")
+			return
+		}
+		fmt.Println("Resolved WiFi Frame, containing: ", observation)
+
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing Sensit Sigfox Observation")
 			c.Error(err)
 			c.Abort()
 			return
@@ -92,7 +107,6 @@ func (sc SigfoxController) GetSigfoxLocations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, locations)
 }
-
 
 func (sc SigfoxController) GetGeoJSON(c *gin.Context) {
 	geoJsonStruct, err := store.GetGeoJSON(c)

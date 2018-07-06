@@ -61,7 +61,7 @@ func (db *mongo) GetSigfoxLocations() ([]sigfox.Location, error) {
 	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
 
 	locations := []sigfox.Location{}
-	err := locationCollection.Find(bson.M{"wifi": true}).All(&locations)
+	err := locationCollection.Find(bson.M{"wifi": true}).Sort("-timestamp").All(&locations)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 	}
@@ -69,7 +69,7 @@ func (db *mongo) GetSigfoxLocations() ([]sigfox.Location, error) {
 	return locations, nil
 }
 
-func (db *mongo) GetGeoJSON() (*models.GeoJSON, error){
+func (db *mongo) GetGeoJSON() (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)

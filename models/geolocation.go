@@ -12,10 +12,9 @@ type Feature struct {
 }
 
 type Geometry struct {
-	Type        string       `json:"type" bson:"type"`
+	Type        string    `json:"type" bson:"type"`
 	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
 }
-
 
 /*{
   "type": "FeatureCollection",
