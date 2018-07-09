@@ -15,9 +15,9 @@ func (a *API) SetupSeeds() error {
 	store.CreateOrganization(organization)
 
 	user := &models.User{
-		Firstname:      "admin",
-		Lastname:       "admin",
-		Password:       "admin",
+		Firstname:      "Adrien",
+		Lastname:       "Chapelet",
+		Password:       "adchapwd",
 		Email:          "admin@iothings.fr",
 		OrganizationId: organization.Id,
 		Admin:          true,

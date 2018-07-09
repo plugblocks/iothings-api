@@ -173,9 +173,9 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		case 3:
 			modeStr = "Door"
 		case 4:
-			modeStr = "Move"
+			modeStr = "Vibration"
 		case 5:
-			modeStr = "Reed switch"
+			modeStr = "Magnet"
 		default:
 			modeStr = ""
 		}

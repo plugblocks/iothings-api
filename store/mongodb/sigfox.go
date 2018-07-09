@@ -75,7 +75,7 @@ func (db *mongo) GetGeoJSON() (*models.GeoJSON, error) {
 	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
 
 	locations := []sigfox.Location{}
-	err := locationCollection.Find(bson.M{"wifi": true}).All(&locations)
+	err := locationCollection.Find(bson.M{"wifi": true}).Sort("-timestamp").All(&locations)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 	}
