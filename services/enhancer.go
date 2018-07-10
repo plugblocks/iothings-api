@@ -126,25 +126,25 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		temperatureMsb := data[8:12]
 		batteryLsb := data[12:16]
 		battData := []string{batteryMsb, batteryLsb}
-		battery, _ := strconv.ParseInt(strings.Join(battData, ""), 2, 8)
-		batVal := (float64(battery) * 0.05) + 2.7
+		battery, _ := strconv.ParseInt(strings.Join(battData, ""), 2, 16)
+		batVal := (float32(battery) * 0.05) + 2.7
 
 		//Byte 3
 		temperature := int64(0)
-		tempVal := float64(0)
+		tempVal := float32(0)
 
 		reedSwitch := false
 		if mode == 0 || mode == 1 {
 			temperatureLsb := data[18:24]
 			tempData := []string{temperatureMsb, temperatureLsb}
 			temperature, _ := strconv.ParseInt(strings.Join(tempData, ""), 2, 16)
-			tempVal = (float64(temperature) - 200) / 8
+			tempVal = (float32(temperature) - 200) / 8
 			if data[17] == 1 {
 				reedSwitch = true
 			}
 		} else {
 			temperature, _ = strconv.ParseInt(temperatureMsb, 2, 16)
-			tempVal = (float64(temperature) - 200) / 8
+			tempVal = (float32(temperature) - 200) / 8
 		}
 
 		modeStr := ""
@@ -214,8 +214,6 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		batData := schema_org.QuantitativeValue{defp, "battery", "volt", batVal}
 		tempData := schema_org.QuantitativeValue{defp, "temperature", "celsius", tempVal} //Precision differs w/mode
 		obs.Values = append(obs.Values, eventData, modeData, timeData, batData, tempData)
-		obs.Timestamp = msg.Timestamp
-		obs.DeviceId = device.Id
 
 		switch mode {
 		case 0:
@@ -246,6 +244,156 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		dlData := schema_org.QuantitativeValue{defp, "downlink", "", true}
 		obs.Values = append(obs.Values, dlData)
 	}
+	obs.Timestamp = msg.Timestamp
+	obs.DeviceId = device.Id
 
+	return true, obs
+}
+
+func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+	obs := &models.Observation{}
+	defp := &models.DefaultProperty{"sensit", "sensor"}
+	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
+	if err != nil {
+		fmt.Println("Enhancer Sigfox Device ID not found", err)
+		return false, nil
+	}
+
+	modeStr := ""
+	fwRevVal := ""
+	humiVal := float32(0.0)
+	tempVal := float32(0.0)
+	lightVal := float32(0.0)
+
+	fmt.Println("len(msg.Data):", len(msg.Data))
+	//Decoder itself
+	if len(msg.Data) <= 12 { //8 exactly, 4 bytes
+		fmt.Println("Sensit Uplink Message")
+
+		parsed, err := strconv.ParseUint(msg.Data, 16, 32)
+		if err != nil {
+			log.Fatal(err)
+		}
+		data := fmt.Sprintf("%08b", parsed)
+
+		fmt.Println("len(data):", len(data))
+		if len(data) == 25 { //Low battery MSB
+			fmt.Println("Sensit Low battery")
+			//TODO: Handle low battery bit shift
+			return false, nil
+		}
+
+		//Byte 1 : 5b Battery & 3b reserved (0b110)
+		battery, _ := strconv.ParseInt(data[0:5], 2, 8)
+		batVal := (float32(battery) * 0.05) + 2.7
+		//batVal = math.Round(batVal*100)/100
+		// reserved, _ := strconv.ParseInt(data[5:8], 2, 8) //Should be 0b110
+
+		//Byte 2 : 5b Mode, 1b Alert Button, 2b data
+		mode, _ := strconv.ParseInt(data[8:13], 2, 8)
+		buttonStr := ""
+		if data[13:14] == "0" {
+			buttonStr = "Not pressed"
+		} else {
+			buttonStr = "Pressed"
+		}
+
+		evtVal := ""
+		switch mode {
+		case 0:
+			modeStr = "Standby"
+			fwRevMaj, _ := strconv.ParseInt(data[16:20], 2, 8)
+			fwRevMinJoin := []string{data[20:24], data[24:26]}
+			fwRevMin, _ := strconv.ParseInt(strings.Join(fwRevMinJoin, ""), 2, 16)
+			fwRevPatch, _ := strconv.ParseInt(data[26:32], 2, 8)
+			fwRevVal = fmt.Sprintf("%d.%d.%d", fwRevMaj, fwRevMin, fwRevPatch)
+		case 1:
+			modeStr = "Temperature + Humidity"
+			tempTab := []string{data[14:16], data[16:24]}
+			tempJoin := strings.Join(tempTab, "")
+			fmt.Println("tempJoin:", tempJoin)
+			temp, _ := strconv.ParseInt(tempJoin, 2, 16)
+			tempVal = (float32(temp) - 200) / 8
+			fmt.Println("MSB:", data[14:16] ,"\tLSB:", data[16:24])
+			fmt.Println("temp:", temp, "\t tempVal:", tempVal)
+			humi, _ := strconv.ParseInt(data[24:32], 2, 16)
+			humiVal = float32(humi) * 0.5
+		case 2:
+			modeStr = "Light"
+			lightJoin := []string{data[16:24], data[24:32]}
+			light, _ := strconv.ParseInt(strings.Join(lightJoin, ""), 2, 16)
+			lightVal = float32(light) / 96
+		case 3:
+			modeStr = "Door"
+			evtJoin := []string{data[16:24], data[24:32]}
+			eventCount, _ := strconv.ParseInt(strings.Join(evtJoin, ""), 2, 16)
+			switch eventCount {
+			case 1:
+				evtVal = "Calibration not done"
+			case 3:
+				evtVal = "Door closed"
+			case 4:
+				evtVal = "Door open"
+			}
+		case 4:
+			modeStr = "Vibration"
+			evtJoin := []string{data[16:24], data[24:32]}
+			eventCount, _ := strconv.ParseInt(strings.Join(evtJoin, ""), 2, 16)
+			switch eventCount {
+			case 0:
+				evtVal = "No vibration detected"
+			case 1:
+				evtVal = "Vibration detected"
+			}
+		case 5:
+			modeStr = "Magnet"
+			evtJoin := []string{data[16:24], data[24:32]}
+			eventCount, _ := strconv.ParseInt(strings.Join(evtJoin, ""), 2, 16)
+			switch eventCount {
+			case 0:
+				evtVal = "No magnet detected"
+			case 1:
+				evtVal = "Magnet detected"
+			}
+		default:
+			modeStr = ""
+		}
+
+		modeData := schema_org.QuantitativeValue{defp, "mode", "", modeStr}
+		butData := schema_org.QuantitativeValue{defp, "button", "", buttonStr}
+		batData := schema_org.QuantitativeValue{defp, "battery", "volt", batVal}
+		obs.Values = append(obs.Values, modeData, butData, batData)
+		if evtVal != "" { //Modes 3,4,5
+			eventData := schema_org.QuantitativeValue{defp, "event", "", evtVal}
+			obs.Values = append(obs.Values, eventData)
+		}
+
+		switch mode {
+		case 0:
+			swRevData := schema_org.QuantitativeValue{defp, "softwareRevision", "", fwRevVal}
+			obs.Values = append(obs.Values, swRevData)
+		case 1:
+			//fmt.Println(humidity, "% RH")
+			tempData := schema_org.QuantitativeValue{defp, "temperature", "celsius", tempVal}
+			humiData := schema_org.QuantitativeValue{defp, "humidity", "percent", humiVal}
+			obs.Values = append(obs.Values, tempData, humiData)
+		case 2:
+			//fmt.Println(light, "lux")
+			lightData := schema_org.QuantitativeValue{defp, "light", "lux", lightVal}
+			obs.Values = append(obs.Values, lightData)
+		case 3, 4, 5:
+			evtData := schema_org.QuantitativeValue{defp, "event", "", evtVal}
+			obs.Values = append(obs.Values, evtData)
+		}
+
+	} else { //len: 24 exactly, 12 bytes
+		fmt.Println("Sensit Daily Downlink Message")
+		//TODO: Decode sensit downlink message
+		dlData := schema_org.QuantitativeValue{defp, "downlink", "", true}
+		obs.Values = append(obs.Values, dlData)
+	}
+
+	obs.Timestamp = msg.Timestamp
+	obs.DeviceId = device.Id
 	return true, obs
 }

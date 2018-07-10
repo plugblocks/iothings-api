@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
-	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
@@ -34,8 +33,6 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		return*/
 	}
 
-	observation := &models.Observation{}
-
 	if sigfoxMessage.Resolver == "wifi" {
 		res, sigfoxLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
 		if res == false {
@@ -53,22 +50,44 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 			return
 		}
 
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing WiFi Sigfox Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
 	} else if sigfoxMessage.Resolver == "sensitv2" {
 		res, observation := services.DecodeSensitV2Message(c, sigfoxMessage)
 		if res == false {
-			fmt.Println("Error while parsing Sensit")
+			fmt.Println("Error while parsing Sensit v2")
 			return
 		}
-		fmt.Println("Resolved WiFi Frame, containing: ", observation)
+		fmt.Println("Resolved Sensit v2 Frame, containing: ", observation)
 
-	}
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing Sensit v2 Sigfox Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+	} else if sigfoxMessage.Resolver == "sensitv3" {
+		res, observation := services.DecodeSensitV3Message(c, sigfoxMessage)
+		if res == false {
+			fmt.Println("Error while parsing Sensit v3")
+			return
+		}
+		fmt.Println("Resolved Sensit v3 Frame, containing: ", observation)
 
-	err = store.CreateObservation(c, observation)
-	if err != nil {
-		fmt.Println("Error while storing Sigfox Observation")
-		c.Error(err)
-		c.Abort()
-		return
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing Sensit v3 Sigfox Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
 	}
 
 	c.JSON(http.StatusCreated, sigfoxMessage)

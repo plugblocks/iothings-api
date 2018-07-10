@@ -9,7 +9,7 @@ func (a *API) SetupSeeds() error {
 	store := mongodb.New(a.Database)
 
 	organization := &models.Organization{
-		Name:   "IoThings",
+		Name:   "PlugBlocks",
 		Active: true,
 	}
 	store.CreateOrganization(organization)
@@ -18,7 +18,7 @@ func (a *API) SetupSeeds() error {
 		Firstname:      "Adrien",
 		Lastname:       "Chapelet",
 		Password:       "adchapwd",
-		Email:          "admin@iothings.fr",
+		Email:          "admin@plugblocks.fr",
 		OrganizationId: organization.Id,
 		Admin:          true,
 	}

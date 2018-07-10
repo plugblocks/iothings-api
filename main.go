@@ -33,7 +33,7 @@ func main() {
 	}
 
 	// Seeds setup
-	api.SetupSeeds()
+	// api.SetupSeeds()
 
 	// Router setup
 	api.SetupRouter()
