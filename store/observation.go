@@ -17,7 +17,7 @@ func GetDeviceLatestObservation(c context.Context, customerId string, deviceId s
 	return FromContext(c).GetDeviceLatestObservation(customerId, deviceId, typ)
 }
 
-func GetFleetObservations(c context.Context, fleetId string, typ string) ([]models.Observation, error) {
+func GetFleetObservations(c context.Context, fleetId string, typ string) ([]*models.Observation, error) {
 	return FromContext(c).GetFleetObservations(Current(c), fleetId, typ)
 }
 

@@ -3,6 +3,8 @@ package models
 type Property interface {
 	GetContext() string
 	GetType() string
+	SetContext(string)
+	SetType(string)
 }
 
 type DefaultProperty struct {

@@ -7,12 +7,20 @@ import (
 
 func (a *API) SetupSeeds() error {
 	store := mongodb.New(a.Database)
+
+	organization := &models.Organization{
+		Name:   "PlugBlocks",
+		Active: true,
+	}
+	store.CreateOrganization(organization)
+
 	user := &models.User{
-		Firstname: "admin",
-		Lastname:  "admin",
-		Password:  "admin",
-		Email:     "admin@iothings.fr",
-		Admin:     true,
+		Firstname:      "Adrien",
+		Lastname:       "Chapelet",
+		Password:       "adchapwd",
+		Email:          "admin@plugblocks.fr",
+		OrganizationId: organization.Id,
+		Admin:          true,
 	}
 
 	store.CreateUser(user)

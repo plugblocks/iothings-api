@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"gitlab.com/plugblocks/iothings-api/helpers"
-	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gopkg.in/mgo.v2/bson"
@@ -23,7 +22,8 @@ func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
 	devices := db.C(models.DevicesCollection).With(session)
 	device := &models.Device{}
 
-	err = devices.Find(params.M{"sigfox_id": message.SigfoxId}).One(device)
+	//err = devices.Find(params.M{"sigfox_id": message.SigfoxId}).One(device)
+	err = devices.Find(bson.M{"sigfox_id": message.SigfoxId}).One(device)
 	if err != nil {
 		return helpers.NewError(http.StatusPartialContent, "sigfox_device_id_not_found", "Device Sigfox ID not found", err)
 	} else {
@@ -53,4 +53,46 @@ func (db *mongo) CreateSigfoxLocation(location *sigfox.Location) error {
 	}
 
 	return nil
+}
+
+func (db *mongo) GetSigfoxLocations() ([]sigfox.Location, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
+
+	locations := []sigfox.Location{}
+	err := locationCollection.Find(bson.M{"wifi": true}).Sort("-timestamp").All(&locations)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	return locations, nil
+}
+
+func (db *mongo) GetGeoJSON() (*models.GeoJSON, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
+
+	locations := []sigfox.Location{}
+	err := locationCollection.Find(bson.M{"wifi": true}).Sort("-timestamp").All(&locations)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	features := []models.Feature{}
+
+	for _, location := range locations {
+		coords := []float64{}
+		coords = append(coords, location.Longitude, location.Latitude)
+
+		geometry := models.Geometry{"Point", coords}
+		feature := models.Feature{"Feature", geometry}
+
+		features = append(features, feature)
+	}
+
+	geojson := &models.GeoJSON{"FeatureCollection", features}
+
+	return geojson, nil
 }

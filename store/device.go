@@ -11,8 +11,8 @@ func CreateDevice(c context.Context, record *models.Device) error {
 	return FromContext(c).CreateDevice(Current(c), record)
 }
 
-func GetDevices(c context.Context, customerId string) ([]*models.Device, error) {
-	return FromContext(c).GetDevices(Current(c), customerId)
+func GetDevices(c context.Context) ([]*models.Device, error) {
+	return FromContext(c).GetDevices(Current(c))
 }
 
 func UpdateDevice(c context.Context, id string, m params.M) error {

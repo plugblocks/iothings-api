@@ -61,6 +61,7 @@ func (a *API) SetupRouter() {
 			fleets.POST("/", fleetsController.CreateFleet)
 			fleets.PUT("/:id", fleetsController.EditFleet)
 			fleets.GET("/:id", fleetsController.GetFleetById)
+			fleets.POST("/:id/:deviceId", fleetsController.AddDeviceToFleet)
 			fleets.DELETE("/:id", fleetsController.DeleteFleet)
 		}
 
@@ -110,9 +111,11 @@ func (a *API) SetupRouter() {
 			observationController := controllers.NewObservationController()
 			observations.POST("/new", observationController.CreateObservation)
 			observations.Use(authMiddleware)
-			observations.GET("/device/:id/:type", observationController.GetDeviceObservations)
-			observations.GET("/device/:id/:type/latest", observationController.GetDeviceLatestObservation)
+			observations.GET("/device/:deviceId/:type", observationController.GetDeviceObservations)
+			observations.GET("/device/:deviceId/:type/latest", observationController.GetDeviceLatestObservation)
 			observations.GET("/fleet/:id/:type", observationController.GetFleetObservations)
+			//observations.GET("/", observationController.GetFleetObservations)
+			//observations.GET("/:type", observationController.GetFleetObservations)
 			observations.GET("/fleet/:id/:type/latest", observationController.GetFleetLatestObservation)
 		}
 
@@ -121,6 +124,8 @@ func (a *API) SetupRouter() {
 			sigfoxController := controllers.NewSigfoxController()
 			sigfox.POST("/message", sigfoxController.CreateSigfoxMessage)
 			sigfox.POST("/location", sigfoxController.CreateSigfoxLocation)
+			sigfox.GET("/locations", sigfoxController.GetSigfoxLocations)
+			sigfox.GET("/locations/geojson", sigfoxController.GetGeoJSON)
 		}
 	}
 }

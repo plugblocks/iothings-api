@@ -10,6 +10,10 @@ func CreateFleet(c context.Context, record *models.Fleet) error {
 	return FromContext(c).CreateFleet(Current(c), record)
 }
 
+func AddDeviceToFleet(c context.Context, fleetId string, deviceId string) (*models.Fleet, error) {
+	return FromContext(c).AddDeviceToFleet(Current(c), fleetId, deviceId)
+}
+
 func GetAllFleets(c context.Context) ([]models.Fleet, error) {
 	return FromContext(c).GetAllFleets(Current(c))
 }

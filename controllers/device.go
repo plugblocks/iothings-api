@@ -36,7 +36,7 @@ func (dc DeviceController) CreateDevice(c *gin.Context) {
 }
 
 func (dc DeviceController) GetDevices(c *gin.Context) {
-	devices, err := store.GetDevices(c, c.Param("id"))
+	devices, err := store.GetDevices(c)
 
 	if err != nil {
 		c.Error(err)

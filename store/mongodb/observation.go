@@ -1,6 +1,7 @@
 package mongodb
 
 import (
+	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -13,17 +14,17 @@ func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ s
 	defer session.Close()
 
 	//Checking that user request one of its device
-	devices := db.C(models.DevicesCollection).With(session)
+	/*devices := db.C(models.DevicesCollection).With(session)
 	device := &models.Device{}
-	//TODO: Refactor code to use only one MongoDB request
+	//TODO: Refactor code to use only one MongoDB request, restore customer ownership security
 	err := devices.Find(bson.M{"_id": deviceId, "customer_id": customerId}).One(device)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "customer_device_not_found", "Failed to find customer device", err)
-	}
+	}*/
 
 	observations := db.C(models.ObservationsCollection).With(session)
 	list := []models.Observation{}
-	err = observations.Find(params.M{"device_id": deviceId}).All(&list)
+	err := observations.Find(params.M{"device_id": deviceId}).All(&list)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 	}
@@ -36,19 +37,19 @@ func (db *mongo) GetDeviceLatestObservation(customerId string, deviceId string, 
 	defer session.Close()
 
 	//Checking that customer request one of its device
-	devices := db.C(models.DevicesCollection).With(session)
-	device := &models.Device{}
+	//devices := db.C(models.DevicesCollection).With(session)
+	//device := &models.Device{}
 
 	observations := db.C(models.ObservationsCollection).With(session)
 	observation := &models.Observation{}
 
-	//TODO: Refactor code to use only one MongoDB request
-	err := devices.Find(bson.M{"_id": deviceId, "customer_id": customerId}).One(device)
+	//TODO: Refactor code to use only one MongoDB request, restore customer ownership security
+	/*err := devices.Find(bson.M{"_id": deviceId, "customer_id": customerId}).One(device)
 	if err != nil {
 		return observation, helpers.NewError(http.StatusNotFound, "customer_device_not_found", "Failed to find customer device", err)
-	}
+	}*/
 
-	err = observations.Find(params.M{"device_id": deviceId}).One(observation)
+	err := observations.Find(params.M{"device_id": deviceId}).One(observation)
 	if err != nil {
 		return observation, helpers.NewError(http.StatusNotFound, "observation_device_not_found", "Failed to find observation for device", err)
 	}
@@ -56,11 +57,11 @@ func (db *mongo) GetDeviceLatestObservation(customerId string, deviceId string, 
 	return observation, nil
 }
 
-func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ string) ([]models.Observation, error) {
+func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ string) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
-	retObservationsList := []models.Observation{}
+	retObservationsList := []*models.Observation{}
 
 	//Checking that user request one of its fleets
 	fleets := db.C(models.FleetsCollection).With(session)
@@ -73,11 +74,14 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ str
 	//Finding all observations of devices of user's fleet
 	observations := db.C(models.ObservationsCollection).With(session)
 	for _, deviceId := range fleet.DeviceIds {
-		tempObservationsList := []models.Observation{}
-		err = observations.Find(params.M{"device_id": deviceId}).All(tempObservationsList)
+		fmt.Println("Device+", deviceId)
+		tempObservationsList := []*models.Observation{}
+		err = observations.Find(params.M{"device_id": deviceId}).All(&tempObservationsList)
 		if err != nil {
+			fmt.Println(err)
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 		}
+		fmt.Println(tempObservationsList)
 		retObservationsList = append(retObservationsList, tempObservationsList...)
 	}
 
@@ -130,7 +134,8 @@ func (db *mongo) CreateObservation(record *models.Observation) error {
 
 	err = observations.Insert(record)
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "observation_creation_failed", "Failed to create the observation", err)
+		fmt.Println(err)
+		//return helpers.NewError(http.StatusInternalServerError, "observation_creation_failed", "Failed to create the observation", err)
 	}
 
 	return nil

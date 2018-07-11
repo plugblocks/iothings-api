@@ -17,7 +17,7 @@ type Store interface {
 	GetUserOrganization(user *models.User) (*models.Organization, error)
 
 	CreateDevice(*models.User, *models.Device) error
-	GetDevices(*models.User, string) ([]*models.Device, error)
+	GetDevices(*models.User) ([]*models.Device, error)
 	UpdateDevice(*models.User, string, params.M) error
 	DeleteDevice(*models.User, string) error
 	GetDevice(*models.User, string) (*models.Device, error)
@@ -25,6 +25,8 @@ type Store interface {
 
 	CreateSigfoxMessage(*sigfox.Message) error
 	CreateSigfoxLocation(location *sigfox.Location) error
+	GetSigfoxLocations() ([]sigfox.Location, error)
+	GetGeoJSON() (*models.GeoJSON, error)
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)
@@ -33,6 +35,7 @@ type Store interface {
 	DeleteGroup(*models.User, string) error
 
 	CreateFleet(*models.User, *models.Fleet) error
+	AddDeviceToFleet(user *models.User, fleetId string, deviceId string) (*models.Fleet, error)
 	GetFleetById(*models.User, string) (*models.Fleet, error)
 	UpdateFleet(*models.User, string, params.M) error
 	GetAllFleets(*models.User) ([]models.Fleet, error)
@@ -48,6 +51,6 @@ type Store interface {
 	CreateObservation(*models.Observation) error
 	GetDeviceObservations(string, string, string) ([]models.Observation, error)
 	GetDeviceLatestObservation(string, string, string) (*models.Observation, error)
-	GetFleetObservations(*models.User, string, string) ([]models.Observation, error)
+	GetFleetObservations(*models.User, string, string) ([]*models.Observation, error)
 	GetFleetLatestObservation(*models.User, string, string) ([]models.Observation, error)
 }
