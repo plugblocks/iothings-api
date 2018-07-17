@@ -49,7 +49,7 @@ type Store interface {
 	DeleteOrganization(string) error
 
 	CreateObservation(*models.Observation) error
-	GetDeviceObservations(string, string, string) ([]models.Observation, error)
+	GetDeviceObservations(string, string, string) ([]*models.Observation, error)
 	GetDeviceLatestObservation(string, string, string) (*models.Observation, error)
 	GetFleetObservations(*models.User, string, string) ([]*models.Observation, error)
 	GetFleetLatestObservation(*models.User, string, string) ([]models.Observation, error)

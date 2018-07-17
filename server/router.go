@@ -114,8 +114,6 @@ func (a *API) SetupRouter() {
 			observations.GET("/device/:deviceId/:type", observationController.GetDeviceObservations)
 			observations.GET("/device/:deviceId/:type/latest", observationController.GetDeviceLatestObservation)
 			observations.GET("/fleet/:id/:type", observationController.GetFleetObservations)
-			//observations.GET("/", observationController.GetFleetObservations)
-			//observations.GET("/:type", observationController.GetFleetObservations)
 			observations.GET("/fleet/:id/:type/latest", observationController.GetFleetLatestObservation)
 		}
 
@@ -127,5 +125,10 @@ func (a *API) SetupRouter() {
 			sigfox.GET("/locations", sigfoxController.GetSigfoxLocations)
 			sigfox.GET("/locations/geojson", sigfoxController.GetGeoJSON)
 		}
+
+/*		app := v1.Group("app")
+		{
+			appCo
+		}*/
 	}
 }

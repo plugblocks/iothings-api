@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"gitlab.com/plugblocks/iothings-api/models/schema_org"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"googlemaps.github.io/maps"
@@ -78,9 +77,9 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
 		return false, nil, nil
 	}
-	latVal := schema_org.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
-	lngVal := schema_org.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
-	accVal := schema_org.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
+	latVal := models.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
+	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
+	accVal := models.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
 	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
@@ -208,40 +207,40 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 			timeStr = ""
 		}
 
-		eventData := schema_org.QuantitativeValue{defp, "eventType", "", typeStr}
-		modeData := schema_org.QuantitativeValue{defp, "mode", "", modeStr}
-		timeData := schema_org.QuantitativeValue{defp, "timeframe", "seconds", timeStr}
-		batData := schema_org.QuantitativeValue{defp, "battery", "volt", batVal}
-		tempData := schema_org.QuantitativeValue{defp, "temperature", "celsius", tempVal} //Precision differs w/mode
+		eventData := models.QuantitativeValue{defp, "eventType", "", typeStr}
+		modeData := models.QuantitativeValue{defp, "mode", "", modeStr}
+		timeData := models.QuantitativeValue{defp, "timeframe", "seconds", timeStr}
+		batData := models.QuantitativeValue{defp, "battery", "volt", batVal}
+		tempData := models.QuantitativeValue{defp, "temperature", "celsius", tempVal} //Precision differs w/mode
 		obs.Values = append(obs.Values, eventData, modeData, timeData, batData, tempData)
 
 		switch mode {
 		case 0:
-			swRevData := schema_org.QuantitativeValue{defp, "softwareRevision", "", swRev}
+			swRevData := models.QuantitativeValue{defp, "softwareRevision", "", swRev}
 			obs.Values = append(obs.Values, swRevData)
 		case 1:
 			//fmt.Println(humidity, "% RH")
-			humiData := schema_org.QuantitativeValue{defp, "humidity", "percent", humidity}
+			humiData := models.QuantitativeValue{defp, "humidity", "percent", humidity}
 			obs.Values = append(obs.Values, humiData)
 		case 2:
 			//fmt.Println(light, "lux")
 			alerts, _ := strconv.ParseInt(data[24:32], 2, 16)
-			lightData := schema_org.QuantitativeValue{defp, "light", "lux", light}
-			alertData := schema_org.QuantitativeValue{defp, "alert", "", alerts}
+			lightData := models.QuantitativeValue{defp, "light", "lux", light}
+			alertData := models.QuantitativeValue{defp, "alert", "", alerts}
 			obs.Values = append(obs.Values, lightData, alertData)
 		case 3, 4, 5:
 			alerts, _ := strconv.ParseInt(data[24:32], 2, 16)
-			alertData := schema_org.QuantitativeValue{defp, "alert", "", alerts}
+			alertData := models.QuantitativeValue{defp, "alert", "", alerts}
 			obs.Values = append(obs.Values, alertData)
 		}
 		if reedSwitch {
-			reedData := schema_org.QuantitativeValue{defp, "reedSwitch", "", true}
+			reedData := models.QuantitativeValue{defp, "reedSwitch", "", true}
 			obs.Values = append(obs.Values, reedData)
 		}
 	} else { //len: 24 exactly, 12 bytes
 		fmt.Println("Sensit Daily Downlink Message")
 		//TODO: Decode sensit downlink message
-		dlData := schema_org.QuantitativeValue{defp, "downlink", "", true}
+		dlData := models.QuantitativeValue{defp, "downlink", "", true}
 		obs.Values = append(obs.Values, dlData)
 	}
 	obs.Timestamp = msg.Timestamp
@@ -359,37 +358,37 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 			modeStr = ""
 		}
 
-		modeData := schema_org.QuantitativeValue{defp, "mode", "", modeStr}
-		butData := schema_org.QuantitativeValue{defp, "button", "", buttonStr}
-		batData := schema_org.QuantitativeValue{defp, "battery", "volt", batVal}
+		modeData := models.QuantitativeValue{defp, "mode", "", modeStr}
+		butData := models.QuantitativeValue{defp, "button", "", buttonStr}
+		batData := models.QuantitativeValue{defp, "battery", "volt", batVal}
 		obs.Values = append(obs.Values, modeData, butData, batData)
 		if evtVal != "" { //Modes 3,4,5
-			eventData := schema_org.QuantitativeValue{defp, "event", "", evtVal}
+			eventData := models.QuantitativeValue{defp, "event", "", evtVal}
 			obs.Values = append(obs.Values, eventData)
 		}
 
 		switch mode {
 		case 0:
-			swRevData := schema_org.QuantitativeValue{defp, "softwareRevision", "", fwRevVal}
+			swRevData := models.QuantitativeValue{defp, "softwareRevision", "", fwRevVal}
 			obs.Values = append(obs.Values, swRevData)
 		case 1:
 			//fmt.Println(humidity, "% RH")
-			tempData := schema_org.QuantitativeValue{defp, "temperature", "celsius", tempVal}
-			humiData := schema_org.QuantitativeValue{defp, "humidity", "percent", humiVal}
+			tempData := models.QuantitativeValue{defp, "temperature", "celsius", tempVal}
+			humiData := models.QuantitativeValue{defp, "humidity", "percent", humiVal}
 			obs.Values = append(obs.Values, tempData, humiData)
 		case 2:
 			//fmt.Println(light, "lux")
-			lightData := schema_org.QuantitativeValue{defp, "light", "lux", lightVal}
+			lightData := models.QuantitativeValue{defp, "light", "lux", lightVal}
 			obs.Values = append(obs.Values, lightData)
 		case 3, 4, 5:
-			evtData := schema_org.QuantitativeValue{defp, "event", "", evtVal}
+			evtData := models.QuantitativeValue{defp, "event", "", evtVal}
 			obs.Values = append(obs.Values, evtData)
 		}
 
 	} else { //len: 24 exactly, 12 bytes
 		fmt.Println("Sensit Daily Downlink Message")
 		//TODO: Decode sensit downlink message
-		dlData := schema_org.QuantitativeValue{defp, "downlink", "", true}
+		dlData := models.QuantitativeValue{defp, "downlink", "", true}
 		obs.Values = append(obs.Values, dlData)
 	}
 

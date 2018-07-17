@@ -4,8 +4,7 @@ base.rsa
 base.rsa.pub
 .env
 .env.prod
-.env.prod.local
-.env.prod.server
+.env.prod.*
 .env.testing
 
 # Elastic Beanstalk Files

@@ -1,9 +1,7 @@
-package schema_org
-
-import "gitlab.com/plugblocks/iothings-api/models"
+package models
 
 type QuantitativeValue struct {
-	*models.DefaultProperty
+	*DefaultProperty
 
 	Identifier string      `json:"identifier" bson:"identifier"`
 	UnitText   string      `json:"unitText" bson:"unitText"`

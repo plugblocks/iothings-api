@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ string) ([]models.Observation, error) {
+func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ string) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -23,9 +23,10 @@ func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ s
 	}*/
 
 	observations := db.C(models.ObservationsCollection).With(session)
-	list := []models.Observation{}
+	list := []*models.Observation{}
 	err := observations.Find(params.M{"device_id": deviceId}).All(&list)
 	if err != nil {
+		fmt.Println("device get obs id:", deviceId," err:", err)
 		return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 	}
 
@@ -131,6 +132,8 @@ func (db *mongo) CreateObservation(record *models.Observation) error {
 	}
 
 	record.BeforeCreate(device)
+
+	record.Id = bson.NewObjectId().Hex()
 
 	err = observations.Insert(record)
 	if err != nil {

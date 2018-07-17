@@ -9,7 +9,7 @@ func CreateObservation(c context.Context, record *models.Observation) error {
 	return FromContext(c).CreateObservation(record)
 }
 
-func GetDeviceObservations(c context.Context, customerId string, deviceId string, typ string) ([]models.Observation, error) {
+func GetDeviceObservations(c context.Context, customerId string, deviceId string, typ string) ([]*models.Observation, error) {
 	return FromContext(c).GetDeviceObservations(customerId, deviceId, typ)
 }
 
