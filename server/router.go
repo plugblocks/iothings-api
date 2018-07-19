@@ -78,8 +78,10 @@ func (a *API) SetupRouter() {
 
 		devices := v1.Group("/devices")
 		{
-			devices.Use(authMiddleware)
 			deviceController := controllers.NewDeviceController()
+			//TODO: DANGER: Protect by auth device GeoJSON
+			devices.GET("/:id/locations/geojson", deviceController.GetDeviceGeoJSON)
+			devices.Use(authMiddleware)
 			devices.GET("/", deviceController.GetDevices)
 			devices.POST("/", deviceController.CreateDevice)
 			devices.PUT("/:id", deviceController.UpdateDevice)
@@ -126,9 +128,9 @@ func (a *API) SetupRouter() {
 			sigfox.GET("/locations/geojson", sigfoxController.GetGeoJSON)
 		}
 
-/*		app := v1.Group("app")
-		{
-			appCo
-		}*/
+		/*		app := v1.Group("app")
+				{
+					appCo
+				}*/
 	}
 }

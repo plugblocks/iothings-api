@@ -1,8 +1,8 @@
 package services
 
 import (
-	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 )
 
 func parse(message sigfox.Message, syntaxes sigfox.Syntax) []models.QuantitativeValue {

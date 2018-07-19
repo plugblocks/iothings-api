@@ -21,6 +21,9 @@ type Store interface {
 	UpdateDevice(*models.User, string, params.M) error
 	DeleteDevice(*models.User, string) error
 	GetDevice(*models.User, string) (*models.Device, error)
+
+	//TODO: DANGER: Protect by auth device GeoJSON
+	GetDeviceGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
 	GetDeviceFromSigfoxId(string) (*models.Device, error)
 
 	CreateSigfoxMessage(*sigfox.Message) error

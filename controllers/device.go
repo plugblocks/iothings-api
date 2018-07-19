@@ -97,3 +97,14 @@ func (dc DeviceController) GetDevice(c *gin.Context) {
 
 	c.JSON(http.StatusOK, device)
 }
+
+func (dc DeviceController) GetDeviceGeoJSON(c *gin.Context) {
+	geoJsonStruct, err := store.GetDeviceGeoJSON(c, c.Param("id"))
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, geoJsonStruct)
+}

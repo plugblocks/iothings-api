@@ -101,6 +101,39 @@ func (sc SigfoxController) CreateSigfoxLocation(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
+	err = store.CreateSigfoxLocation(c, location)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	res, observation := services.SigfoxSpotit(c, location)
+	if res == false {
+		fmt.Println("Error while analyzing Spotit location")
+		return
+	}
+	fmt.Println("Resolved Spotit, containing: ", observation)
+
+	err = store.CreateObservation(c, observation)
+	if err != nil {
+		fmt.Println("Error while storing Sigfox Location Observation")
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusCreated, observation)
+}
+
+func (sc SigfoxController) CreateSigfoxLocationLegacy(c *gin.Context) {
+	location := &sigfox.Location{}
+
+	err := c.BindJSON(location)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
+		return
+	}
 
 	err = store.CreateSigfoxLocation(c, location)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/store"
 	"googlemaps.github.io/maps"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -83,6 +84,8 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
+	obs.Resolver = "wifi"
+
 	return true, wifiLoc, obs
 }
 
@@ -126,8 +129,8 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		batteryLsb := data[12:16]
 		battData := []string{batteryMsb, batteryLsb}
 		battery, _ := strconv.ParseInt(strings.Join(battData, ""), 2, 16)
-		batVal := (float32(battery) * 0.05) + 2.7
-
+		batVal := (float64(battery) * 0.05) + 2.7
+		batVal = math.Round(batVal*100) / 100
 		//Byte 3
 		temperature := int64(0)
 		tempVal := float32(0)
@@ -179,18 +182,24 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 			modeStr = ""
 		}
 
-		timeStr := ""
+		timeVal := 0
+		timeUnit := ""
 		switch timeframe {
 		case 0:
-			timeStr = "10 mins"
+			timeVal = 10
+			timeUnit = "minutes"
 		case 1:
-			timeStr = "1 hour"
+			timeVal = 1
+			timeUnit = "hour"
 		case 2:
-			timeStr = "6 hours"
+			timeVal = 6
+			timeUnit = "hours"
 		case 3:
-			timeStr = "24 hours"
+			timeVal = 24
+			timeUnit = "hours"
 		default:
-			timeStr = ""
+			timeVal = 10
+			timeUnit = "minutes"
 		}
 
 		typeStr := ""
@@ -204,12 +213,12 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		case 3:
 			typeStr = "New mode"
 		default:
-			timeStr = ""
+			typeStr = ""
 		}
 
 		eventData := models.QuantitativeValue{defp, "eventType", "", typeStr}
 		modeData := models.QuantitativeValue{defp, "mode", "", modeStr}
-		timeData := models.QuantitativeValue{defp, "timeframe", "seconds", timeStr}
+		timeData := models.QuantitativeValue{defp, "timeframe", timeUnit, timeVal}
 		batData := models.QuantitativeValue{defp, "battery", "volt", batVal}
 		tempData := models.QuantitativeValue{defp, "temperature", "celsius", tempVal} //Precision differs w/mode
 		obs.Values = append(obs.Values, eventData, modeData, timeData, batData, tempData)
@@ -245,6 +254,7 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 	}
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
+	obs.Resolver = "sensitv2"
 
 	return true, obs
 }
@@ -284,8 +294,8 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 
 		//Byte 1 : 5b Battery & 3b reserved (0b110)
 		battery, _ := strconv.ParseInt(data[0:5], 2, 8)
-		batVal := (float32(battery) * 0.05) + 2.7
-		//batVal = math.Round(batVal*100)/100
+		batVal := (float64(battery) * 0.05) + 2.7
+		batVal = math.Round(batVal*100) / 100
 		// reserved, _ := strconv.ParseInt(data[5:8], 2, 8) //Should be 0b110
 
 		//Byte 2 : 5b Mode, 1b Alert Button, 2b data
@@ -313,7 +323,7 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 			fmt.Println("tempJoin:", tempJoin)
 			temp, _ := strconv.ParseInt(tempJoin, 2, 16)
 			tempVal = (float32(temp) - 200) / 8
-			fmt.Println("MSB:", data[14:16] ,"\tLSB:", data[16:24])
+			fmt.Println("MSB:", data[14:16], "\tLSB:", data[16:24])
 			fmt.Println("temp:", temp, "\t tempVal:", tempVal)
 			humi, _ := strconv.ParseInt(data[24:32], 2, 16)
 			humiVal = float32(humi) * 0.5
@@ -394,5 +404,25 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
+	obs.Resolver = "sensitv3"
+	return true, obs
+}
+
+func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Observation) {
+	obs := &models.Observation{}
+	defp := &models.DefaultProperty{"spotit", "location"}
+	device, err := store.GetDeviceFromSigfoxId(contxt, loc.SigfoxId)
+	if err != nil {
+		fmt.Println("Enhancer Sigfox Device ID not found", err)
+		return false, nil
+	}
+	latVal := models.QuantitativeValue{defp, "latitude", "degrees", loc.Latitude}
+	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", loc.Longitude}
+	accVal := models.QuantitativeValue{defp, "accuracy", "meters", loc.Radius}
+	obs.Values = append(obs.Values, latVal, lngVal, accVal)
+	obs.Timestamp = loc.Timestamp
+	obs.DeviceId = device.Id
+	obs.Resolver = "spotit"
+
 	return true, obs
 }

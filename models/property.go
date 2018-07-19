@@ -8,8 +8,8 @@ type Property interface {
 }
 
 type DefaultProperty struct {
-	Context string `json:"@context" bson:"@context"`
-	Type    string `json:"@type" bson:"@type"`
+	Context string `json:"context" bson:"context"`
+	Type    string `json:"type" bson:"type"`
 }
 
 func (dp *DefaultProperty) GetType() string {

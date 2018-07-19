@@ -1,6 +1,7 @@
 package mongodb
 
 import (
+	"fmt"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
@@ -46,6 +47,8 @@ func (db *mongo) CreateSigfoxLocation(location *sigfox.Location) error {
 	defer session.Close()
 	locations := db.C(sigfox.SigfoxLocationsCollection).With(session)
 
+	fmt.Println("CreateSigfoxLocation", location)
+
 	location.BeforeCreate()
 	err := locations.Insert(location)
 	if err != nil {
@@ -75,7 +78,8 @@ func (db *mongo) GetGeoJSON() (*models.GeoJSON, error) {
 	locationCollection := db.C(sigfox.SigfoxLocationsCollection).With(session)
 
 	locations := []sigfox.Location{}
-	err := locationCollection.Find(bson.M{"wifi": true}).Sort("-timestamp").All(&locations)
+	//err := locationCollection.Find(bson.M{"wifi": true}).Sort("-timestamp").All(&locations)
+	err := locationCollection.Find(bson.M{}).Sort("-timestamp").All(&locations)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 	}
