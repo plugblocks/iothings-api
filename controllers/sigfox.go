@@ -33,18 +33,24 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		return*/
 	}
 
+	device, err := store.GetDeviceFromSigfoxId(c, sigfoxMessage.SigfoxId)
+	if err != nil {
+		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		return
+	}
+
 	if sigfoxMessage.Resolver == "wifi" {
-		res, sigfoxLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
+		res, geoLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while resolving WiFi computed location")
 			return
 		}
 		fmt.Println("at: ", observation.Timestamp, "\tValues:", observation.Values)
-		sigfoxLocation.SigfoxId = sigfoxMessage.SigfoxId
+		geoLocation.DeviceId = device.Id
 
-		err = store.CreateSigfoxLocation(c, sigfoxLocation)
+		err = store.CreateGeolocation(c, geoLocation)
 		if err != nil {
-			fmt.Println("Error while creating WiFi Sigfox Location")
+			fmt.Println("Error while creating WiFi Geolocation from Sigfox")
 			c.Error(err)
 			c.Abort()
 			return
@@ -94,26 +100,42 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 }
 
 func (sc SigfoxController) CreateSigfoxLocation(c *gin.Context) {
-	location := &sigfox.Location{}
+	sigfoxLocation := &sigfox.Location{}
 
-	err := c.BindJSON(location)
+	err := c.BindJSON(sigfoxLocation)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
-	err = store.CreateSigfoxLocation(c, location)
+	/*err = store.CreateSigfoxLocation(c, location)
 	if err != nil {
 		c.Error(err)
 		c.Abort()
 		return
+	}*/
+
+	device, err := store.GetDeviceFromSigfoxId(c, sigfoxLocation.SigfoxId)
+	if err != nil {
+		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		return
 	}
 
-	res, observation := services.SigfoxSpotit(c, location)
+	res, geoLocation, observation := services.SigfoxSpotit(c, sigfoxLocation)
 	if res == false {
 		fmt.Println("Error while analyzing Spotit location")
 		return
 	}
 	fmt.Println("Resolved Spotit, containing: ", observation)
+
+	geoLocation.DeviceId = device.Id
+
+	err = store.CreateGeolocation(c, geoLocation)
+	if err != nil {
+		fmt.Println("Error while creating WiFi Geolocation from Sigfox")
+		c.Error(err)
+		c.Abort()
+		return
+	}
 
 	err = store.CreateObservation(c, observation)
 	if err != nil {

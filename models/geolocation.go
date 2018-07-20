@@ -1,5 +1,10 @@
 package models
 
+import (
+	"gopkg.in/mgo.v2/bson"
+	"time"
+)
+
 type GeoJSON struct {
 	Type     string    `json:"type" bson:"type"`
 	Features []Feature `json:"features" bson:"features"`
@@ -43,3 +48,20 @@ type Geometry struct {
     }
   ]
 }*/
+
+type Geolocation struct {
+	Id        string  `json:"id" bson:"_id,omitempty" valid:"-"`
+	DeviceId  string  `json:"device_id" bson:"device_id"`
+	Timestamp int64   `json:"timestamp" bson:"timestamp" valid:"-"`
+	Latitude  float64 `json:"latitude" bson:"latitude" valid:"-"`
+	Longitude float64 `json:"longitude" bson:"longitude" valid:"-"`
+	Radius    float64 `json:"radius" bson:"radius" valid:"-"`
+	Source    string  `json:"source" bson:"source" valid:"-"`
+}
+
+func (l *Geolocation) BeforeCreate() {
+	l.Id = bson.NewObjectId().Hex()
+	l.Timestamp = time.Now().Unix()
+}
+
+const GeolocationsCollection = "geolocations"

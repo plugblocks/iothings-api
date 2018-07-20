@@ -22,14 +22,18 @@ type Store interface {
 	DeleteDevice(*models.User, string) error
 	GetDevice(*models.User, string) (*models.Device, error)
 
-	//TODO: DANGER: Protect by auth device GeoJSON
-	GetDeviceGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
 	GetDeviceFromSigfoxId(string) (*models.Device, error)
 
 	CreateSigfoxMessage(*sigfox.Message) error
-	CreateSigfoxLocation(location *sigfox.Location) error
+	CreateSigfoxLocation(*sigfox.Location) error
 	GetSigfoxLocations() ([]sigfox.Location, error)
 	GetGeoJSON() (*models.GeoJSON, error)
+
+	CreateGeolocation(*models.Geolocation) error
+	//TODO: DANGER: Protect by auth device GeoJSON
+	GetFleetGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
+	//TODO: DANGER: Protect by auth device GeoJSON
+	GetDeviceGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)

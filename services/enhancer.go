@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfox.Location, *models.Observation) {
+func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
 	if len(msg.Data) <= 12 {
 		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")
 		return false, nil, nil
@@ -60,24 +60,24 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *sigfo
 		return false, nil, nil
 	}
 
+	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
+	if err != nil {
+		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		return false, nil, nil
+	}
+
 	//Else, position is resolved
 	//var wifiLoc sigfox.Location
-	wifiLoc := &sigfox.Location{}
+	wifiLoc := &models.Geolocation{}
+	wifiLoc.DeviceId = device.Id
+	wifiLoc.Timestamp = msg.Timestamp
+	wifiLoc.Source = "wifi"
 	wifiLoc.Latitude = resp.Location.Lat
 	wifiLoc.Longitude = resp.Location.Lng
 	wifiLoc.Radius = resp.Accuracy
-	wifiLoc.FrameNumber = msg.FrameNumber
-	wifiLoc.SpotIt = false
-	wifiLoc.GPS = false
-	wifiLoc.WiFi = true
 
 	obs := &models.Observation{}
 	defp := &models.DefaultProperty{"wifi", "location"}
-	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
-	if err != nil {
-		fmt.Println("Enhancer Sigfox Device ID not found", err)
-		return false, nil, nil
-	}
 	latVal := models.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
 	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
 	accVal := models.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
@@ -408,14 +408,25 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 	return true, obs
 }
 
-func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Observation) {
-	obs := &models.Observation{}
-	defp := &models.DefaultProperty{"spotit", "location"}
+func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geolocation, *models.Observation) {
 	device, err := store.GetDeviceFromSigfoxId(contxt, loc.SigfoxId)
 	if err != nil {
-		fmt.Println("Enhancer Sigfox Device ID not found", err)
-		return false, nil
+		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		return false, nil, nil
 	}
+
+	//Else, position is resolved
+	//var wifiLoc sigfox.Location
+	spotitLoc := &models.Geolocation{}
+	spotitLoc.DeviceId = device.Id
+	spotitLoc.Timestamp = loc.Timestamp
+	spotitLoc.Source = "sigfox"
+	spotitLoc.Latitude = loc.Latitude
+	spotitLoc.Longitude = loc.Longitude
+	spotitLoc.Radius = loc.Radius
+
+	obs := &models.Observation{}
+	defp := &models.DefaultProperty{"spotit", "location"}
 	latVal := models.QuantitativeValue{defp, "latitude", "degrees", loc.Latitude}
 	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", loc.Longitude}
 	accVal := models.QuantitativeValue{defp, "accuracy", "meters", loc.Radius}
@@ -424,5 +435,5 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Obse
 	obs.DeviceId = device.Id
 	obs.Resolver = "spotit"
 
-	return true, obs
+	return true, spotitLoc, obs
 }

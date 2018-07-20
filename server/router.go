@@ -55,8 +55,10 @@ func (a *API) SetupRouter() {
 
 		fleets := v1.Group("/fleets")
 		{
-			fleets.Use(authMiddleware)
 			fleetsController := controllers.NewFleetController()
+			//TODO: DANGER: Protect by auth device GeoJSON
+			fleets.GET("/:id/locations/geojson", fleetsController.GetFleetGeoJSON)
+			fleets.Use(authMiddleware)
 			fleets.GET("/", fleetsController.GetFleets)
 			fleets.POST("/", fleetsController.CreateFleet)
 			fleets.PUT("/:id", fleetsController.EditFleet)
@@ -124,13 +126,15 @@ func (a *API) SetupRouter() {
 			sigfoxController := controllers.NewSigfoxController()
 			sigfox.POST("/message", sigfoxController.CreateSigfoxMessage)
 			sigfox.POST("/location", sigfoxController.CreateSigfoxLocation)
-			sigfox.GET("/locations", sigfoxController.GetSigfoxLocations)
-			sigfox.GET("/locations/geojson", sigfoxController.GetGeoJSON)
+			//sigfox.GET("/locations", sigfoxController.GetSigfoxLocations)
+			//sigfox.GET("/locations/geojson", sigfoxController.GetGeoJSON)
 		}
 
-		/*		app := v1.Group("app")
-				{
-					appCo
-				}*/
+		geolocations := v1.Group("/geolocations")
+		{
+			geolocationController := controllers.NewGeolocationController()
+			geolocations.POST("/", geolocationController.CreateGeolocation)
+			geolocations.DELETE("/:id", geolocationController.DeleteGeolocation)
+		}
 	}
 }

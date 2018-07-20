@@ -27,11 +27,6 @@ func GetDevice(c context.Context, id string) (*models.Device, error) {
 	return FromContext(c).GetDevice(Current(c), id)
 }
 
-//TODO: DANGER: Protect by auth device GeoJSON
-func GetDeviceGeoJSON(c context.Context, id string) (*models.GeoJSON, error) {
-	return FromContext(c).GetDeviceGeoJSON( /*Current(c), */ id)
-}
-
 func GetDeviceFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, error) {
 	return FromContext(c).GetDeviceFromSigfoxId(sigfoxId)
 }
