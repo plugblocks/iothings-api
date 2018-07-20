@@ -24,7 +24,7 @@ func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ s
 
 	observations := db.C(models.ObservationsCollection).With(session)
 	list := []*models.Observation{}
-	err := observations.Find(params.M{"device_id": deviceId}).All(&list)
+	err := observations.Find(params.M{"device_id": deviceId}).Sort("-timestamp").All(&list)
 	if err != nil {
 		fmt.Println("device get obs id:", deviceId, " err:", err)
 		return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
@@ -50,7 +50,7 @@ func (db *mongo) GetDeviceLatestObservation(customerId string, deviceId string, 
 		return observation, helpers.NewError(http.StatusNotFound, "customer_device_not_found", "Failed to find customer device", err)
 	}*/
 
-	err := observations.Find(params.M{"device_id": deviceId}).One(observation)
+	err := observations.Find(params.M{"device_id": deviceId}).Sort("-timestamp").One(observation)
 	if err != nil {
 		return observation, helpers.NewError(http.StatusNotFound, "observation_device_not_found", "Failed to find observation for device", err)
 	}
@@ -67,7 +67,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ str
 	//Checking that user request one of its fleets
 	fleets := db.C(models.FleetsCollection).With(session)
 	fleet := &models.Fleet{}
-	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).One(fleet)
+	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).Sort("-timestamp").One(fleet)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "user_fleet_not_found", "Failed to find user fleet", err)
 	}
@@ -100,7 +100,7 @@ func (db *mongo) GetFleetLatestObservation(user *models.User, fleetId string, ty
 	//TODO: Refactor code to use only one MongoDB request
 	fleets := db.C(models.FleetsCollection).With(session)
 	fleet := &models.Fleet{}
-	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).One(fleet)
+	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).Sort("-timestamp").One(fleet)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "user_fleet_not_found", "Failed to find user fleet", err)
 	}
