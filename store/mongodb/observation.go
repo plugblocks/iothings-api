@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ string) ([]*models.Observation, error) {
+func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ string, lim int) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -24,7 +24,7 @@ func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ s
 
 	observations := db.C(models.ObservationsCollection).With(session)
 	list := []*models.Observation{}
-	err := observations.Find(params.M{"device_id": deviceId}).Sort("-timestamp").All(&list)
+	err := observations.Find(params.M{"device_id": deviceId}).Sort("-timestamp").Limit(lim).All(&list)
 	if err != nil {
 		fmt.Println("device get obs id:", deviceId, " err:", err)
 		return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
@@ -58,7 +58,7 @@ func (db *mongo) GetDeviceLatestObservation(customerId string, deviceId string, 
 	return observation, nil
 }
 
-func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ string) ([]*models.Observation, error) {
+func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ string, lim int) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -78,7 +78,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ str
 		fmt.Println("Device+", deviceId)
 		tempObservationsList := []*models.Observation{}
 		// TODO: Sort by timestamp decreasing
-		err = observations.Find(params.M{"device_id": deviceId}).All(&tempObservationsList)
+		err = observations.Find(params.M{"device_id": deviceId}).Limit(lim).All(&tempObservationsList)
 		if err != nil {
 			fmt.Println(err)
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)

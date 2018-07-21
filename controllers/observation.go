@@ -6,6 +6,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
+	"strconv"
 )
 
 type ObservationController struct {
@@ -34,7 +35,8 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 }
 
 func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
-	observations, err := store.GetDeviceObservations(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"))
+	lim, _ := strconv.ParseInt(c.Param("limit"), 10, 32)
+	observations, err := store.GetDeviceObservations(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"), int(lim))
 
 	if err != nil {
 		c.Error(err)
@@ -57,7 +59,9 @@ func (oc ObservationController) GetDeviceLatestObservation(c *gin.Context) {
 	c.JSON(http.StatusOK, observation)
 }
 func (oc ObservationController) GetFleetObservations(c *gin.Context) {
-	observations, err := store.GetFleetObservations(c, c.Param("id"), c.Param("type"))
+	lim, _ := strconv.ParseInt(c.Param("limit"), 10, 32)
+	c.Request.URL.Query()
+	observations, err := store.GetFleetObservations(c, c.Param("fleetId"), c.Param("type"), int(lim))
 
 	if err != nil {
 		c.Error(err)
@@ -68,7 +72,7 @@ func (oc ObservationController) GetFleetObservations(c *gin.Context) {
 	c.JSON(http.StatusOK, observations)
 }
 func (oc ObservationController) GetFleetLatestObservation(c *gin.Context) {
-	observation, err := store.GetFleetLatestObservation(c, c.Param("id"), c.Param("type"))
+	observation, err := store.GetFleetLatestObservation(c, c.Param("fleetId"), c.Param("type"))
 
 	if err != nil {
 		c.Error(err)
