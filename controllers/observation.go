@@ -16,6 +16,12 @@ func NewObservationController() ObservationController {
 	return ObservationController{}
 }
 
+type QueryParams struct {
+	Order bool   `form:"order" json:"order"`
+	Limit int    `form:"limit" json:"limit"`
+	Type  string `form:"type" json:"type"`
+}
+
 func (oc ObservationController) CreateObservation(c *gin.Context) {
 	observation := &models.Observation{}
 

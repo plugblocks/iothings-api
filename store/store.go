@@ -34,6 +34,8 @@ type Store interface {
 	GetFleetGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
 	//TODO: DANGER: Protect by auth device GeoJSON
 	GetDeviceGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
+	//TODO: DANGER: Protect by auth device GeoJSON
+	GetAllFleetsGeoJSON(*models.User) (*models.GeoJSON, error)
 
 	CreateGroup(*models.User, *models.Group) error
 	GetGroupById(*models.User, string) (*models.Group, error)

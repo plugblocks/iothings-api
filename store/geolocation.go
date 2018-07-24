@@ -18,3 +18,8 @@ func GetDeviceGeoJSON(c context.Context, id string) (*models.GeoJSON, error) {
 func GetFleetGeoJSON(c context.Context, id string) (*models.GeoJSON, error) {
 	return FromContext(c).GetFleetGeoJSON( /*Current(c), */ id)
 }
+
+//TODO: DANGER: Protect by auth device GeoJSON
+func GetAllFleetsGeoJSON(c context.Context) (*models.GeoJSON, error) {
+	return FromContext(c).GetAllFleetsGeoJSON(Current(c))
+}

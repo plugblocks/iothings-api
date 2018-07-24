@@ -133,8 +133,13 @@ func (a *API) SetupRouter() {
 		geolocations := v1.Group("/geolocations")
 		{
 			geolocationController := controllers.NewGeolocationController()
+			fleetsController := controllers.NewFleetController()
 			geolocations.POST("/", geolocationController.CreateGeolocation)
 			geolocations.DELETE("/:id", geolocationController.DeleteGeolocation)
+
+			geolocations.Use(authMiddleware)
+			geolocations.Use(adminMiddleware)
+			geolocations.GET("/fleets", fleetsController.GetAllFleetsGeoJSON)
 		}
 	}
 }
