@@ -437,3 +437,128 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 
 	return true, spotitLoc, obs
 }
+
+func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, float64, bool) {
+	fmt.Print("GPS frame: \t\t\t")
+	var gpsLoc models.Geolocation
+	var temperature float64
+	var status bool
+	var latitude, longitude float64
+	var latDeg, latMin, latSec float64
+	var lngDeg, lngMin, lngSec float64
+
+	isNorth, isEast := false, false
+	if string(msg.Data[0:2]) == "4e" {
+		isNorth = true
+	}
+	if string(msg.Data[10:12]) == "45" {
+		isEast = true
+	}
+
+	if isNorth {
+		fmt.Print("N:")
+	} else {
+		fmt.Print("S:")
+	}
+
+	valLatDeg, _ := strconv.ParseInt(msg.Data[2:4], 16, 8)
+	latDeg = float64(valLatDeg)
+	valLatMin, _ := strconv.ParseInt(msg.Data[4:6], 16, 8)
+	latMin = float64(valLatMin)
+	valLatSec, _ := strconv.ParseInt(msg.Data[6:8], 16, 8)
+	latSec = float64(valLatSec)
+	fmt.Print(latDeg, "° ", latMin, "m ", latSec, "s\t")
+
+	latitude = float64(latDeg) + float64(latMin/60) + float64(latSec/3600)
+
+	if isEast {
+		fmt.Print("E:")
+	} else {
+		fmt.Print("W:")
+	}
+	valLngDeg, _ := strconv.ParseInt(msg.Data[10:12], 16, 8)
+	lngDeg = float64(valLngDeg)
+	valLngMin, _ := strconv.ParseInt(msg.Data[12:14], 16, 8)
+	lngMin = float64(valLngMin)
+	valLngSec, _ := strconv.ParseInt(msg.Data[14:16], 16, 8)
+	lngSec = float64(valLngSec)
+	fmt.Print(lngDeg, "° ", lngMin, "m ", lngSec, "s")
+
+	longitude = float64(lngDeg) + float64(lngMin/60) + float64(lngSec/3600)
+
+	fmt.Print("\t\t\t Lat: ", latitude, "\t Lng:", longitude)
+	// Populating returned location
+	gpsLoc.Latitude = latitude
+	gpsLoc.Longitude = longitude
+	gpsLoc.Timestamp = msg.Timestamp
+	gpsLoc.Radius = 10
+	gpsLoc.Source = "gps"
+
+	if msg.Data[18:20] == "41" {
+		status = true
+	} else if msg.Data[18:20] == "56" {
+		status = false
+	}
+
+	temperature, err := strconv.ParseFloat(msg.Data[20:22], 64)
+	if err != nil {
+		fmt.Println("Error while converting temperature main")
+	}
+	dec, err := strconv.ParseFloat(msg.Data[22:24], 64)
+	if err != nil {
+		fmt.Println("Error while converting temperature decimal")
+	}
+
+	temperature += dec * 0.01
+
+	fmt.Println("\t\t", gpsLoc, "\t", temperature, '\t', status)
+	return gpsLoc, temperature, status
+}
+
+func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
+	device, err := store.GetDeviceFromSigfoxId(contxt, sigfoxMessage.SigfoxId)
+	if err != nil {
+		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		return false, nil, nil
+	}
+
+	gpsGeoloc := &models.Geolocation{}
+	obs := &models.Observation{}
+	locProp := &models.DefaultProperty{"gps", "location"}
+	senProp := &models.DefaultProperty{"gps", "sensor"}
+
+
+	if (string(sigfoxMessage.Data[0:2]) == "4e") || (string(sigfoxMessage.Data[0:2]) == "53") {
+		if string(sigfoxMessage.Data[2:4]) != "00" {
+			decodedGPSFrame, decodedTemperature, status := decodeWisolGPSFrame(*sigfoxMessage)
+			gpsGeoloc = &decodedGPSFrame
+			gpsGeoloc.DeviceId = device.Id
+
+			latVal := models.QuantitativeValue{locProp, "latitude", "degrees", gpsGeoloc.Latitude}
+			lngVal := models.QuantitativeValue{locProp, "longitude", "degrees", gpsGeoloc.Longitude}
+			accVal := models.QuantitativeValue{locProp, "accuracy", "meters", gpsGeoloc.Radius}
+			tempVal := models.QuantitativeValue{senProp, "temperature", "celsius", decodedTemperature}
+			staVal := models.QuantitativeValue{senProp, "status", "", status}
+			obs.Values = append(obs.Values, latVal, lngVal, accVal, tempVal, staVal)
+			obs.Timestamp = sigfoxMessage.Timestamp
+			obs.DeviceId = device.Id
+			obs.Resolver = "gps"
+
+			fmt.Println("Wisol GPS Geoloc: ", gpsGeoloc, "Obs:", obs)
+			return true, gpsGeoloc, obs
+
+		} else { //No GPS, frame is empty
+			sigfoxMessage.Data = "No GPS: " + sigfoxMessage.Data
+			fmt.Println("Wisol No GPS Frame")
+		}
+	} else {
+		status, gpsGeoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
+		if status == false {
+			fmt.Println("Error while resolving Wisol WiFi location")
+			return false, nil, nil
+		}
+		fmt.Println("Wisol WiFi Geoloc: ", gpsGeoloc, "Obs:", obs)
+		return true, gpsGeoloc, obs
+	}
+	return false, nil, nil
+}

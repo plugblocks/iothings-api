@@ -42,7 +42,7 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 	if sigfoxMessage.Resolver == "wifi" {
 		res, geoLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
 		if res == false {
-			fmt.Println("Error while resolving WiFi computed location")
+			fmt.Println("Error while enhancing WiFi computed location")
 			return
 		}
 		fmt.Println("at: ", observation.Timestamp, "\tValues:", observation.Values)
@@ -67,7 +67,7 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 	} else if sigfoxMessage.Resolver == "sensitv2" {
 		res, observation := services.DecodeSensitV2Message(c, sigfoxMessage)
 		if res == false {
-			fmt.Println("Error while parsing Sensit v2")
+			fmt.Println("Error while enhancing Sensit v2")
 			return
 		}
 		fmt.Println("Resolved Sensit v2 Frame, containing: ", observation)
@@ -82,7 +82,7 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 	} else if sigfoxMessage.Resolver == "sensitv3" {
 		res, observation := services.DecodeSensitV3Message(c, sigfoxMessage)
 		if res == false {
-			fmt.Println("Error while parsing Sensit v3")
+			fmt.Println("Error while enhancing Sensit v3")
 			return
 		}
 		fmt.Println("Resolved Sensit v3 Frame, containing: ", observation)
@@ -90,6 +90,27 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		err = store.CreateObservation(c, observation)
 		if err != nil {
 			fmt.Println("Error while storing Sensit v3 Sigfox Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+	} else if sigfoxMessage.Resolver == "wisol" {
+		res, geoloc, observation := services.Wisol(c, sigfoxMessage)
+		if res == false {
+			fmt.Println("Error while enhancing Wisol frame")
+			return
+		}
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing Wisol Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		err = store.CreateGeolocation(c, geoloc)
+		if err != nil {
+			fmt.Println("Error while storing Wisol Geolocation")
 			c.Error(err)
 			c.Abort()
 			return

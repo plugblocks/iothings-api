@@ -31,6 +31,22 @@ func (gc GeolocationController) CreateGeolocation(c *gin.Context) {
 		return
 	}
 
+	obs := &models.Observation{}
+	defp := &models.DefaultProperty{"app", "location"}
+	latVal := models.QuantitativeValue{defp, "latitude", "degrees", geolocation.Latitude}
+	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", geolocation.Longitude}
+	accVal := models.QuantitativeValue{defp, "accuracy", "meters", geolocation.Radius}
+	obs.Values = append(obs.Values, latVal, lngVal, accVal)
+	obs.Timestamp = geolocation.Timestamp
+	obs.DeviceId = geolocation.Id
+	obs.Resolver = "app"
+
+	if err := store.CreateObservation(c, obs); err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
 	c.JSON(http.StatusCreated, geolocation)
 }
 
