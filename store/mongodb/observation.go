@@ -9,7 +9,8 @@ import (
 	"net/http"
 )
 
-func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ string, lim int) ([]*models.Observation, error) {
+//TODO: CHECK USER/CUSTOMER RIGHTS
+func (db *mongo) GetDeviceObservations(deviceId string, resolver string, lim int) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -24,41 +25,24 @@ func (db *mongo) GetDeviceObservations(customerId string, deviceId string, typ s
 
 	observations := db.C(models.ObservationsCollection).With(session)
 	list := []*models.Observation{}
-	err := observations.Find(params.M{"device_id": deviceId}).Sort("-timestamp").Limit(lim).All(&list)
-	if err != nil {
-		fmt.Println("device get obs id:", deviceId, " err:", err)
-		return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
+	if resolver == "" {
+		err := observations.Find(bson.M{"device_id": deviceId}).Sort("-timestamp").Limit(lim).All(&list)
+		if err != nil {
+			fmt.Println("device get obs id:", deviceId, " err:", err)
+			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
+		}
+	} else {
+		err := observations.Find(bson.M{"device_id": deviceId, "resolver": resolver}).Sort("-timestamp").Limit(lim).All(&list)
+		if err != nil {
+			fmt.Println("device get obs id:", deviceId, " err:", err)
+			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
+		}
 	}
 
 	return list, nil
 }
 
-func (db *mongo) GetDeviceLatestObservation(customerId string, deviceId string, typ string) (*models.Observation, error) {
-	session := db.Session.Copy()
-	defer session.Close()
-
-	//Checking that customer request one of its device
-	//devices := db.C(models.DevicesCollection).With(session)
-	//device := &models.Device{}
-
-	observations := db.C(models.ObservationsCollection).With(session)
-	observation := &models.Observation{}
-
-	//TODO: Refactor code to use only one MongoDB request, restore customer ownership security
-	/*err := devices.Find(bson.M{"_id": deviceId, "customer_id": customerId}).One(device)
-	if err != nil {
-		return observation, helpers.NewError(http.StatusNotFound, "customer_device_not_found", "Failed to find customer device", err)
-	}*/
-
-	err := observations.Find(params.M{"device_id": deviceId}).Sort("-timestamp").One(observation)
-	if err != nil {
-		return observation, helpers.NewError(http.StatusNotFound, "observation_device_not_found", "Failed to find observation for device", err)
-	}
-
-	return observation, nil
-}
-
-func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ string, lim int) ([]*models.Observation, error) {
+func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolver string, lim int) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -85,35 +69,6 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, typ str
 		}
 		fmt.Println(tempObservationsList)
 		retObservationsList = append(retObservationsList, tempObservationsList...)
-	}
-
-	return retObservationsList, nil
-}
-
-func (db *mongo) GetFleetLatestObservation(user *models.User, fleetId string, typ string) ([]models.Observation, error) {
-	session := db.Session.Copy()
-	defer session.Close()
-
-	retObservationsList := []models.Observation{}
-
-	//Checking that user request one of its fleets
-	//TODO: Refactor code to use only one MongoDB request
-	fleets := db.C(models.FleetsCollection).With(session)
-	fleet := &models.Fleet{}
-	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).Sort("-timestamp").One(fleet)
-	if err != nil {
-		return nil, helpers.NewError(http.StatusNotFound, "user_fleet_not_found", "Failed to find user fleet", err)
-	}
-
-	//Finding latest observations of devices of user's fleet
-	observations := db.C(models.ObservationsCollection).With(session)
-	for _, deviceId := range fleet.DeviceIds {
-		tempObservation := &models.Observation{}
-		err = observations.Find(params.M{"device_id": deviceId}).One(tempObservation)
-		if err != nil {
-			return nil, helpers.NewError(http.StatusNotFound, "observation_device_not_found", "Failed to find observation for device", err)
-		}
-		retObservationsList = append(retObservationsList, *tempObservation)
 	}
 
 	return retObservationsList, nil

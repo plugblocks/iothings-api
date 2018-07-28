@@ -1,12 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
-	"strconv"
 )
 
 type ObservationController struct {
@@ -16,10 +16,12 @@ func NewObservationController() ObservationController {
 	return ObservationController{}
 }
 
-type QueryParams struct {
-	Order bool   `form:"order" json:"order"`
-	Limit int    `form:"limit" json:"limit"`
-	Type  string `form:"type" json:"type"`
+type ObservationQueryParams struct {
+	Order     bool   `form:"order" json:"order"`
+	Limit     int    `form:"limit" json:"limit"`
+	Resolver  string `form:"resolver" json:"resolver"`
+	StartTime int    `form:"starttime" json:"starttime"`
+	EndTime   int    `form:"endtime" json:"endtime"`
 }
 
 func (oc ObservationController) CreateObservation(c *gin.Context) {
@@ -41,50 +43,42 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 }
 
 func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
-	lim, _ := strconv.ParseInt(c.Param("limit"), 10, 32)
-	observations, err := store.GetDeviceObservations(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"), int(lim))
+	var params ObservationQueryParams
+	if c.ShouldBind(&params) == nil {
+		if params.Limit == 0 {
+			params.Limit = 10
+		}
+		observations, err := store.GetDeviceObservations(c, c.Param("deviceId"), params.Resolver, params.Limit)
 
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
+		fmt.Println("len: ", len(observations))
+
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, observations)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Device observation error")
 	}
-
-	c.JSON(http.StatusOK, observations)
-}
-
-func (oc ObservationController) GetDeviceLatestObservation(c *gin.Context) {
-	observation, err := store.GetDeviceLatestObservation(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, observation)
 }
 func (oc ObservationController) GetFleetObservations(c *gin.Context) {
-	lim, _ := strconv.ParseInt(c.Param("limit"), 10, 32)
-	c.Request.URL.Query()
-	observations, err := store.GetFleetObservations(c, c.Param("fleetId"), c.Param("type"), int(lim))
+	var params ObservationQueryParams
+	if c.ShouldBind(&params) == nil {
+		if params.Limit == 0 {
+			params.Limit = 10
+		}
+		observations, err := store.GetFleetObservations(c, c.Param("fleetId"), params.Resolver, params.Limit)
 
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, observations)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Fleet observation error")
 	}
-
-	c.JSON(http.StatusOK, observations)
-}
-func (oc ObservationController) GetFleetLatestObservation(c *gin.Context) {
-	observation, err := store.GetFleetLatestObservation(c, c.Param("fleetId"), c.Param("type"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, observation)
 }

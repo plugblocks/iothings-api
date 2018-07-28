@@ -527,7 +527,6 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 	locProp := &models.DefaultProperty{"gps", "location"}
 	senProp := &models.DefaultProperty{"gps", "sensor"}
 
-
 	if (string(sigfoxMessage.Data[0:2]) == "4e") || (string(sigfoxMessage.Data[0:2]) == "53") {
 		if string(sigfoxMessage.Data[2:4]) != "00" {
 			decodedGPSFrame, decodedTemperature, status := decodeWisolGPSFrame(*sigfoxMessage)

@@ -166,7 +166,6 @@ func (db *mongo) GetAllFleetsGeoJSON(user *models.User) (*models.GeoJSON, error)
 		}
 	}
 
-
 	//TODO: use observations with trick to find values in observation
 	// if(locationObs.Values[0].DefaultProperty.Type) == "location"
 	/*
@@ -185,4 +184,3 @@ func (db *mongo) GetAllFleetsGeoJSON(user *models.User) (*models.GeoJSON, error)
 
 	return geojson, nil
 }
-
