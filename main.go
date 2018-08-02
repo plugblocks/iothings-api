@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Email sender setup
-	api.EmailSender = services.NewSendGridEmailSender(api.Config)
+	api.EmailSender = services.NewEmailSender(api.Config)
 
 	// Database setup
 	session, err := api.SetupDatabase()

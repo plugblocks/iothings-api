@@ -4,16 +4,22 @@ import (
 	"bytes"
 	"html/template"
 	"io/ioutil"
-	"net/http"
+	//"net/http"
 
 	"gitlab.com/plugblocks/iothings-api/models"
 
-	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	/*"github.com/sendgrid/rest"
+	"github.com/sendgrid/sendgrid-go
+	"github.com/sendgrid/sendgrid-go/helpers/mail"*/
 
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 const (
@@ -25,15 +31,15 @@ func GetEmailSender(c context.Context) EmailSender {
 }
 
 type EmailSender interface {
-	SendEmail(to []*mail.Email, contentType, subject, body string) (*rest.Response, error)
-	SendEmailFromTemplate(user *models.User, subject string, templateLink string) (*rest.Response, error)
+	SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error)
 }
 
 type FakeEmailSender struct{}
 
-type SendGridEmailSender struct {
+type EmailSenderParams struct {
 	senderEmail string
 	senderName  string
+	apiID     string
 	apiKey      string
 	baseUrl     string
 }
@@ -44,48 +50,25 @@ type Data struct {
 	AppName     string
 }
 
-func (f *FakeEmailSender) SendEmail(to []*mail.Email, contentType, subject, body string) (*rest.Response, error) {
-	return &rest.Response{StatusCode: http.StatusOK, Body: "Everything's fine Jean-Miche", Headers: nil}, nil
-}
+/*func (f *FakeEmailSender) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error) {
+	return &rest.Response{StatusCode: http.StatusOK, Body: "Everything's fine Jean-Miche", Headers: nil}
+}*/
 
-func (f *FakeEmailSender) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (*rest.Response, error) {
-	return &rest.Response{StatusCode: http.StatusOK, Body: "Everything's fine Jean-Miche", Headers: nil}, nil
-}
-
-func NewSendGridEmailSender(config *viper.Viper) EmailSender {
-	return &SendGridEmailSender{
-		config.GetString("sendgrid_address"),
+func NewEmailSender(config *viper.Viper) EmailSender {
+	return &EmailSenderParams{
+		/*config.GetString("sendgrid_address"),
 		config.GetString("sendgrid_name"),
-		config.GetString("sendgrid_api_key"),
+		config.GetString("sendgrid_api_key"),*/
+		config.GetString("mail_sender_address"),
+		config.GetString("mail_sender_name"),
+		config.GetString("aws_ses_api_id"),
+		config.GetString("aws_ses_api_key"),
 		config.GetString("base_url"),
 	}
 }
-
-func (s *SendGridEmailSender) SendEmail(to []*mail.Email, contentType, subject, body string) (*rest.Response, error) {
-	from := mail.NewEmail(s.senderName, s.senderEmail)
-	content := mail.NewContent(contentType, body)
-
-	// Setup mail
-	m := mail.NewV3Mail()
-	m.SetFrom(from)
-	m.Subject = subject
-	p := mail.NewPersonalization()
-	for _, recipient := range to {
-		p.AddTos(recipient)
-	}
-	m.AddPersonalizations(p)
-	m.AddContent(content)
-
-	//Send it
-	request := sendgrid.GetRequest(s.apiKey, "/v3/mail/send", "")
-	request.Method = "POST"
-	request.Body = mail.GetRequestBody(m)
-	return sendgrid.API(request)
-}
-
-func (s *SendGridEmailSender) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (*rest.Response, error) {
-
-	to := mail.NewEmail(user.Firstname, user.Email)
+func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error) {
+	// Sendgrid Way
+	/*to := mail.NewEmail(user.Firstname, user.Email)
 
 	file, err := ioutil.ReadFile(templateLink)
 	if err != nil {
@@ -101,5 +84,85 @@ func (s *SendGridEmailSender) SendEmailFromTemplate(user *models.User, subject s
 		return nil, err
 	}
 
-	return s.SendEmail([]*mail.Email{to}, "text/html", subject, buffer.String())
+	return s.SendEmail([]*mail.Email{to}, "text/html", subject, buffer.String())*/
+
+	file, err := ioutil.ReadFile(templateLink)
+	if err != nil {
+		return err
+	}
+
+	htmlTemplate := template.Must(template.New("emailTemplate").Parse(string(file)))
+
+	data := Data{User: user, HostAddress: s.baseUrl, AppName: s.senderName}
+	buffer := new(bytes.Buffer)
+	err = htmlTemplate.Execute(buffer, data)
+	if err != nil {
+		return err
+	}
+
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String("eu-west-1")},
+	)
+
+	fmt.Println("Amazon Creds: " + s.apiID + s.apiKey)
+	creds := credentials.NewStaticCredentials(s.apiID, s.apiKey, "")
+
+	// Create an SES session.
+	svc := ses.New(sess, &aws.Config{Credentials: creds})
+
+	// Assemble the email.
+	input := &ses.SendEmailInput{
+		Destination: &ses.Destination{
+			CcAddresses: []*string{},
+			ToAddresses: []*string{
+				aws.String(user.Email),
+			},
+		},
+		Message: &ses.Message{
+			Body: &ses.Body{
+				Html: &ses.Content{
+					Charset: aws.String("UTF-8"),
+					Data:    aws.String(buffer.String()),
+				},
+			},
+			Subject: &ses.Content{
+				Charset: aws.String("UTF-8"),
+				Data:    aws.String(subject),
+			},
+		},
+		Source: aws.String(s.senderEmail),
+		// Uncomment to use a configuration set
+		// ConfigurationSetName: aws.String(ConfigurationSet),
+	}
+
+	// Attempt to send the email.
+	result, err := svc.SendEmail(input)
+
+	// Display error messages if they occur.
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case ses.ErrCodeMessageRejected:
+				fmt.Println(ses.ErrCodeMessageRejected, aerr.Error())
+			case ses.ErrCodeMailFromDomainNotVerifiedException:
+				fmt.Println(ses.ErrCodeMailFromDomainNotVerifiedException, aerr.Error())
+			case ses.ErrCodeConfigurationSetDoesNotExistException:
+				fmt.Println(ses.ErrCodeConfigurationSetDoesNotExistException, aerr.Error())
+			default:
+				fmt.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+		}
+
+		return err
+	}
+
+	fmt.Println("SES Email Sent to " + user.Firstname + " " + user.Lastname + " at address: " + user.Email)
+	fmt.Println(result)
+
+	return nil
 }
+
