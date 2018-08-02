@@ -39,6 +39,11 @@ func (ac AuthController) Authentication(c *gin.Context) {
 		return
 	}
 
+	if !user.Active {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_needs_activation", "User needs to be activated via email", nil))
+		return
+	}
+
 	//Read base64 private key
 	encodedKey := []byte(config.GetString(c, "rsa_private"))
 	accessToken, err := helpers.GenerateAccessToken(encodedKey, user.Id)

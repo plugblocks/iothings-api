@@ -12,14 +12,14 @@ import (
 	"github.com/sendgrid/sendgrid-go
 	"github.com/sendgrid/sendgrid-go/helpers/mail"*/
 
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 const (
@@ -39,15 +39,15 @@ type FakeEmailSender struct{}
 type EmailSenderParams struct {
 	senderEmail string
 	senderName  string
-	apiID     string
+	apiID       string
 	apiKey      string
-	baseUrl     string
+	apiUrl      string
 }
 
 type Data struct {
-	User        *models.User
-	HostAddress string
-	AppName     string
+	User    *models.User
+	ApiUrl  string
+	AppName string
 }
 
 /*func (f *FakeEmailSender) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error) {
@@ -63,10 +63,10 @@ func NewEmailSender(config *viper.Viper) EmailSender {
 		config.GetString("mail_sender_name"),
 		config.GetString("aws_ses_api_id"),
 		config.GetString("aws_ses_api_key"),
-		config.GetString("base_url"),
+		config.GetString("api_url"),
 	}
 }
-func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error) {
+func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject string, templateLink string) error {
 	// Sendgrid Way
 	/*to := mail.NewEmail(user.Firstname, user.Email)
 
@@ -93,10 +93,13 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 
 	htmlTemplate := template.Must(template.New("emailTemplate").Parse(string(file)))
 
-	data := Data{User: user, HostAddress: s.baseUrl, AppName: s.senderName}
+	fmt.Println("SendEmailFromTemplate: Template parsed")
+
+	data := Data{User: user, ApiUrl: s.apiUrl, AppName: s.senderName}
 	buffer := new(bytes.Buffer)
 	err = htmlTemplate.Execute(buffer, data)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -157,6 +160,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 			fmt.Println(err.Error())
 		}
 
+		fmt.Println(err)
 		return err
 	}
 
@@ -165,4 +169,3 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 
 	return nil
 }
-

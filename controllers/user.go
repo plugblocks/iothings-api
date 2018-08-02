@@ -58,8 +58,23 @@ func (uc UserController) ActivateUser(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	//c.JSON(http.StatusOK, nil)
 
-	c.JSON(http.StatusOK, nil)
+	/*user, err := store.FindUserById(c, c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	vars := gin.H{
+		"User": user,
+		"AppName": config.GetString(c, "mail_sender_name"),
+		"AppUrl": config.GetString(c, "front_url"),
+	}
+
+	c.HTML(http.StatusOK, "./templates/html/page_account_activated.html", vars)*/
+
+	c.Redirect(http.StatusMovedPermanently, "http://"+config.GetString(c, "front_url"))
 }
 
 func (uc UserController) GetUsers(c *gin.Context) {
