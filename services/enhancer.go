@@ -38,7 +38,7 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 		}
 	}
 
-	fmt.Print("WiFis: SSID1: ", ssid1, "\t SSID2:", ssid2, "\t")
+	//fmt.Print("WiFis: SSID1: ", ssid1, "\t SSID2:", ssid2, "\t")
 
 	googleApiKey := config.GetString(contxt, "google_api_key")
 

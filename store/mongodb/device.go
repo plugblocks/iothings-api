@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"errors"
-	"fmt"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
@@ -17,7 +16,7 @@ func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)
 
-	fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
+	//fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
 	device.BeforeCreate(user)
 
 	if device.SigfoxId != "" {

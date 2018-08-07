@@ -59,7 +59,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolve
 	//Finding all observations of devices of user's fleet
 	observations := db.C(models.ObservationsCollection).With(session)
 	for _, deviceId := range fleet.DeviceIds {
-		fmt.Println("Device+", deviceId)
+		//fmt.Println("Device+", deviceId)
 		tempObservationsList := []*models.Observation{}
 		// TODO: Sort by timestamp decreasing
 		err = observations.Find(params.M{"device_id": deviceId}).Limit(lim).All(&tempObservationsList)
@@ -67,7 +67,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolve
 			fmt.Println(err)
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 		}
-		fmt.Println(tempObservationsList)
+		//fmt.Println(tempObservationsList)
 		retObservationsList = append(retObservationsList, tempObservationsList...)
 	}
 
