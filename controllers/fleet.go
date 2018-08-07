@@ -63,8 +63,19 @@ func (fc FleetController) GetFleetGeoJSON(c *gin.Context) {
 	c.JSON(http.StatusOK, geoJsonStruct)
 }
 
-func (fc FleetController) GetAllFleetsGeoJSON(c *gin.Context) {
-	geoJsonStruct, err := store.GetAllFleetsGeoJSON(c)
+func (fc FleetController) GetFleetsGeoJSON(c *gin.Context) {
+	geoJsonStruct, err := store.GetFleetsGeoJSON(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, geoJsonStruct)
+}
+
+func (fc FleetController) GetUserFleetsGeoJSON(c *gin.Context) {
+	geoJsonStruct, err := store.GetUserFleetsGeoJSON(c)
 	if err != nil {
 		c.Error(err)
 		c.Abort()

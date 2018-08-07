@@ -1,7 +1,6 @@
 package mongodb
 
 import (
-	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
@@ -12,8 +11,6 @@ func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	locations := db.C(models.GeolocationsCollection).With(session)
-
-	fmt.Println("CreateGeolocation", location)
 
 	location.BeforeCreate()
 	err := locations.Insert(location)
@@ -130,7 +127,62 @@ func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string) (*mode
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func (db *mongo) GetAllFleetsGeoJSON(user *models.User) (*models.GeoJSON, error) {
+func (db *mongo) GetFleetsGeoJSON() (*models.GeoJSON, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	fleetCollection := db.C(models.FleetsCollection).With(session)
+
+	fleets := []models.Fleet{}
+	err := fleetCollection.Find(bson.M{}).All(&fleets)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_fleets_failed", "Failed to get the fleets: "+err.Error(), err)
+	}
+
+	//////////////////////////////////////
+	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
+	locations := []models.Geolocation{}
+	features := []models.Feature{}
+
+	for _, fleet := range fleets {
+		for _, deviceId := range fleet.DeviceIds {
+			err = geolocationCollection.Find(bson.M{"device_id": deviceId}).Sort("-timestamp").All(&locations)
+			if err != nil {
+				return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+			}
+
+			for _, location := range locations {
+				coords := []float64{}
+				coords = append(coords, location.Longitude, location.Latitude)
+
+				geometry := models.Geometry{"Point", coords}
+				feature := models.Feature{"Feature", geometry}
+
+				features = append(features, feature)
+			}
+		}
+	}
+
+	//TODO: use observations with trick to find values in observation
+	// if(locationObs.Values[0].DefaultProperty.Type) == "location"
+	/*
+		observations := db.C(models.ObservationsCollection).With(session)
+		locationsObservations := []*models.Observation{}
+		//TODO: customize source in URL: spotit, wifi, gps ...
+		err = observations.Find(bson.M{"device_id": deviceId, "resolver": "spotit"}).All(&locationsObservations)
+		if err != nil {
+			fmt.Println("device get obs id:", deviceId," err:", err)
+			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
+		}*/
+
+	geojson := &models.GeoJSON{"FeatureCollection", features}
+
+	//fmt.Println("GetFleetGeoJSON: fleet: ", fleet, "\t locations:", locations)
+
+	return geojson, nil
+}
+
+func (db *mongo) GetUserFleetsGeoJSON(user *models.User) (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 

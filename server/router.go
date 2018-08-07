@@ -132,12 +132,13 @@ func (a *API) SetupRouter() {
 		{
 			geolocationController := controllers.NewGeolocationController()
 			fleetsController := controllers.NewFleetController()
+			geolocations.GET("/fleets", fleetsController.GetFleetsGeoJSON)
 			geolocations.POST("/", geolocationController.CreateGeolocation)
 			geolocations.DELETE("/:id", geolocationController.DeleteGeolocation)
 
 			geolocations.Use(authMiddleware)
 			geolocations.Use(adminMiddleware)
-			geolocations.GET("/fleets", fleetsController.GetAllFleetsGeoJSON)
+			geolocations.GET("/user/fleets", fleetsController.GetUserFleetsGeoJSON)
 		}
 	}
 }
