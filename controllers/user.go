@@ -45,7 +45,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 
 	//TODO: Remove business logic from controller
 	appName := config.GetString(c, "mail_sender_name")
-	subject := "Welcome to " + appName + "! Account confirmation"
+	subject := "Welcome to " + appName + "! Please confirm your account"
 	templateLink := "./templates/html/mail_activate_account.html"
 	services.GetEmailSender(c).SendEmailFromTemplate(user, subject, templateLink)
 

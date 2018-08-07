@@ -93,8 +93,6 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 
 	htmlTemplate := template.Must(template.New("emailTemplate").Parse(string(file)))
 
-	fmt.Println("SendEmailFromTemplate: Template parsed")
-
 	data := Data{User: user, ApiUrl: s.apiUrl, AppName: s.senderName}
 	buffer := new(bytes.Buffer)
 	err = htmlTemplate.Execute(buffer, data)
