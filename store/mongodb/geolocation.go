@@ -127,7 +127,7 @@ func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string) (*mode
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func (db *mongo) GetFleetsGeoJSON() (*models.GeoJSON, error) {
+func (db *mongo) GetFleetsGeoJSON(source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -146,7 +146,7 @@ func (db *mongo) GetFleetsGeoJSON() (*models.GeoJSON, error) {
 
 	for _, fleet := range fleets {
 		for _, deviceId := range fleet.DeviceIds {
-			err = geolocationCollection.Find(bson.M{"device_id": deviceId}).Sort("-timestamp").All(&locations)
+			err = geolocationCollection.Find(bson.M{"device_id": deviceId, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&locations)
 			if err != nil {
 				return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 			}

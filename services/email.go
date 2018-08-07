@@ -31,7 +31,7 @@ func GetEmailSender(c context.Context) EmailSender {
 }
 
 type EmailSender interface {
-	SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error)
+	SendEmailFromTemplate(user *models.User, subject string, templateLink string) error
 }
 
 type FakeEmailSender struct{}

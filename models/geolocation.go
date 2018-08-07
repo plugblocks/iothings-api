@@ -59,6 +59,14 @@ type Geolocation struct {
 	Source    string  `json:"source" bson:"source" valid:"-"`
 }
 
+type GeolocationQueryParams struct {
+	Order     bool   `form:"order" json:"order"`
+	Limit     int    `form:"limit" json:"limit"`
+	Source    string `form:"source" json:"source"`
+	StartTime int    `form:"starttime" json:"starttime"`
+	EndTime   int    `form:"endtime" json:"endtime"`
+}
+
 func (l *Geolocation) BeforeCreate() {
 	l.Id = bson.NewObjectId().Hex()
 	l.Timestamp = time.Now().Unix()

@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+type ObservationQueryParams struct {
+	Order     bool   `form:"order" json:"order"`
+	Limit     int    `form:"limit" json:"limit"`
+	Resolver  string `form:"resolver" json:"resolver"`
+	StartTime int    `form:"starttime" json:"starttime"`
+	EndTime   int    `form:"endtime" json:"endtime"`
+}
+
 type Observation struct {
 	Id        string              `json:"id" bson:"_id,omitempty" valid:"-"`
 	Timestamp int64               `json:"timestamp" bson:"timestamp" valid:"-"`

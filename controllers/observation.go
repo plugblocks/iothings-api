@@ -16,14 +16,6 @@ func NewObservationController() ObservationController {
 	return ObservationController{}
 }
 
-type ObservationQueryParams struct {
-	Order     bool   `form:"order" json:"order"`
-	Limit     int    `form:"limit" json:"limit"`
-	Resolver  string `form:"resolver" json:"resolver"`
-	StartTime int    `form:"starttime" json:"starttime"`
-	EndTime   int    `form:"endtime" json:"endtime"`
-}
-
 func (oc ObservationController) CreateObservation(c *gin.Context) {
 	observation := &models.Observation{}
 
@@ -43,7 +35,7 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 }
 
 func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
-	var params ObservationQueryParams
+	var params models.ObservationQueryParams
 	if c.ShouldBind(&params) == nil {
 		if params.Limit == 0 {
 			params.Limit = 10
@@ -64,7 +56,7 @@ func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
 	}
 }
 func (oc ObservationController) GetFleetObservations(c *gin.Context) {
-	var params ObservationQueryParams
+	var params models.ObservationQueryParams
 	if c.ShouldBind(&params) == nil {
 		if params.Limit == 0 {
 			params.Limit = 10
