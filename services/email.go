@@ -18,8 +18,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/store"
 	"golang.org/x/net/context"
+	"strconv"
 )
 
 const (
@@ -31,7 +35,11 @@ func GetEmailSender(c context.Context) EmailSender {
 }
 
 type EmailSender interface {
-	SendEmailFromTemplate(user *models.User, subject string, templateLink string) error
+	GetEmailParams() *EmailSenderParams
+	//SendUserValidationEmail(user *models.User, subject string, templateLink string) error
+	//SendAlertEmail(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
+	CheckMailCredit(c *gin.Context) bool
+	SendEmailFromTemplate(data *models.EmailData, templateLink string) error
 }
 
 type FakeEmailSender struct{}
@@ -42,12 +50,6 @@ type EmailSenderParams struct {
 	apiID       string
 	apiKey      string
 	apiUrl      string
-}
-
-type Data struct {
-	User    *models.User
-	ApiUrl  string
-	AppName string
 }
 
 /*func (f *FakeEmailSender) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error) {
@@ -66,7 +68,33 @@ func NewEmailSender(config *viper.Viper) EmailSender {
 		config.GetString("api_url"),
 	}
 }
-func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject string, templateLink string) error {
+
+func (s *EmailSenderParams) GetEmailParams() *EmailSenderParams {
+	return s
+}
+
+func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) bool {
+	orga, err := store.GetOrganizationById(c, store.Current(c).OrganizationId)
+	if err != nil {
+		fmt.Println("Mail Check Credit Organization not found", err)
+		return false
+	}
+
+	mailCredit, _ := strconv.Atoi(orga.PlanCreditMails)
+	fmt.Println("Mail User Creation Organization credit:" + string(mailCredit))
+	if mailCredit <= 0 {
+		fmt.Println("Mail Check Credit Organization no credit")
+		return false
+	}
+	orga.PlanCreditMails = strconv.Itoa(mailCredit - 1)
+	if err := store.UpdateOrganization(c, orga.Id, params.M{"$set": orga}); err != nil {
+		c.Error(err)
+		c.Abort()
+	}
+	return true
+}
+
+func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templateLink string) error {
 	// Sendgrid Way
 	/*to := mail.NewEmail(user.Firstname, user.Email)
 
@@ -93,7 +121,6 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 
 	htmlTemplate := template.Must(template.New("emailTemplate").Parse(string(file)))
 
-	data := Data{User: user, ApiUrl: s.apiUrl, AppName: s.senderName}
 	buffer := new(bytes.Buffer)
 	err = htmlTemplate.Execute(buffer, data)
 	if err != nil {
@@ -116,7 +143,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 		Destination: &ses.Destination{
 			CcAddresses: []*string{},
 			ToAddresses: []*string{
-				aws.String(user.Email),
+				aws.String(data.User.Email),
 			},
 		},
 		Message: &ses.Message{
@@ -128,7 +155,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 			},
 			Subject: &ses.Content{
 				Charset: aws.String("UTF-8"),
-				Data:    aws.String(subject),
+				Data:    aws.String(data.Subject),
 			},
 		},
 		Source: aws.String(s.senderEmail),
@@ -162,7 +189,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(user *models.User, subject str
 		return err
 	}
 
-	fmt.Println("SES Email Sent to " + user.Firstname + " " + user.Lastname + " at address: " + user.Email)
+	fmt.Println("SES Email Sent to " + data.User.Firstname + " " + data.User.Lastname + " at address: " + data.User.Email)
 	fmt.Println(result)
 
 	return nil

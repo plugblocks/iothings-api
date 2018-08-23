@@ -8,9 +8,15 @@ import (
 func (a *API) SetupSeeds() error {
 	store := mongodb.New(a.Database)
 
+	//Mails: 0.10$/1000         Texts: 0.05-0.10$/1       WiFi: 5$/1000
 	organization := &models.Organization{
-		Name:   "PlugBlocks",
-		Active: true,
+		Name:            "PlugBlocks",
+		Active:          true,
+		PlanType:        "onpremise",
+		PlanExpiration:  "1538388000", //1/10/2018
+		PlanCreditMails: "100000",
+		PlanCreditTexts: "100",
+		PlanCreditWifi:  "2000",
 	}
 	store.CreateOrganization(organization)
 

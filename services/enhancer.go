@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/store"
@@ -54,6 +55,7 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 			MACAddress: ssid2,
 		}},
 	}
+
 	resp, err := c.Geolocate(context.Background(), r)
 	if err != nil {
 		fmt.Println("Google Maps Geolocation Request, Position:", err)
@@ -515,6 +517,27 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, float64, bool)
 	return gpsLoc, temperature, status
 }
 
+func CheckWifiCredit(c *gin.Context) bool {
+	orga, err := store.GetOrganizationById(c, store.Current(c).OrganizationId)
+	if err != nil {
+		fmt.Println("Wifi Check Credit Organization not found", err)
+		return false
+	}
+
+	mailCredit, _ := strconv.Atoi(orga.PlanCreditWifi)
+	fmt.Println("Mail User Creation Organization credit:" + string(mailCredit))
+	if mailCredit <= 0 {
+		fmt.Println("Wifi Check Credit Organization no credit")
+		return false
+	}
+	orga.PlanCreditWifi = strconv.Itoa(mailCredit - 1)
+	if err := store.UpdateOrganization(c, orga.Id, params.M{"$set": orga}); err != nil {
+		c.Error(err)
+		c.Abort()
+	}
+	return true
+}
+
 func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
 	device, err := store.GetDeviceFromSigfoxId(contxt, sigfoxMessage.SigfoxId)
 	if err != nil {
@@ -551,11 +574,17 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			fmt.Println("Wisol No GPS Frame")
 		}
 	} else {
+		if !CheckWifiCredit(contxt) {
+			return false, nil, nil
+		}
+
 		status, gpsGeoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
+
 		if status == false {
 			fmt.Println("Error while resolving Wisol WiFi location")
 			return false, nil, nil
 		}
+
 		fmt.Println("Wisol WiFi Geoloc: ", gpsGeoloc, "Obs:", obs)
 		return true, gpsGeoloc, obs
 	}

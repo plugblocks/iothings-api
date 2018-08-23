@@ -6,10 +6,10 @@ import (
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/plugblocks/iothings-api/services"
 )
 
 type UserController struct{}
@@ -43,11 +43,17 @@ func (uc UserController) CreateUser(c *gin.Context) {
 		return
 	}
 
-	//TODO: Remove business logic from controller
 	appName := config.GetString(c, "mail_sender_name")
 	subject := "Welcome to " + appName + "! Please confirm your account"
 	templateLink := "./templates/html/mail_activate_account.html"
-	services.GetEmailSender(c).SendEmailFromTemplate(user, subject, templateLink)
+
+	if !services.GetEmailSender(c).CheckMailCredit(c) {
+		return
+	}
+
+	s := services.GetEmailSender(c)
+	data := models.EmailData{User: user, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+	s.SendEmailFromTemplate(&data, templateLink)
 
 	c.JSON(http.StatusCreated, user.Sanitize())
 }
@@ -74,7 +80,7 @@ func (uc UserController) ActivateUser(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "./templates/html/page_account_activated.html", vars)*/
 
-	c.Redirect(http.StatusMovedPermanently, "http://"+config.GetString(c, "front_url"))
+	c.Redirect(http.StatusMovedPermanently, "https://"+config.GetString(c, "front_url"))
 }
 
 func (uc UserController) GetUsers(c *gin.Context) {
