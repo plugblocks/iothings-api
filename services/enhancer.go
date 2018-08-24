@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
-	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/store"
@@ -518,22 +517,37 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, float64, bool)
 }
 
 func CheckWifiCredit(c *gin.Context) bool {
-	orga, err := store.GetOrganizationById(c, store.Current(c).OrganizationId)
-	if err != nil {
-		fmt.Println("Wifi Check Credit Organization not found", err)
+	wifiCredit := config.GetInt(c, "plan_credit_wifi")
+	fmt.Println("Wifi Organization credit:", wifiCredit)
+	es := GetEmailSender(c)
+	if wifiCredit > 0 {
+		config.Set(c, "plan_credit_wifi", wifiCredit-1)
+		return true
+	} else if wifiCredit == 0 {
+		fmt.Println("Wifi Check Credit Organization no credit warning mails sent")
+		appName := config.GetString(c, "mail_sender_name")
+		subject := appName + ", your wifi token is empty, we give you 10 wifi"
+		templateLink := "./templates/html/mail_token_empty.html"
+		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		EmailSender.SendEmailFromTemplate(es, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, &adminData, templateLink)
+		config.Set(c, "plan_credit_wifi", -1)
 		return false
-	}
-
-	mailCredit, _ := strconv.Atoi(orga.PlanCreditWifi)
-	fmt.Println("Mail User Creation Organization credit:" + string(mailCredit))
-	if mailCredit <= 0 {
-		fmt.Println("Wifi Check Credit Organization no credit")
+	} else if wifiCredit > -10 {
+		config.Set(c, "plan_credit_wifi", -100)
 		return false
-	}
-	orga.PlanCreditWifi = strconv.Itoa(mailCredit - 1)
-	if err := store.UpdateOrganization(c, orga.Id, params.M{"$set": orga}); err != nil {
-		c.Error(err)
-		c.Abort()
+	} else if wifiCredit == -100 {
+		fmt.Println("Wifi Check Credit Organization no credit disable wifi sent")
+		appName := config.GetString(c, "mail_sender_name")
+		subject := appName + ", your wifi token is empty"
+		templateLink := "./templates/html/mail_token_empty.html"
+		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		EmailSender.SendEmailFromTemplate(es, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, &adminData, templateLink)
+		config.Set(c, "plan_credit_wifi", -1000)
+		return false
 	}
 	return true
 }

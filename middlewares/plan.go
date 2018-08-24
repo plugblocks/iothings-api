@@ -5,42 +5,33 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
-	"gitlab.com/plugblocks/iothings-api/store"
 	"time"
-	"strconv"
 )
 
 func PlanMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user := store.Current(c)
+		expiration := config.GetInt(c, "plan_expiration")
+		mailCredit := config.GetInt(c, "plan_credit_mail")
+		textCredit := config.GetInt(c, "plan_credit_text")
+		wifiCredit := config.GetInt(c, "plan_credit_wifi")
 
-		orga, err := store.GetOrganizationById(c, user.OrganizationId)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, helpers.ErrorWithCode("organization_find_failed", "Failed to find the organization related to user", err))
+		if expiration <= int(time.Now().Unix()) {
+			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("plan_expired", "The plan is expired, please renew your plan", errors.New("The plan is expired")))
 			return
 		}
 
-		exp, _ := strconv.Atoi(orga.PlanExpiration)
-		mail, _ := strconv.Atoi(orga.PlanCreditMails)
-		text, _ := strconv.Atoi(orga.PlanCreditTexts)
-		wifi, _ := strconv.Atoi(orga.PlanCreditWifi)
-
-		if exp <= int(time.Now().Unix()) {
-			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("plan_expired", "The plan is expired, please renew your plan", errors.New("The user is not administrator")))
+		if mailCredit <= 0 {
+			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The mail credit is empty, please buy a new pack", errors.New("Mail credit empty")))
 			return
 		}
-
-		if mail <= 0 {
-			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The mail credit is empty, please buy a new pack", errors.New("Orga: "+orga.Name+" mail credit empty")))
+		if textCredit <= 0 {
+			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The text credit is empty, please buy a new pack", errors.New("Text credit empty")))
 			return
 		}
-		if text <= 0 {
-			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The texts credit is empty, please buy a new pack", errors.New("Orga: "+orga.Name+" texts credit empty")))
-			return
-		}
-		if wifi <= 0 {
-			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The wifi resolving credit is empty, please buy a new pack", errors.New("Orga: "+orga.Name+" wifi credit empty")))
+		if wifiCredit <= 0 {
+			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The wifi resolving credit is empty, please buy a new pack", errors.New("Wifi credit empty")))
 			return
 		}
 

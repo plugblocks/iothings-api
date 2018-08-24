@@ -52,7 +52,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	}
 
 	s := services.GetEmailSender(c)
-	data := models.EmailData{User: user, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 	s.SendEmailFromTemplate(&data, templateLink)
 
 	c.JSON(http.StatusCreated, user.Sanitize())

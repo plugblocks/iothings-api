@@ -20,10 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"gitlab.com/plugblocks/iothings-api/helpers/params"
-	"gitlab.com/plugblocks/iothings-api/store"
+	"gitlab.com/plugblocks/iothings-api/config"
 	"golang.org/x/net/context"
-	"strconv"
 )
 
 const (
@@ -74,23 +72,37 @@ func (s *EmailSenderParams) GetEmailParams() *EmailSenderParams {
 }
 
 func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) bool {
-	orga, err := store.GetOrganizationById(c, store.Current(c).OrganizationId)
-	if err != nil {
-		fmt.Println("Mail Check Credit Organization not found", err)
+	mailCredit := config.GetString(c, "plan_credit_mail")
+	fmt.Println("Mail Check Organization credit:", mailCredit)
+	/*if mailCredit > 0 {
+		config.Set(c, "plan_credit_mail", mailCredit - 1)
+		return true
+	} else if mailCredit == 0 {
+		fmt.Println("Mail Check Credit Organization no credit warning mails sent")
+		appName := config.GetString(c, "mail_sender_name")
+		subject := appName + ", your mail token is empty, we give you 10 mails"
+		templateLink := "./templates/html/mail_token_empty.html"
+		userData := models.EmailData{ReceiverMail: s.senderEmail, ReceiverName: s.senderName, Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		s.SendEmailFromTemplate(&userData, templateLink)
+		s.SendEmailFromTemplate(&adminData, templateLink)
+		config.Set(c, "plan_credit_mail",-1)
 		return false
-	}
-
-	mailCredit, _ := strconv.Atoi(orga.PlanCreditMails)
-	fmt.Println("Mail User Creation Organization credit:" + string(mailCredit))
-	if mailCredit <= 0 {
-		fmt.Println("Mail Check Credit Organization no credit")
+	} else if mailCredit > -10 {
+		config.Set(c, "plan_credit_mail", -100)
 		return false
-	}
-	orga.PlanCreditMails = strconv.Itoa(mailCredit - 1)
-	if err := store.UpdateOrganization(c, orga.Id, params.M{"$set": orga}); err != nil {
-		c.Error(err)
-		c.Abort()
-	}
+	} else if mailCredit == -100 {
+		fmt.Println("Mail Check Credit Organization no credit disable mails sent")
+		appName := config.GetString(c, "mail_sender_name")
+		subject := appName + ", your mail token is empty"
+		templateLink := "./templates/html/mail_token_empty.html"
+		userData := models.EmailData{ReceiverMail: s.senderEmail, ReceiverName: s.senderName, Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		s.SendEmailFromTemplate(&userData, templateLink)
+		s.SendEmailFromTemplate(&adminData, templateLink)
+		config.Set(c, "plan_credit_mail", -1000)
+		return false
+	}*/
 	return true
 }
 
@@ -143,7 +155,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templa
 		Destination: &ses.Destination{
 			CcAddresses: []*string{},
 			ToAddresses: []*string{
-				aws.String(data.User.Email),
+				aws.String(data.ReceiverMail),
 			},
 		},
 		Message: &ses.Message{
@@ -189,7 +201,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templa
 		return err
 	}
 
-	fmt.Println("SES Email Sent to " + data.User.Firstname + " " + data.User.Lastname + " at address: " + data.User.Email)
+	fmt.Println("SES Email Sent to " + data.ReceiverName + " at address: " + data.ReceiverMail)
 	fmt.Println(result)
 
 	return nil

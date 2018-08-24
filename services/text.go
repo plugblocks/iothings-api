@@ -1,20 +1,18 @@
 package services
 
 import (
-				//"net/http"
+	//"net/http"
 
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-		"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-		"github.com/spf13/viper"
-	"golang.org/x/net/context"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"gitlab.com/plugblocks/iothings-api/models"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/plugblocks/iothings-api/store"
-	"strconv"
-	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"github.com/spf13/viper"
+	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/models"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -69,28 +67,41 @@ func (s *TextSenderParams) SendAlertText(user *models.User, device *models.Devic
 	return nil
 }
 
-
 func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
-	orga, err := store.GetOrganizationById(c, store.Current(c).OrganizationId)
-	if err != nil {
-		fmt.Println("Text Check Credit Organization not found", err)
+	textCredit := config.GetInt(c, "plan_credit_text")
+	fmt.Println("Text Organization credit:", textCredit)
+	es := GetEmailSender(c)
+	if textCredit > 0 {
+		config.Set(c, "plan_credit_text", textCredit-1)
+		return true
+	} else if textCredit == 0 {
+		fmt.Println("Text Check Credit Organization no credit warning mails sent")
+		appName := config.GetString(c, "mail_sender_name")
+		subject := appName + ", your texts token is empty, we give you 10 texts"
+		templateLink := "./templates/html/mail_token_empty.html"
+		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		EmailSender.SendEmailFromTemplate(es, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, &adminData, templateLink)
+		config.Set(c, "plan_credit_text", -1)
 		return false
-	}
-
-	mailCredit, _ := strconv.Atoi(orga.PlanCreditTexts)
-	fmt.Println("Mail User Creation Organization credit:" + string(mailCredit))
-	if mailCredit <= 0 {
-		fmt.Println("Text Check Credit Organization no credit")
+	} else if textCredit > -10 {
+		config.Set(c, "plan_credit_text", -100)
 		return false
-	}
-	orga.PlanCreditTexts = strconv.Itoa(mailCredit - 1)
-	if err := store.UpdateOrganization(c, orga.Id, params.M{"$set": orga}); err != nil {
-		c.Error(err)
-		c.Abort()
+	} else if textCredit == -100 {
+		fmt.Println("Text Check Credit Organization no credit disable wifi sent")
+		appName := config.GetString(c, "mail_sender_name")
+		subject := appName + ", your texts token is empty"
+		templateLink := "./templates/html/mail_token_empty.html"
+		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+		EmailSender.SendEmailFromTemplate(es, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, &adminData, templateLink)
+		config.Set(c, "plan_credit_text", -1000)
+		return false
 	}
 	return true
 }
-
 
 func (s *TextSenderParams) SendText(data TextData) error {
 	sess, err := session.NewSession(&aws.Config{
@@ -105,10 +116,9 @@ func (s *TextSenderParams) SendText(data TextData) error {
 
 	// Assemble the text.
 
-
 	// Attempt to send the email.
 	params := &sns.PublishInput{
-		Message: aws.String(data.Message),
+		Message:     aws.String(data.Message),
 		PhoneNumber: aws.String(data.User.Phone),
 	}
 	resp, err := svc.Publish(params)

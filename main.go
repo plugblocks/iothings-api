@@ -5,6 +5,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron"
 	"github.com/spf13/viper"
 )
 
@@ -34,6 +35,14 @@ func main() {
 
 	// Seeds setup
 	api.SetupSeeds()
+
+	services.CheckSubscription(api.Config)
+
+	cron := cron.New()
+	cron.AddFunc("@every 6h", func() {
+		services.CheckSubscription(api.Config)
+	})
+	cron.Start()
 
 	// Router setup
 	api.SetupRouter()

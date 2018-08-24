@@ -7,8 +7,6 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
-	"fmt"
-	"strconv"
 )
 
 type OrganizationController struct{}
@@ -45,8 +43,6 @@ func (oc OrganizationController) CreateOrganization(c *gin.Context) {
 	organization := &models.Organization{}
 
 	if err := c.BindJSON(organization); err != nil {
-		bar, _ := strconv.Atoi(organization.PlanCreditMails)
-		fmt.Println(bar)
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}

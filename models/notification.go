@@ -1,8 +1,10 @@
 package models
 
 type EmailData struct {
-	User    *User
-	Subject string
-	ApiUrl  string
-	AppName string
+	ReceiverMail string
+	ReceiverName string
+	Subject      string
+	Body         string
+	ApiUrl       string
+	AppName      string
 }
