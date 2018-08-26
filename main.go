@@ -39,7 +39,7 @@ func main() {
 	services.CheckSubscription(api.Config)
 
 	cron := cron.New()
-	cron.AddFunc("@every 6h", func() {
+	cron.AddFunc("@every 1h", func() {
 		services.CheckSubscription(api.Config)
 	})
 	cron.Start()

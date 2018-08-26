@@ -21,19 +21,46 @@ import (
 
 func CheckSubscription(conf *viper.Viper) {
 	fmt.Println("Checking subscription")
-	remoteCheckerUrl := "https://adminapi.plugblocks.com/"
+	remoteCheckerUrl := "https://adminapi.plugblocks.com/v1/"
+	//remoteCheckerUrl := "http://localhost:6000/v1/"
 	client := &http.Client{}
+
+	//Step 1: Admin API Auth
+	type AuthResp struct {
+		Token string      `json:"token" bson:"token" valid:"-"`
+		User  models.User `json:"user" bson:"user" valid:"-"`
+	}
+
+	thingsAuthParams := map[string]string{"email": "admin@plugblocks.fr", "password": "adchapwd"}
+	jsonValThingsAuth, _ := json.Marshal(thingsAuthParams)
+	thingsAuthReq, _ := http.NewRequest("POST", remoteCheckerUrl+"auth/", bytes.NewBuffer(jsonValThingsAuth))
+	thingsAuthReq.Header.Set("Content-Type", "application/json")
+	authRes, err := client.Do(thingsAuthReq)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	thingsApiAuthResp, err := ioutil.ReadAll(authRes.Body)
+
+	var authResp = new(AuthResp)
+	err = json.Unmarshal(thingsApiAuthResp, &authResp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	//Step 2: Admin API check
 	data := map[string]string{
-		"client":           conf.GetString("mail_sender_name"),
+		"plan_type":        conf.GetString("plan_type"),
 		"plan_expiration":  strconv.Itoa(conf.GetInt("plan_expiration")),
 		"plan_credit_mail": strconv.Itoa(conf.GetInt("plan_credit_mail")),
 		"plan_credit_text": strconv.Itoa(conf.GetInt("plan_credit_text")),
 		"plan_credit_wifi": strconv.Itoa(conf.GetInt("plan_credit_wifi")),
 	}
 	upstream, _ := json.Marshal(data)
-	checkerReq, _ := http.NewRequest("POST", remoteCheckerUrl+"consumption/", bytes.NewBuffer(upstream))
+	checkerReq, _ := http.NewRequest("POST", remoteCheckerUrl+"telemetry/check/"+conf.GetString("client_name"), bytes.NewBuffer(upstream))
 	checkerReq.Header.Set("Content-Type", "application/json")
-	checkerReq.Header.Set("Authorization", "Bearer "+conf.GetString("rsa_private"))
+	checkerReq.Header.Set("Authorization", "Bearer "+authResp.Token)
 	checkerResp, err := client.Do(checkerReq)
 
 	if err != nil {
