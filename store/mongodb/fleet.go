@@ -104,3 +104,16 @@ func (db *mongo) DeleteFleet(user *models.User, id string) error {
 
 	return nil
 }
+
+func (db *mongo) CountFleets() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	fleets := db.C(models.FleetsCollection).With(session)
+
+	nbr, err := fleets.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "fleets_not_found", "Fleets not found", err)
+	}
+	return nbr, nil
+}

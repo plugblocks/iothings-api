@@ -38,3 +38,7 @@ func AssignOrganization(c context.Context, userId string, organizationId string)
 func GetUserOrganization(c context.Context, user *models.User) (*models.Organization, error) {
 	return FromContext(c).GetUserOrganization(user)
 }
+
+func CountUsers(c context.Context) (int, error) {
+	return FromContext(c).CountUsers()
+}

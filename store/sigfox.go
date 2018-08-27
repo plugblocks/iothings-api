@@ -17,6 +17,11 @@ func CreateSigfoxLocation(c context.Context, location *sigfox.Location) error {
 func GetSigfoxLocations(c context.Context) ([]sigfox.Location, error) {
 	return FromContext(c).GetSigfoxLocations()
 }
+
 func GetGeoJSON(c context.Context) (*models.GeoJSON, error) {
 	return FromContext(c).GetGeoJSON()
+}
+
+func CountSigfoxMessages(c context.Context) (int, error) {
+	return FromContext(c).CountSigfoxMessages()
 }

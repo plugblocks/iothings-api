@@ -30,3 +30,7 @@ func GetDevice(c context.Context, id string) (*models.Device, error) {
 func GetDeviceFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, error) {
 	return FromContext(c).GetDeviceFromSigfoxId(sigfoxId)
 }
+
+func CountDevices(c context.Context) (int, error) {
+	return FromContext(c).CountDevices()
+}

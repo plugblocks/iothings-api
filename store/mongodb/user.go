@@ -127,3 +127,16 @@ func (db *mongo) GetUserOrganization(user *models.User) (*models.Organization, e
 
 	return organization, err
 }
+
+func (db *mongo) CountUsers() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	users := db.C(models.UsersCollection).With(session)
+
+	nbr, err := users.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "users_not_found", "Users not found", err)
+	}
+	return nbr, nil
+}

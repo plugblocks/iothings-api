@@ -99,3 +99,16 @@ func (db *mongo) CreateObservation(record *models.Observation) error {
 
 	return nil
 }
+
+func (db *mongo) CountObservations() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	observations := db.C(models.ObservationsCollection).With(session)
+
+	nbr, err := observations.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "observations_not_found", "Observations not found", err)
+	}
+	return nbr, nil
+}

@@ -27,3 +27,7 @@ func GetFleetsGeoJSON(c context.Context, source string, limit int, startTime int
 func GetUserFleetsGeoJSON(c context.Context) (*models.GeoJSON, error) {
 	return FromContext(c).GetUserFleetsGeoJSON(Current(c))
 }
+
+func CountGeolocations(c context.Context) (int, error) {
+	return FromContext(c).CountGeolocations()
+}

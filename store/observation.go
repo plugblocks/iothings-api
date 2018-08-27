@@ -16,3 +16,7 @@ func GetDeviceObservations(c context.Context, deviceId string, typ string, lim i
 func GetFleetObservations(c context.Context, fleetId string, typ string, lim int) ([]*models.Observation, error) {
 	return FromContext(c).GetFleetObservations(Current(c), fleetId, typ, lim)
 }
+
+func CountObservations(c context.Context) (int, error) {
+	return FromContext(c).CountObservations()
+}

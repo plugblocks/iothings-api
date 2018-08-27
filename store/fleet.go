@@ -29,3 +29,7 @@ func UpdateFleet(c context.Context, id string, params params.M) error {
 func DeleteFleet(c context.Context, id string) error {
 	return FromContext(c).DeleteFleet(Current(c), id)
 }
+
+func CountFleets(c context.Context) (int, error) {
+	return FromContext(c).CountFleets()
+}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"io/ioutil"
@@ -19,11 +20,16 @@ import (
 	PlanCreditWifi:  "2000",
 */
 
-func CheckSubscription(conf *viper.Viper) {
+func CheckSubscription(conf *viper.Viper, ctxt *gin.Context) {
 	fmt.Println("Checking subscription")
-	remoteCheckerUrl := "https://adminapi.plugblocks.com/v1/"
-	//remoteCheckerUrl := "http://localhost:6000/v1/"
+	//remoteCheckerUrl := "https://adminapi.plugblocks.com/v1/"
+	remoteCheckerUrl := "http://localhost:6000/v1/"
 	client := &http.Client{}
+
+	//devicesNbr, err := store.CountDevices(ctxt)
+	//fleetsNbr, err := store.CountFleets(ctxt)
+
+	//fmt.Println("Fleets: ", fleetsNbr, "Devices:", devicesNbr)
 
 	//Step 1: Admin API Auth
 	type AuthResp struct {

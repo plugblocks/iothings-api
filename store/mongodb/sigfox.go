@@ -3,6 +3,7 @@ package mongodb
 import (
 	"fmt"
 	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gopkg.in/mgo.v2/bson"
@@ -99,4 +100,17 @@ func (db *mongo) GetGeoJSON() (*models.GeoJSON, error) {
 	geojson := &models.GeoJSON{"FeatureCollection", features}
 
 	return geojson, nil
+}
+
+func (db *mongo) CountSigfoxMessages() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	sigfoxMessages := db.C(sigfox.SigfoxMessagesCollection).With(session)
+
+	nbr, err := sigfoxMessages.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "sigfox_messages_not_found", "Sigfox Messages not found", err)
+	}
+	return nbr, nil
 }

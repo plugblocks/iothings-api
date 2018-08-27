@@ -29,3 +29,7 @@ func DeleteOrganization(c context.Context, id string) error {
 func GetOrganizationUsers(c context.Context, id string) ([]models.SanitizedUser, error) {
 	return FromContext(c).GetOrganizationUsers(id)
 }
+
+func CountOrganizations(c context.Context) (int, error) {
+	return FromContext(c).CountOrganizations()
+}

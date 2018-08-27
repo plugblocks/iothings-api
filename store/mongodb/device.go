@@ -125,3 +125,16 @@ func (db *mongo) GetDeviceFromSigfoxId(sigfoxId string) (*models.Device, error) 
 
 	return device, nil
 }
+
+func (db *mongo) CountDevices() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+
+	nbr, err := devices.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "devices_not_found", "Devices not found", err)
+	}
+	return nbr, nil
+}

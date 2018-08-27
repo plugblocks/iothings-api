@@ -1,12 +1,11 @@
 package main
 
 import (
-	"gitlab.com/plugblocks/iothings-api/server"
-	"gitlab.com/plugblocks/iothings-api/services"
-
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"
 	"github.com/spf13/viper"
+	"gitlab.com/plugblocks/iothings-api/server"
+	"gitlab.com/plugblocks/iothings-api/services"
 )
 
 func main() {
@@ -36,11 +35,11 @@ func main() {
 	// Seeds setup
 	api.SetupSeeds()
 
-	services.CheckSubscription(api.Config)
+	services.CheckSubscription(api.Config, &gin.Context{})
 
 	cron := cron.New()
 	cron.AddFunc("@every 1h", func() {
-		services.CheckSubscription(api.Config)
+		services.CheckSubscription(api.Config, &gin.Context{})
 	})
 	cron.Start()
 

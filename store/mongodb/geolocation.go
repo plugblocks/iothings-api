@@ -3,6 +3,7 @@ package mongodb
 import (
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"net/http"
 )
@@ -235,4 +236,17 @@ func (db *mongo) GetUserFleetsGeoJSON(user *models.User) (*models.GeoJSON, error
 	//fmt.Println("GetFleetGeoJSON: fleet: ", fleet, "\t locations:", locations)
 
 	return geojson, nil
+}
+
+func (db *mongo) CountGeolocations() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	geolocations := db.C(models.GeolocationsCollection).With(session)
+
+	nbr, err := geolocations.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "geolocations_not_found", "Geolocations not found", err)
+	}
+	return nbr, nil
 }
