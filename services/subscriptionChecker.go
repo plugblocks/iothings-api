@@ -9,7 +9,6 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 /*
@@ -56,13 +55,16 @@ func CheckSubscription(conf *viper.Viper, ctxt *gin.Context) {
 	}
 
 	//Step 2: Admin API check
-	data := map[string]string{
+	/*data := map[string]interface{
 		"plan_type":        conf.GetString("plan_type"),
 		"plan_expiration":  strconv.Itoa(conf.GetInt("plan_expiration")),
 		"plan_credit_mail": strconv.Itoa(conf.GetInt("plan_credit_mail")),
 		"plan_credit_text": strconv.Itoa(conf.GetInt("plan_credit_text")),
 		"plan_credit_wifi": strconv.Itoa(conf.GetInt("plan_credit_wifi")),
-	}
+	}*/
+	data := models.Subscription{PlanType: conf.GetString("plan_type"), /*PlanExpiration:conf.GetInt("plan_expiration"),*/
+		PlanCreditMails: conf.GetInt("plan_credit_mail"), PlanCreditTexts: conf.GetInt("plan_credit_text"), PlanCreditWifi: conf.GetInt("plan_credit_wifi")}
+
 	upstream, _ := json.Marshal(data)
 	checkerReq, _ := http.NewRequest("POST", remoteCheckerUrl+"telemetry/check/"+conf.GetString("client_name"), bytes.NewBuffer(upstream))
 	checkerReq.Header.Set("Content-Type", "application/json")
@@ -85,12 +87,17 @@ func CheckSubscription(conf *viper.Viper, ctxt *gin.Context) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	conf.Set("plan_expiration", subscription.PlanExpiration)
+	conf.Set("plan_credit_mail", subscription.PlanCreditMails)
+	conf.Set("plan_credit_text", subscription.PlanCreditTexts)
+	conf.Set("plan_credit_wifi", subscription.PlanCreditWifi)
+
 	if checkerResp.StatusCode == http.StatusOK {
 		fmt.Println("Subscription check OK")
 		conf.Set("", subscription.PlanExpiration)
 	} else if checkerResp.StatusCode == http.StatusExpectationFailed {
 		fmt.Println("Subscription check failed, one of credits is empty")
-	} else if checkerResp.StatusCode == http.StatusPaymentRequired {
+	} else if checkerResp.StatusCode == http.StatusPaymentRequired || subscription.Active == false {
 		fmt.Println("Subscription check failed, stopping API")
 		conf.Set("", subscription.Active)
 	}

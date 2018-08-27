@@ -81,8 +81,8 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
 		templateLink := "./templates/html/mail_token_empty.html"
 		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		EmailSender.SendEmailFromTemplate(es, &userData, templateLink)
-		EmailSender.SendEmailFromTemplate(es, &adminData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, &adminData, templateLink)
 		config.Set(c, "plan_credit_text", -1)
 		return false
 	} else if textCredit > -10 {
@@ -95,8 +95,8 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
 		templateLink := "./templates/html/mail_token_empty.html"
 		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		EmailSender.SendEmailFromTemplate(es, &userData, templateLink)
-		EmailSender.SendEmailFromTemplate(es, &adminData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, &adminData, templateLink)
 		config.Set(c, "plan_credit_text", -1000)
 		return false
 	}

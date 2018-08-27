@@ -2,8 +2,12 @@ package services
 
 import (
 	"bytes"
+	"github.com/pkg/errors"
+	"gitlab.com/plugblocks/iothings-api/helpers"
 	"html/template"
 	"io/ioutil"
+	"net/http"
+
 	//"net/http"
 
 	"gitlab.com/plugblocks/iothings-api/models"
@@ -36,8 +40,8 @@ type EmailSender interface {
 	GetEmailParams() *EmailSenderParams
 	//SendUserValidationEmail(user *models.User, subject string, templateLink string) error
 	//SendAlertEmail(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
-	CheckMailCredit(c *gin.Context) bool
-	SendEmailFromTemplate(data *models.EmailData, templateLink string) error
+	CheckMailCredit(c *gin.Context) int
+	SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error
 }
 
 type FakeEmailSender struct{}
@@ -71,8 +75,8 @@ func (s *EmailSenderParams) GetEmailParams() *EmailSenderParams {
 	return s
 }
 
-func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) bool {
-	mailCredit := config.GetString(c, "plan_credit_mail")
+func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) int {
+	mailCredit := config.GetInt(c, "plan_credit_mail")
 	fmt.Println("Mail Check Organization credit:", mailCredit)
 	/*if mailCredit > 0 {
 		config.Set(c, "plan_credit_mail", mailCredit - 1)
@@ -103,10 +107,10 @@ func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) bool {
 		config.Set(c, "plan_credit_mail", -1000)
 		return false
 	}*/
-	return true
+	return mailCredit
 }
 
-func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templateLink string) error {
+func (s *EmailSenderParams) SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error {
 	// Sendgrid Way
 	/*to := mail.NewEmail(user.Firstname, user.Email)
 
@@ -125,6 +129,12 @@ func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templa
 	}
 
 	return s.SendEmail([]*mail.Email{to}, "text/html", subject, buffer.String())*/
+	mailCredit := s.CheckMailCredit(ctx)
+
+	if mailCredit <= 0 {
+		err := errors.New("Your mail credit is spent")
+		return helpers.NewError(http.StatusExpectationFailed, "mail_credit_spent", err.Error(), err)
+	}
 
 	file, err := ioutil.ReadFile(templateLink)
 	if err != nil {
@@ -144,7 +154,6 @@ func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templa
 		Region: aws.String("eu-west-1")},
 	)
 
-	fmt.Println("Amazon Creds: " + s.apiID + s.apiKey)
 	creds := credentials.NewStaticCredentials(s.apiID, s.apiKey, "")
 
 	// Create an SES session.
@@ -176,7 +185,7 @@ func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templa
 	}
 
 	// Attempt to send the email.
-	result, err := svc.SendEmail(input)
+	_, err = svc.SendEmail(input)
 
 	// Display error messages if they occur.
 	if err != nil {
@@ -201,8 +210,9 @@ func (s *EmailSenderParams) SendEmailFromTemplate(data *models.EmailData, templa
 		return err
 	}
 
-	fmt.Println("SES Email Sent to " + data.ReceiverName + " at address: " + data.ReceiverMail)
-	fmt.Println(result)
+	config.Set(ctx, "plan_credit_mail", mailCredit-1)
+	//fmt.Println("SES Email Sent to " + data.ReceiverName + " at address: " + data.ReceiverMail)
+	//fmt.Println(result)
 
 	return nil
 }

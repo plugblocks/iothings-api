@@ -19,10 +19,10 @@ func (nc NotificationController) SendAlertMail(c *gin.Context, user *models.User
 	subject := "Alert for device for" + appName
 	templateLink := "./templates/html/mail_alert.html"
 
-	if !services.GetEmailSender(c).CheckMailCredit(c) {
+	if services.GetEmailSender(c).CheckMailCredit(c) <= 0 {
 		return
 	}
 	s := services.GetEmailSender(c)
 	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-	s.SendEmailFromTemplate(&data, templateLink)
+	s.SendEmailFromTemplate(c, &data, templateLink)
 }

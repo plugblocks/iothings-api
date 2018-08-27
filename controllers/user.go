@@ -37,23 +37,23 @@ func (uc UserController) CreateUser(c *gin.Context) {
 		return
 	}
 
+	appName := config.GetString(c, "mail_sender_name")
+	subject := "Welcome to " + appName + "! Please confirm your account"
+	templateLink := "./templates/html/mail_activate_account.html"
+
+	s := services.GetEmailSender(c)
+	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, User: user, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+	err := s.SendEmailFromTemplate(c, &data, templateLink)
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("mail_credit_spent", "Your mail credit is spent", err))
+		return
+	}
+
 	if err := store.CreateUser(c, user); err != nil {
 		c.Error(err)
 		c.Abort()
 		return
 	}
-
-	appName := config.GetString(c, "mail_sender_name")
-	subject := "Welcome to " + appName + "! Please confirm your account"
-	templateLink := "./templates/html/mail_activate_account.html"
-
-	if !services.GetEmailSender(c).CheckMailCredit(c) {
-		return
-	}
-
-	s := services.GetEmailSender(c)
-	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-	s.SendEmailFromTemplate(&data, templateLink)
 
 	c.JSON(http.StatusCreated, user.Sanitize())
 }
