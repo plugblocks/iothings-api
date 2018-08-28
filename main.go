@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"
 	"github.com/spf13/viper"
@@ -35,13 +36,15 @@ func main() {
 	// Seeds setup
 	api.SetupSeeds()
 
-	services.CheckSubscription(api.Config, &gin.Context{})
-
-	cron := cron.New()
-	cron.AddFunc("@every 1m", func() {
+	if api.Config.GetBool("plan_check") == true {
+		fmt.Println("Plan check enabled")
 		services.CheckSubscription(api.Config, &gin.Context{})
-	})
-	cron.Start()
+		cron := cron.New()
+		cron.AddFunc("@every 10m", func() {
+			services.CheckSubscription(api.Config, &gin.Context{})
+		})
+		cron.Start()
+	}
 
 	// Router setup
 	api.SetupRouter()
