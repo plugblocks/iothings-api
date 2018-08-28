@@ -40,6 +40,14 @@ type Store interface {
 	GetDeviceFromSigfoxId(string) (*models.Device, error)
 	CountDevices() (int, error)
 
+	CreateAlert(*models.User, *models.Alert) error
+	GetAlert(*models.User, string) (*models.Alert, error)
+	GetFleetAlerts(*models.User, string) ([]*models.Alert, error)
+	GetDeviceAlerts(*models.User, string) ([]*models.Alert, error)
+	UpdateAlert(*models.User, string, params.M) error
+	DeleteAlert(*models.User, string) error
+	CountAlerts() (int, error)
+
 	CreateSigfoxMessage(*sigfox.Message) error
 	CreateSigfoxLocation(*sigfox.Location) error
 	GetSigfoxLocations() ([]sigfox.Location, error)

@@ -9,3 +9,9 @@ type EmailData struct {
 	ApiUrl       string
 	AppName      string
 }
+
+type TextData struct {
+	User    *User
+	Subject string
+	Message string
+}

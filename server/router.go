@@ -31,7 +31,13 @@ func (a *API) SetupRouter() {
 
 	router.Use(middlewares.StoreMiddleware(a.Database))
 	router.Use(middlewares.ConfigMiddleware(a.Config))
+
 	router.Use(middlewares.EmailMiddleware(a.EmailSender))
+	router.Use(middlewares.TextMiddleware(a.TextSender))
+
+	if a.Config.GetBool("plan_check") == true {
+		router.Use(middlewares.PlanMiddleware())
+	}
 
 	authMiddleware := middlewares.AuthMiddleware()
 	adminMiddleware := middlewares.AdminMiddleware()
@@ -41,6 +47,18 @@ func (a *API) SetupRouter() {
 		v1.GET("/", Index)
 		userController := controllers.NewUserController()
 		//v1.POST("/reset_password", userController.ResetPasswordRequest)
+
+		groups := v1.Group("/groups")
+		{
+			groups.Use(authMiddleware)
+			groupsController := controllers.NewGroupController()
+			groups.GET("/", groupsController.GetGroups)
+			groups.POST("/", groupsController.CreateGroup)
+			groups.PUT("/:id", groupsController.EditGroup)
+			groups.GET("/:id", groupsController.GetGroupById)
+			groups.DELETE("/:id", groupsController.DeleteGroup)
+		}
+
 		users := v1.Group("/users")
 		{
 			users.GET("/:id/activate/:activationKey", userController.ActivateUser)
@@ -61,21 +79,10 @@ func (a *API) SetupRouter() {
 			fleets.Use(authMiddleware)
 			fleets.GET("/", fleetsController.GetFleets)
 			fleets.POST("/", fleetsController.CreateFleet)
-			fleets.PUT("/:id", fleetsController.EditFleet)
+			fleets.PUT("/:id", fleetsController.UpdateFleet)
 			fleets.GET("/:id", fleetsController.GetFleetById)
 			fleets.POST("/:id/:deviceId", fleetsController.AddDeviceToFleet)
 			fleets.DELETE("/:id", fleetsController.DeleteFleet)
-		}
-
-		groups := v1.Group("/groups")
-		{
-			groups.Use(authMiddleware)
-			groupsController := controllers.NewGroupController()
-			groups.GET("/", groupsController.GetGroups)
-			groups.POST("/", groupsController.CreateGroup)
-			groups.PUT("/:id", groupsController.EditGroup)
-			groups.GET("/:id", groupsController.GetGroupById)
-			groups.DELETE("/:id", groupsController.DeleteGroup)
 		}
 
 		devices := v1.Group("/devices")
@@ -89,6 +96,19 @@ func (a *API) SetupRouter() {
 			devices.PUT("/:id", deviceController.UpdateDevice)
 			devices.GET("/:id", deviceController.GetDevice)
 			devices.DELETE("/:id", deviceController.DeleteDevice)
+		}
+
+		alerts := v1.Group("/alerts")
+		{
+			alertController := controllers.NewAlertController()
+			alerts.Use(authMiddleware)
+			alerts.GET("/:id", alertController.GetAlert)
+			alerts.POST("/", alertController.CreateAlert)
+			alerts.PUT("/:id", alertController.UpdateAlert)
+			alerts.DELETE("/:id", alertController.DeleteAlert)
+			alerts.POST("/fleet/:fleetId", alertController.GetFleetAlerts)
+			alerts.POST("/device/:deviceId", alertController.GetDeviceAlerts)
+			alerts.POST("/sms/:userId", alertController.TextTest)
 		}
 
 		organizations := v1.Group("/organizations")

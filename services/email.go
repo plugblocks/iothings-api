@@ -65,8 +65,8 @@ func NewEmailSender(config *viper.Viper) EmailSender {
 		config.GetString("sendgrid_api_key"),*/
 		config.GetString("mail_sender_address"),
 		config.GetString("mail_sender_name"),
-		config.GetString("aws_ses_api_id"),
-		config.GetString("aws_ses_api_key"),
+		config.GetString("aws_api_id"),
+		config.GetString("aws_api_key"),
 		config.GetString("api_url"),
 	}
 }

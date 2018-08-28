@@ -19,7 +19,7 @@ import (
 	PlanCreditWifi:  "2000",
 */
 
-func CheckSubscription(conf *viper.Viper, ctxt *gin.Context) {
+func CheckSubscription(router *gin.Engine, conf *viper.Viper, ctxt *gin.Context) {
 	fmt.Println("Checking subscription")
 	//remoteCheckerUrl := "https://adminapi.plugblocks.com/v1/"
 	remoteCheckerUrl := "http://localhost:6000/v1/"
@@ -55,13 +55,6 @@ func CheckSubscription(conf *viper.Viper, ctxt *gin.Context) {
 	}
 
 	//Step 2: Admin API check
-	/*data := map[string]interface{
-		"plan_type":        conf.GetString("plan_type"),
-		"plan_expiration":  strconv.Itoa(conf.GetInt("plan_expiration")),
-		"plan_credit_mail": strconv.Itoa(conf.GetInt("plan_credit_mail")),
-		"plan_credit_text": strconv.Itoa(conf.GetInt("plan_credit_text")),
-		"plan_credit_wifi": strconv.Itoa(conf.GetInt("plan_credit_wifi")),
-	}*/
 	data := models.Subscription{PlanType: conf.GetString("plan_type"), /*PlanExpiration:conf.GetInt("plan_expiration"),*/
 		PlanCreditMails: conf.GetInt("plan_credit_mail"), PlanCreditTexts: conf.GetInt("plan_credit_text"), PlanCreditWifi: conf.GetInt("plan_credit_wifi")}
 
@@ -94,11 +87,20 @@ func CheckSubscription(conf *viper.Viper, ctxt *gin.Context) {
 
 	if checkerResp.StatusCode == http.StatusOK {
 		fmt.Println("Subscription check OK")
-		conf.Set("", subscription.PlanExpiration)
+		conf.Set("plan_expired", false)
 	} else if checkerResp.StatusCode == http.StatusExpectationFailed {
 		fmt.Println("Subscription check failed, one of credits is empty")
 	} else if checkerResp.StatusCode == http.StatusPaymentRequired || subscription.Active == false {
 		fmt.Println("Subscription check failed, stopping API")
-		conf.Set("", subscription.Active)
+		conf.Set("plan_expired", true)
+		//endless.ListenAndServe(conf.GetString("host_address"), router)
+		/*srv := &http.Server{
+			Addr:    conf.GetString("host_address"),
+			Handler: router,
+		}
+		if err := srv.Shutdown(ctxt); err != nil {
+			log.Fatal("Server Shutdown:", err)
+		}
+		log.Println("Server exiting")*/
 	}
 }

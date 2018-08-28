@@ -26,7 +26,7 @@ func GetTextSender(c context.Context) TextSender {
 type TextSender interface {
 	SendAlertText(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
 	CheckTextCredit(c *gin.Context) bool
-	SendText(data TextData) error
+	SendText(data models.TextData) error
 }
 
 type FakeTextSender struct{}
@@ -39,13 +39,6 @@ type TextSenderParams struct {
 	apiUrl      string
 }
 
-type TextData struct {
-	User    *models.User
-	Message string
-	ApiUrl  string
-	AppName string
-}
-
 /*func (f *FakeTextSender) SendEmailFromTemplate(user *models.User, subject string, templateLink string) (error) {
 	return &rest.Response{StatusCode: http.StatusOK, Body: "Everything's fine Jean-Miche", Headers: nil}
 }*/
@@ -54,14 +47,14 @@ func NewTextSender(config *viper.Viper) TextSender {
 	return &TextSenderParams{
 		config.GetString("mail_sender_address"),
 		config.GetString("mail_sender_name"),
-		config.GetString("aws_sns_api_id"),
-		config.GetString("aws_sns_api_key"),
+		config.GetString("aws_api_id"),
+		config.GetString("aws_api_key"),
 		config.GetString("api_url"),
 	}
 }
 
 func (s *TextSenderParams) SendAlertText(user *models.User, device *models.Device, observation *models.Observation, message string, templateLink string) error {
-	data := TextData{User: user, Message: message, ApiUrl: s.apiUrl, AppName: s.senderName}
+	data := models.TextData{User: user, Message: message}
 	s.SendText(data)
 
 	return nil
@@ -103,7 +96,7 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
 	return true
 }
 
-func (s *TextSenderParams) SendText(data TextData) error {
+func (s *TextSenderParams) SendText(data models.TextData) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("eu-west-1")},
 	)
@@ -118,6 +111,7 @@ func (s *TextSenderParams) SendText(data TextData) error {
 
 	// Attempt to send the email.
 	params := &sns.PublishInput{
+		Subject:     aws.String(data.Subject),
 		Message:     aws.String(data.Message),
 		PhoneNumber: aws.String(data.User.Phone),
 	}

@@ -20,6 +20,7 @@ func main() {
 
 	// Email sender setup
 	api.EmailSender = services.NewEmailSender(api.Config)
+	api.TextSender = services.NewTextSender(api.Config)
 
 	// Database setup
 	session, err := api.SetupDatabase()
@@ -38,10 +39,10 @@ func main() {
 
 	if api.Config.GetBool("plan_check") == true {
 		fmt.Println("Plan check enabled")
-		services.CheckSubscription(api.Config, &gin.Context{})
+		services.CheckSubscription(api.Router, api.Config, &gin.Context{})
 		cron := cron.New()
-		cron.AddFunc("@every 10m", func() {
-			services.CheckSubscription(api.Config, &gin.Context{})
+		cron.AddFunc("@every 1m", func() {
+			services.CheckSubscription(api.Router, api.Config, &gin.Context{})
 		})
 		cron.Start()
 	}

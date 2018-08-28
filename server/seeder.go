@@ -21,6 +21,7 @@ func (a *API) SetupSeeds() error {
 		Lastname:       "Chapelet",
 		Password:       "adchapwd",
 		Email:          "admin@plugblocks.fr",
+		Phone:          "+33671174203",
 		OrganizationId: organization.Id,
 		Admin:          true,
 	}

@@ -12,17 +12,20 @@ import (
 
 func PlanMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		expired := config.GetBool(c, "plan_expired")
 		expiration := config.GetInt(c, "plan_expiration")
-		mailCredit := config.GetInt(c, "plan_credit_mail")
-		textCredit := config.GetInt(c, "plan_credit_text")
-		wifiCredit := config.GetInt(c, "plan_credit_wifi")
 
 		if expiration <= int(time.Now().Unix()) {
 			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("plan_expired", "The plan is expired, please renew your plan", errors.New("The plan is expired")))
 			return
 		}
 
-		if mailCredit <= 0 {
+		if expired == true {
+			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("plan_expired", "The plan is expired, please renew your plan", errors.New("The plan is expired")))
+			return
+		}
+
+		/*if mailCredit <= 0 {
 			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The mail credit is empty, please buy a new pack", errors.New("Mail credit empty")))
 			return
 		}
@@ -33,7 +36,7 @@ func PlanMiddleware() gin.HandlerFunc {
 		if wifiCredit <= 0 {
 			c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("credit_expired", "The wifi resolving credit is empty, please buy a new pack", errors.New("Wifi credit empty")))
 			return
-		}
+		}*/
 
 		c.Next()
 	}

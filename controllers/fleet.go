@@ -131,7 +131,7 @@ func (fc FleetController) CreateFleet(c *gin.Context) {
 	c.JSON(http.StatusCreated, fleet)
 }
 
-func (fc FleetController) EditFleet(c *gin.Context) {
+func (fc FleetController) UpdateFleet(c *gin.Context) {
 	fleet := &models.Fleet{}
 	id := c.Param("id")
 
