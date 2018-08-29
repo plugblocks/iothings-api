@@ -32,7 +32,7 @@ func (db *mongo) GetDeviceObservations(deviceId string, resolver string, order s
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 		}
 	} else {
-		err := observations.Find(bson.M{"device_id": deviceId, "resolver": resolver}).Sort("-timestamp").Limit(lim).All(&list)
+		err := observations.Find(bson.M{"device_id": deviceId, "resolver": resolver}).Sort(order).Limit(lim).All(&list)
 		if err != nil {
 			fmt.Println("device get obs id:", deviceId, " err:", err)
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
@@ -51,7 +51,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolve
 	//Checking that user request one of its fleets
 	fleets := db.C(models.FleetsCollection).With(session)
 	fleet := &models.Fleet{}
-	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).Sort(order).One(fleet)
+	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).One(fleet)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "user_fleet_not_found", "Failed to find user fleet", err)
 	}
@@ -62,7 +62,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolve
 		//fmt.Println("Device+", deviceId)
 		tempObservationsList := []*models.Observation{}
 		// TODO: Sort by timestamp decreasing
-		err = observations.Find(params.M{"device_id": deviceId}).Limit(lim).All(&tempObservationsList)
+		err = observations.Find(params.M{"device_id": deviceId}).Sort(order).Limit(lim).All(&tempObservationsList)
 		if err != nil {
 			fmt.Println(err)
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
