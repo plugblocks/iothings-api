@@ -75,7 +75,7 @@ type Store interface {
 	CountOrganizations() (int, error)
 
 	CreateObservation(*models.Observation) error
-	GetDeviceObservations(string, string, int) ([]*models.Observation, error)
-	GetFleetObservations(*models.User, string, string, int) ([]*models.Observation, error)
+	GetDeviceObservations(string, string, string, int) ([]*models.Observation, error)
+	GetFleetObservations(*models.User, string, string, string, int) ([]*models.Observation, error)
 	CountObservations() (int, error)
 }

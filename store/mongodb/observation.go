@@ -10,7 +10,7 @@ import (
 )
 
 //TODO: CHECK USER/CUSTOMER RIGHTS
-func (db *mongo) GetDeviceObservations(deviceId string, resolver string, lim int) ([]*models.Observation, error) {
+func (db *mongo) GetDeviceObservations(deviceId string, resolver string, order string, lim int) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -26,7 +26,7 @@ func (db *mongo) GetDeviceObservations(deviceId string, resolver string, lim int
 	observations := db.C(models.ObservationsCollection).With(session)
 	list := []*models.Observation{}
 	if resolver == "" {
-		err := observations.Find(bson.M{"device_id": deviceId}).Sort("-timestamp").Limit(lim).All(&list)
+		err := observations.Find(bson.M{"device_id": deviceId}).Sort(order).Limit(lim).All(&list)
 		if err != nil {
 			fmt.Println("device get obs id:", deviceId, " err:", err)
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
@@ -42,7 +42,7 @@ func (db *mongo) GetDeviceObservations(deviceId string, resolver string, lim int
 	return list, nil
 }
 
-func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolver string, lim int) ([]*models.Observation, error) {
+func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolver string, order string, lim int) ([]*models.Observation, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -51,7 +51,7 @@ func (db *mongo) GetFleetObservations(user *models.User, fleetId string, resolve
 	//Checking that user request one of its fleets
 	fleets := db.C(models.FleetsCollection).With(session)
 	fleet := &models.Fleet{}
-	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).Sort("-timestamp").One(fleet)
+	err := fleets.Find(bson.M{"_id": fleetId, "user_id": user.Id}).Sort(order).One(fleet)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "user_fleet_not_found", "Failed to find user fleet", err)
 	}

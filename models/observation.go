@@ -5,7 +5,7 @@ import (
 )
 
 type ObservationQueryParams struct {
-	Order     bool   `form:"order" json:"order"`
+	Order     string `form:"order" json:"order"`
 	Limit     int    `form:"limit" json:"limit"`
 	Resolver  string `form:"resolver" json:"resolver"`
 	StartTime int    `form:"starttime" json:"starttime"`

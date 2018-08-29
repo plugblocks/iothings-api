@@ -40,7 +40,12 @@ func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
 		if params.Limit == 0 {
 			params.Limit = 10
 		}
-		observations, err := store.GetDeviceObservations(c, c.Param("deviceId"), params.Resolver, params.Limit)
+		order := "-timestamp"
+		if params.Order != "" {
+			order = params.Order
+		}
+
+		observations, err := store.GetDeviceObservations(c, c.Param("deviceId"), params.Resolver, order, params.Limit)
 
 		fmt.Println("len: ", len(observations))
 
@@ -61,7 +66,11 @@ func (oc ObservationController) GetFleetObservations(c *gin.Context) {
 		if params.Limit == 0 {
 			params.Limit = 10
 		}
-		observations, err := store.GetFleetObservations(c, c.Param("fleetId"), params.Resolver, params.Limit)
+		order := "-timestamp"
+		if params.Order == "" {
+			order = params.Order
+		}
+		observations, err := store.GetFleetObservations(c, c.Param("fleetId"), params.Resolver, order, params.Limit)
 
 		if err != nil {
 			c.Error(err)
