@@ -15,6 +15,7 @@ type Store interface {
 	CountGroups() (int, error)
 
 	CreateUser(*models.User) error
+	DeleteUser(*models.User, string) error
 	FindUserById(string) (*models.User, error)
 	ActivateUser(string, string) error
 	FindUser(params.M) (*models.User, error)
