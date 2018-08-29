@@ -19,8 +19,8 @@ func (a *API) SetupSeeds() error {
 	user := &models.User{
 		Firstname:      "Adrien",
 		Lastname:       "Chapelet",
-		Password:       "adchapwd",
-		Email:          "admin@plugblocks.fr",
+		Password:       "demo",
+		Email:          "adrien@plugblocks.com",
 		Phone:          "+33671174203",
 		OrganizationId: organization.Id,
 		Admin:          true,
