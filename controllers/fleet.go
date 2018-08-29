@@ -51,6 +51,19 @@ func (fc FleetController) GetFleetById(c *gin.Context) {
 	c.JSON(http.StatusOK, fleet)
 }
 
+func (fc FleetController) GetDevicesFromFleet(c *gin.Context) {
+	id := c.Param("id")
+
+	devices, err := store.GetDevicesFromFleet(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, devices)
+}
+
 func (fc FleetController) GetFleetGeoJSON(c *gin.Context) {
 	id := c.Param("id")
 

@@ -82,6 +82,7 @@ func (a *API) SetupRouter() {
 			fleets.POST("/", fleetsController.CreateFleet)
 			fleets.PUT("/:id", fleetsController.UpdateFleet)
 			fleets.GET("/:id", fleetsController.GetFleetById)
+			fleets.GET("/:id/devices", fleetsController.GetDevicesFromFleet)
 			fleets.POST("/:id/:deviceId", fleetsController.AddDeviceToFleet)
 			fleets.DELETE("/:id", fleetsController.DeleteFleet)
 		}

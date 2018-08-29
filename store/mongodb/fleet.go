@@ -1,6 +1,7 @@
 package mongodb
 
 import (
+	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -77,6 +78,34 @@ func (db *mongo) GetFleetById(user *models.User, id string) (*models.Fleet, erro
 	}
 
 	return fleet, nil
+}
+
+func (db *mongo) GetDevicesFromFleet(user *models.User, id string) ([]*models.Device, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	fleetCollection := db.C(models.FleetsCollection).With(session)
+	deviceCollection := db.C(models.DevicesCollection).With(session)
+
+	fleet := &models.Fleet{}
+	err := fleetCollection.Find(bson.M{"_id": id, "user_id": user.Id}).One(fleet)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "fleet_not_found", "Could not find the fleet", err)
+	}
+
+	retDevicesList := []*models.Device{}
+	for _, deviceId := range fleet.DeviceIds {
+		fmt.Println("Device+", deviceId)
+		tempDevice := &models.Device{}
+		err := deviceCollection.Find(bson.M{"_id": deviceId}).One(tempDevice)
+		if err != nil {
+			fmt.Println(err)
+			return nil, helpers.NewError(http.StatusNotFound, "fleet_device_not_found", "Failed to find device from fleet", err)
+		}
+		fmt.Println(tempDevice)
+		retDevicesList = append(retDevicesList, tempDevice)
+	}
+
+	return retDevicesList, nil
 }
 
 func (db *mongo) UpdateFleet(user *models.User, id string, params params.M) error {

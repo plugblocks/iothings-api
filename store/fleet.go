@@ -22,6 +22,10 @@ func GetFleetById(c context.Context, id string) (*models.Fleet, error) {
 	return FromContext(c).GetFleetById(Current(c), id)
 }
 
+func GetDevicesFromFleet(c context.Context, id string) ([]*models.Device, error) {
+	return FromContext(c).GetDevicesFromFleet(Current(c), id)
+}
+
 func UpdateFleet(c context.Context, id string, params params.M) error {
 	return FromContext(c).UpdateFleet(Current(c), id, params)
 }
