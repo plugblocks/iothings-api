@@ -11,6 +11,10 @@ func CreateUser(c context.Context, record *models.User) error {
 	return FromContext(c).CreateUser(record)
 }
 
+func DeleteUser(c context.Context, userId string) error {
+	return FromContext(c).DeleteUser(Current(c), userId)
+}
+
 func FindUserById(c context.Context, id string) (*models.User, error) {
 	return FromContext(c).FindUserById(id)
 }

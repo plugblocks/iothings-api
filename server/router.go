@@ -67,6 +67,7 @@ func (a *API) SetupRouter() {
 			users.Use(adminMiddleware)
 			users.POST("/", userController.CreateUser)
 			users.GET("/:id", userController.GetUser)
+			users.DELETE("/:id", userController.DeleteUser)
 			users.GET("/", userController.GetUsers)
 			users.PUT("/:id/assign/:organization_id", userController.AssignOrganization)
 		}

@@ -61,6 +61,19 @@ func (db *mongo) FindUser(params params.M) (*models.User, error) {
 	return user, err
 }
 
+func (db *mongo) DeleteUser(user *models.User, userId string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	users := db.C(models.UsersCollection).With(session)
+
+	err := users.Remove(bson.M{"_id": userId})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "user_delete_failed", "Failed to delete the user", err)
+	}
+
+	return nil
+}
+
 func (db *mongo) ActivateUser(activationKey string, id string) error {
 	session := db.Session.Copy()
 	defer session.Close()
