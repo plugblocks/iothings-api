@@ -48,23 +48,25 @@ func (dc DeviceController) GetDevices(c *gin.Context) {
 }
 
 func (dc DeviceController) UpdateDevice(c *gin.Context) {
-	device := models.Device{}
+	newDevice := models.Device{}
 
-	err := c.BindJSON(&device)
+	err := c.BindJSON(&newDevice)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
 
-	user := store.Current(c)
+	oldDevice, err := store.GetDevice(c, c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, helpers.ErrorWithCode("device_not_found", "Failed to find device id", err))
+		return
+	}
 
-	changes := params.M{"$set": params.M{"name": device.Name, "userId": user.Id, "last_access": device.LastAccess, "active": device.Active}}
-	err = store.UpdateDevice(
-		c,
-		c.Param("id"),
-		changes,
-	)
+	changes := params.M{"$set": params.M{"organization_id": newDevice.OrganizationId, "customer_id": newDevice.CustomerId,
+		"name": newDevice.Name, "ble_mac": newDevice.BleMac, "wifi_mac": newDevice.WifiMac, "sigfox_id": newDevice.SigfoxId,
+		"last_access": oldDevice.LastAccess, "active": oldDevice.Active}}
 
+	err = store.UpdateDevice(c, c.Param("id"), changes)
 	if err != nil {
 		c.Error(err)
 		c.Abort()
