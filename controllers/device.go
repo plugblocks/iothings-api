@@ -62,11 +62,21 @@ func (dc DeviceController) UpdateDevice(c *gin.Context) {
 		return
 	}
 
-	changes := params.M{"$set": params.M{"organization_id": newDevice.OrganizationId, "customer_id": newDevice.CustomerId,
-		"name": newDevice.Name, "ble_mac": newDevice.BleMac, "wifi_mac": newDevice.WifiMac, "sigfox_id": newDevice.SigfoxId,
-		"last_access": oldDevice.LastAccess, "active": oldDevice.Active}}
+	if newDevice.OrganizationId == "" {
+		newDevice.OrganizationId = oldDevice.OrganizationId
+	}
+	if newDevice.CustomerId == "" {
+		newDevice.CustomerId = oldDevice.CustomerId
+	}
+	if newDevice.LastAccess == 0 {
+		newDevice.LastAccess = oldDevice.LastAccess
+	}
+	newDevice.Active = oldDevice.Active
+	/*changes := params.M{"$set": params.M{"organization_id": newDevice.OrganizationId, "customer_id": newDevice.CustomerId,
+	"name": newDevice.Name, "ble_mac": newDevice.BleMac, "wifi_mac": newDevice.WifiMac, "sigfox_id": newDevice.SigfoxId,
+	"last_access": oldDevice.LastAccess, "active": oldDevice.Active}}*/
 
-	err = store.UpdateDevice(c, c.Param("id"), changes)
+	err = store.UpdateDevice(c, c.Param("id"), params.M{"$set": newDevice})
 	if err != nil {
 		c.Error(err)
 		c.Abort()
