@@ -144,7 +144,8 @@ func (a *API) SetupRouter() {
 		authentication := v1.Group("/auth")
 		{
 			authController := controllers.NewAuthController()
-			authentication.POST("/", authController.Authentication)
+			authentication.POST("/", authController.UserAuthentication)
+			authentication.POST("/customer", authController.CustomerAuthentication)
 		}
 
 		observations := v1.Group("/observations")
