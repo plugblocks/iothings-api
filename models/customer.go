@@ -19,6 +19,7 @@ type Customer struct {
 	OrganizationId string `json:"organization_id" bson:"organization_id"`
 	ActivationKey  string `json:"activationKey" bson:"activationKey"`
 	ResetKey       string `json:"resetKey" bson:"resetKey"`
+	LastAccess     int64  `json:"last_access" bson:"last_access" valid:"-"`
 }
 
 type SanitizedCustomer struct {

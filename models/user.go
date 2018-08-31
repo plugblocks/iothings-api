@@ -21,6 +21,7 @@ type User struct {
 	ActivationKey  string `json:"activationKey" bson:"activationKey"`
 	ResetKey       string `json:"resetKey" bson:"resetKey"`
 	Admin          bool   `json:"admin" bson:"admin"`
+	LastAccess     int64  `json:"last_access" bson:"last_access" valid:"-"`
 }
 
 type SanitizedUser struct {

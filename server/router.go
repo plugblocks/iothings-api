@@ -40,7 +40,8 @@ func (a *API) SetupRouter() {
 		router.Use(middlewares.PlanMiddleware())
 	}
 
-	authMiddleware := middlewares.AuthMiddleware()
+	//customerAuthMiddleware := middlewares.CustomerAuthMiddleware()
+	authMiddleware := middlewares.AuthMiddleware() //User
 	adminMiddleware := middlewares.AdminMiddleware()
 
 	v1 := router.Group("/v1")
