@@ -1,6 +1,7 @@
 package server
 
 import (
+	"gitlab.com/plugblocks/iothings-api/config"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func Index(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "You successfully reached the iothings API."})
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "You successfully reached the " + config.GetString(c, "mail_sender_name") + " API."})
 }
 
 func (a *API) SetupRouter() {
@@ -45,8 +46,6 @@ func (a *API) SetupRouter() {
 	v1 := router.Group("/v1")
 	{
 		v1.GET("/", Index)
-		userController := controllers.NewUserController()
-		//v1.POST("/reset_password", userController.ResetPasswordRequest)
 
 		groups := v1.Group("/groups")
 		{
@@ -61,6 +60,8 @@ func (a *API) SetupRouter() {
 
 		users := v1.Group("/users")
 		{
+			userController := controllers.NewUserController()
+			//v1.POST("/reset_password", userController.ResetPasswordRequest)
 			users.GET("/:id/activate/:activationKey", userController.ActivateUser)
 			users.Use(authMiddleware)
 			users.GET("/:id/organization", userController.GetUserOrganization)
@@ -70,6 +71,20 @@ func (a *API) SetupRouter() {
 			users.DELETE("/:id", userController.DeleteUser)
 			users.GET("/", userController.GetUsers)
 			users.PUT("/:id/assign/:organization_id", userController.AssignOrganization)
+		}
+
+		customers := v1.Group("/customers")
+		{
+			customerController := controllers.NewCustomerController()
+			customers.GET("/:id/activate/:activationKey", customerController.ActivateCustomer)
+			customers.Use(authMiddleware)
+			customers.GET("/:id/organization", customerController.GetCustomerOrganization)
+			customers.Use(adminMiddleware)
+			customers.POST("/", customerController.CreateCustomer)
+			customers.GET("/:id", customerController.GetCustomer)
+			customers.DELETE("/:id", customerController.DeleteCustomer)
+			customers.GET("/", customerController.GetCustomers)
+			customers.PUT("/:id/assign/:organization_id", customerController.AssignOrganization)
 		}
 
 		fleets := v1.Group("/fleets")
@@ -139,6 +154,7 @@ func (a *API) SetupRouter() {
 			observations.Use(authMiddleware)
 			observations.GET("/device/:deviceId", observationController.GetDeviceObservations)
 			observations.GET("/fleet/:fleetId", observationController.GetFleetObservations)
+			observations.DELETE("/:id", observationController.DeleteObservation)
 		}
 
 		sigfox := v1.Group("/sigfox")

@@ -16,7 +16,7 @@ func NewObservationController() ObservationController {
 	return ObservationController{}
 }
 
-func (oc ObservationController) CreateObservation(c *gin.Context) {
+func (ObservationController) CreateObservation(c *gin.Context) {
 	observation := &models.Observation{}
 
 	err := c.BindJSON(observation)
@@ -34,7 +34,7 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 	c.JSON(http.StatusCreated, observation)
 }
 
-func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
+func (ObservationController) GetDeviceObservations(c *gin.Context) {
 	var params models.ObservationQueryParams
 	if c.ShouldBind(&params) == nil {
 		if params.Limit == 0 {
@@ -60,7 +60,7 @@ func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, "Device observation error")
 	}
 }
-func (oc ObservationController) GetFleetObservations(c *gin.Context) {
+func (ObservationController) GetFleetObservations(c *gin.Context) {
 	var params models.ObservationQueryParams
 	if c.ShouldBind(&params) == nil {
 		if params.Limit == 0 {
@@ -82,4 +82,15 @@ func (oc ObservationController) GetFleetObservations(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusInternalServerError, "Fleet observation error")
 	}
+}
+
+func (ObservationController) DeleteObservation(c *gin.Context) {
+	err := store.DeleteObservation(c, c.Param("id"))
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }

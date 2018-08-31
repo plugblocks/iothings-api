@@ -25,6 +25,17 @@ type Store interface {
 	AssignOrganization(string, string) error
 	GetUserOrganization(user *models.User) (*models.Organization, error)
 
+	CreateCustomer(*models.Customer) error
+	DeleteCustomer(string) error
+	FindCustomerById(string) (*models.Customer, error)
+	ActivateCustomer(string, string) error
+	FindCustomer(params.M) (*models.Customer, error)
+	UpdateCustomer(*models.Customer, params.M) error
+	GetCustomers() ([]*models.Customer, error)
+	CountCustomers() (int, error)
+	CustomerAssignOrganization(string, string) error
+	GetCustomerOrganization(*models.Customer) (*models.Organization, error)
+
 	CreateFleet(*models.User, *models.Fleet) error
 	AddDeviceToFleet(user *models.User, fleetId string, deviceId string) (*models.Fleet, error)
 	GetFleetById(*models.User, string) (*models.Fleet, error)
@@ -41,6 +52,8 @@ type Store interface {
 	GetDevice(*models.User, string) (*models.Device, error)
 	GetDeviceFromSigfoxId(string) (*models.Device, error)
 	CountDevices() (int, error)
+	DeleteDeviceObservations(string) error
+	DeleteDeviceGeolocations(string) error
 
 	CreateAlert(*models.User, *models.Alert) error
 	GetAlert(*models.User, string) (*models.Alert, error)
@@ -78,4 +91,5 @@ type Store interface {
 	GetDeviceObservations(string, string, string, int) ([]*models.Observation, error)
 	GetFleetObservations(*models.User, string, string, string, int) ([]*models.Observation, error)
 	CountObservations() (int, error)
+	DeleteObservation(string) error
 }

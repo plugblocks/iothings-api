@@ -20,3 +20,7 @@ func GetFleetObservations(c context.Context, fleetId string, typ string, ord str
 func CountObservations(c context.Context) (int, error) {
 	return FromContext(c).CountObservations()
 }
+
+func DeleteObservation(c context.Context, id string) error {
+	return FromContext(c).DeleteObservation(id)
+}

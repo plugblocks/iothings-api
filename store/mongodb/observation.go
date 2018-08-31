@@ -112,3 +112,17 @@ func (db *mongo) CountObservations() (int, error) {
 	}
 	return nbr, nil
 }
+
+func (db *mongo) DeleteObservation(id string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	observations := db.C(models.ObservationsCollection).With(session)
+
+	err := observations.Remove(bson.M{"_id": id})
+
+	if err != nil {
+		return helpers.NewError(http.StatusNotFound, "observation_not_found", "Observation not found", err)
+	}
+	return nil
+}

@@ -138,3 +138,31 @@ func (db *mongo) CountDevices() (int, error) {
 	}
 	return nbr, nil
 }
+
+func (db *mongo) DeleteDeviceObservations(deviceId string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	observations := db.C(models.ObservationsCollection).With(session)
+
+	err := observations.Remove(bson.M{"device_id": deviceId})
+
+	if err != nil {
+		return helpers.NewError(http.StatusNotFound, "observations_not_found", "Observations not found", err)
+	}
+	return nil
+}
+
+func (db *mongo) DeleteDeviceGeolocations(deviceId string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	geolocations := db.C(models.GeolocationsCollection).With(session)
+
+	err := geolocations.Remove(bson.M{"device_id": deviceId})
+
+	if err != nil {
+		return helpers.NewError(http.StatusNotFound, "geolocations_not_found", "Geolocations not found", err)
+	}
+	return nil
+}

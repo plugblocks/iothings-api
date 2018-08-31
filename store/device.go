@@ -34,3 +34,10 @@ func GetDeviceFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, 
 func CountDevices(c context.Context) (int, error) {
 	return FromContext(c).CountDevices()
 }
+
+func DeleteDeviceObservations(c context.Context, deviceId string) error {
+	return FromContext(c).DeleteDeviceObservations(deviceId)
+}
+func DeleteDeviceGeolocations(c context.Context, deviceId string) error {
+	return FromContext(c).DeleteDeviceGeolocations(deviceId)
+}

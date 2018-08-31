@@ -88,10 +88,20 @@ func (dc DeviceController) UpdateDevice(c *gin.Context) {
 
 func (dc DeviceController) DeleteDevice(c *gin.Context) {
 	err := store.DeleteDevice(c, c.Param("id"))
-
 	if err != nil {
-		c.Error(err)
-		c.Abort()
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("device_delete_failed", "Failed to delete the device", err))
+		return
+	}
+
+	err = store.DeleteDeviceObservations(c, c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("device_observations_delete_failed", "Failed to delete the device observations", err))
+		return
+	}
+
+	err = store.DeleteDeviceGeolocations(c, c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("device_geolocations_delete_failed", "Failed to delete the device geolocations", err))
 		return
 	}
 
