@@ -39,7 +39,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 
 	appName := config.GetString(c, "mail_sender_name")
 	subject := "Welcome to " + appName + "! Please confirm your account"
-	templateLink := "./templates/html/mail_activate_account.html"
+	templateLink := "./templates/html/mail_user_activate_account.html"
 
 	s := services.GetEmailSender(c)
 	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, User: user, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
