@@ -22,6 +22,14 @@ func (a *API) SetupIndexes() error {
 		},
 	}
 
+	customers := database.C(models.CustomersCollection)
+	collectionIndexes[customers] = []mgo.Index{
+		{
+			Key:    []string{"email"},
+			Unique: true,
+		},
+	}
+
 	// Devices indexes & validators
 	devices := database.C(models.DevicesCollection)
 	CreateValidator(devices, bson.M{"organization_id": bson.M{"$exists": true}})
