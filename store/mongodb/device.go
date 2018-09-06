@@ -1,6 +1,8 @@
 package mongodb
 
 import (
+	"fmt"
+	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"net/http"
 
 	"errors"
@@ -22,21 +24,28 @@ func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
 	if device.SigfoxId != "" {
 		count, _ := devices.Find(bson.M{"sigfox_id": device.SigfoxId}).Count()
 		if count > 0 {
-			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device Sigfox", errors.New("Sigfox Device already exists"))
+			sigfoxMessages := db.C(sigfox.SigfoxMessagesCollection).With(session)
+			nbr, err := sigfoxMessages.Find(params.M{}).Count()
+			if err != nil {
+				return helpers.NewError(http.StatusNotFound, "sigfox_messages_not_found", "Sigfox Messages not found", err)
+			}
+			fmt.Println(nbr)
+
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Sigfox ID already registered", errors.New("Sigfox ID already registered"))
 		}
 	}
 
 	if device.BleMac != "" {
 		count, _ := devices.Find(bson.M{"ble_mac": device.BleMac}).Count()
 		if count > 0 {
-			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device BLE", errors.New("BLE Device already exists"))
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "BLE MAC already registered", errors.New("BLE MAC already registered"))
 		}
 	}
 
 	if device.WifiMac != "" {
 		count, _ := devices.Find(bson.M{"wifi_mac": device.WifiMac}).Count()
 		if count > 0 {
-			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Failed to create the device WiFi", errors.New("WiFi Device already exists"))
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "WiFi MAC already registered", errors.New("WiFi MAC already registered"))
 		}
 	}
 

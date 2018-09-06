@@ -14,8 +14,8 @@ func AddDeviceToFleet(c context.Context, fleetId string, deviceId string) (*mode
 	return FromContext(c).AddDeviceToFleet(Current(c), fleetId, deviceId)
 }
 
-func GetAllFleets(c context.Context) ([]models.Fleet, error) {
-	return FromContext(c).GetAllFleets(Current(c))
+func GetFleets(c context.Context) ([]models.Fleet, error) {
+	return FromContext(c).GetFleets(Current(c))
 }
 
 func GetFleetById(c context.Context, id string) (*models.Fleet, error) {

@@ -40,7 +40,7 @@ type Store interface {
 	AddDeviceToFleet(user *models.User, fleetId string, deviceId string) (*models.Fleet, error)
 	GetFleetById(*models.User, string) (*models.Fleet, error)
 	UpdateFleet(*models.User, string, params.M) error
-	GetAllFleets(*models.User) ([]models.Fleet, error)
+	GetFleets(*models.User) ([]models.Fleet, error)
 	DeleteFleet(*models.User, string) error
 	CountFleets() (int, error)
 	GetDevicesFromFleet(*models.User, string) ([]*models.Device, error)

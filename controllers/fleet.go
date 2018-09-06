@@ -28,7 +28,7 @@ func (fc FleetController) AddDeviceToFleet(c *gin.Context) {
 }
 
 func (fc FleetController) GetFleets(c *gin.Context) {
-	fleets, err := store.GetAllFleets(c)
+	fleets, err := store.GetFleets(c)
 	if err != nil {
 		c.Error(err)
 		c.Abort()
