@@ -71,11 +71,11 @@ type Store interface {
 
 	CreateGeolocation(*models.Geolocation) error
 	//TODO: DANGER: Protect by auth device GeoJSON
-	GetFleetGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
-	//TODO: DANGER: Protect by auth device GeoJSON
-	GetDeviceGeoJSON( /* *models.User, */ string) (*models.GeoJSON, error)
-	//TODO: DANGER: Protect by auth device GeoJSON
 	GetFleetsGeoJSON( /**models.User*/ string, int, int, int) (*models.GeoJSON, error)
+	//TODO: DANGER: Protect by auth device GeoJSON
+	GetFleetGeoJSON( /* *models.User, */ string, string, int, int, int) (*models.GeoJSON, error)
+	//TODO: DANGER: Protect by auth device GeoJSON
+	GetDeviceGeoJSON( /* *models.User, */ string, string, int, int, int) (*models.GeoJSON, error)
 	GetUserFleetsGeoJSON(*models.User) (*models.GeoJSON, error)
 	CountGeolocations() (int, error)
 

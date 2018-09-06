@@ -10,18 +10,18 @@ func CreateGeolocation(c context.Context, location *models.Geolocation) error {
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func GetDeviceGeoJSON(c context.Context, id string) (*models.GeoJSON, error) {
-	return FromContext(c).GetDeviceGeoJSON( /*Current(c), */ id)
-}
-
-//TODO: DANGER: Protect by auth device GeoJSON
-func GetFleetGeoJSON(c context.Context, id string) (*models.GeoJSON, error) {
-	return FromContext(c).GetFleetGeoJSON( /*Current(c), */ id)
-}
-
-//TODO: DANGER: Protect by auth device GeoJSON
 func GetFleetsGeoJSON(c context.Context, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
 	return FromContext(c).GetFleetsGeoJSON(source, limit, startTime, endTime)
+}
+
+//TODO: DANGER: Protect by auth device GeoJSON
+func GetFleetGeoJSON(c context.Context, id string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
+	return FromContext(c).GetFleetGeoJSON( /*Current(c), */ id, source, limit, startTime, endTime)
+}
+
+//TODO: DANGER: Protect by auth device GeoJSON
+func GetDeviceGeoJSON(c context.Context, id string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
+	return FromContext(c).GetDeviceGeoJSON( /*Current(c), */ id, source, limit, startTime, endTime)
 }
 
 func GetUserFleetsGeoJSON(c context.Context) (*models.GeoJSON, error) {

@@ -65,20 +65,35 @@ func (fc FleetController) GetDevicesFromFleet(c *gin.Context) {
 }
 
 func (fc FleetController) GetFleetGeoJSON(c *gin.Context) {
-	id := c.Param("id")
+	var params models.GeolocationQueryParams
+	if c.ShouldBind(&params) == nil {
+		fmt.Println("params: ", params)
+		if params.Limit == 0 {
+			params.Limit = 100
+		}
+		if params.EndTime == 0 {
+			params.EndTime = 2147483646 //Max uint32
+		}
+		if params.StartTime > params.EndTime {
+			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
+		}
+		geoJsonStruct, err := store.GetFleetGeoJSON(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
 
-	geoJsonStruct, err := store.GetFleetGeoJSON(c, id)
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
+		fmt.Println("len: ", len(geoJsonStruct.Features))
+
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, geoJsonStruct)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Fleets geolocations error")
 	}
-
-	c.JSON(http.StatusOK, geoJsonStruct)
 }
 
 func (fc FleetController) GetFleetsGeoJSON(c *gin.Context) {
-
 	var params models.GeolocationQueryParams
 	if c.ShouldBind(&params) == nil {
 		fmt.Println("params: ", params)

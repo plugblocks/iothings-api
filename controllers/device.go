@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -121,12 +122,31 @@ func (dc DeviceController) GetDevice(c *gin.Context) {
 }
 
 func (dc DeviceController) GetDeviceGeoJSON(c *gin.Context) {
-	geoJsonStruct, err := store.GetDeviceGeoJSON(c, c.Param("id"))
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
+	var params models.GeolocationQueryParams
 
-	c.JSON(http.StatusOK, geoJsonStruct)
+	if c.ShouldBind(&params) == nil {
+		fmt.Println("params: ", params)
+		if params.Limit == 0 {
+			params.Limit = 100
+		}
+		if params.EndTime == 0 {
+			params.EndTime = 2147483646 //Max uint32
+		}
+		if params.StartTime > params.EndTime {
+			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
+		}
+		geoJsonStruct, err := store.GetDeviceGeoJSON(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
+
+		fmt.Println("len: ", len(geoJsonStruct.Features))
+
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, geoJsonStruct)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Fleets geolocations error")
+	}
 }

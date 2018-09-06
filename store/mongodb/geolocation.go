@@ -23,7 +23,7 @@ func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string) (*models.GeoJSON, error) {
+func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -39,7 +39,9 @@ func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string) (*mo
 
 	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
 	locations := []models.Geolocation{}
-	err = geolocationCollection.Find(bson.M{"device_id": deviceId}).Sort("-timestamp").All(&locations)
+
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&locations)
+
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 	}
@@ -74,7 +76,7 @@ func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string) (*mo
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string) (*models.GeoJSON, error) {
+func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -92,7 +94,8 @@ func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string) (*mode
 	features := []models.Feature{}
 
 	for _, deviceId := range fleet.DeviceIds {
-		err = geolocationCollection.Find(bson.M{"device_id": deviceId}).Sort("-timestamp").All(&locations)
+		err = geolocationCollection.Find(bson.M{"device_id": deviceId, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&locations)
+
 		if err != nil {
 			return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 		}
