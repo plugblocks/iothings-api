@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
@@ -34,7 +33,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set(store.CurrentKey, user)
 
 		user.LastAccess = time.Now().Unix()
-		fmt.Println("user:", user)
+		//fmt.Println("user:", user)
 		store.UpdateUser(c, params.M{"$set": params.M{"last_access": user.LastAccess}})
 
 		c.Next()

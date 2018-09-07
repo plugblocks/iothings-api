@@ -1,8 +1,6 @@
 package mongodb
 
 import (
-	"fmt"
-	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"net/http"
 
 	"errors"
@@ -13,26 +11,31 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 )
 
-func (db *mongo) CreateDevice(user *models.User, device *models.Device) error {
+func (db *mongo) CreateDevice(organizationId string/*user *models.User*/, device *models.Device) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)
 
 	//fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
-	device.BeforeCreate(user)
+	device.BeforeCreate()
+	device.OrganizationId = organizationId
 
 	if device.SigfoxId != "" {
 		count, _ := devices.Find(bson.M{"sigfox_id": device.SigfoxId}).Count()
 		if count > 0 {
+			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Sigfox ID already registered", errors.New("Sigfox ID already registered"))
+		}
+
+		/*if count == 0 {
+			fmt.Println("Sigfox Messages for this New device: ", count)
 			sigfoxMessages := db.C(sigfox.SigfoxMessagesCollection).With(session)
 			nbr, err := sigfoxMessages.Find(params.M{}).Count()
 			if err != nil {
 				return helpers.NewError(http.StatusNotFound, "sigfox_messages_not_found", "Sigfox Messages not found", err)
 			}
-			fmt.Println(nbr)
+			fmt.Println("Sigfox Messages", nbr)
 
-			return helpers.NewError(http.StatusConflict, "device_creation_failed", "Sigfox ID already registered", errors.New("Sigfox ID already registered"))
-		}
+		}*/
 	}
 
 	if device.BleMac != "" {

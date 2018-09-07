@@ -45,7 +45,7 @@ type Store interface {
 	CountFleets() (int, error)
 	GetDevicesFromFleet(*models.User, string) ([]*models.Device, error)
 
-	CreateDevice(*models.User, *models.Device) error
+	CreateDevice(/**models.User*/ string, *models.Device) error
 	GetDevices(*models.User) ([]*models.Device, error)
 	UpdateDevice(*models.User, string, params.M) error
 	DeleteDevice(*models.User, string) error

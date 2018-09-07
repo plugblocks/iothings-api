@@ -58,34 +58,25 @@ func (db *mongo) GetFleets(user *models.User) ([]models.Fleet, error) {
 	fleetCollection := db.C(models.FleetsCollection).With(session)
 	retFleetsList := []models.Fleet{}
 
-	if !user.Admin {
-		//Get all users ids from this organization
-		usersCollection := db.C(models.UsersCollection).With(session)
-		users := []models.User{}
+	//Get all users ids from this organization
+	usersCollection := db.C(models.UsersCollection).With(session)
+	users := []models.User{}
 
-		err := usersCollection.Find(bson.M{"organization_id": user.OrganizationId}).All(&users)
-		if err != nil {
-			return nil, helpers.NewError(http.StatusInternalServerError, "organization_user_retrieval_failed", "Failed to retrieve the users of the organization", err)
-		}
-
-		//Get fleets from all these users id
-		for _, user := range users {
-			fmt.Println("User+", user)
-			tempFleet := []models.Fleet{}
-			err := fleetCollection.Find(bson.M{"user_id": user.Id}).All(tempFleet)
-			if err != nil {
-				return nil, helpers.NewError(http.StatusInternalServerError, "query_fleets_failed", "Failed to get the user fleets: "+err.Error(), err)
-			}
-			fmt.Println(tempFleet)
-			retFleetsList = append(retFleetsList, tempFleet...)
-		}
-
-		return retFleetsList, nil
+	err := usersCollection.Find(bson.M{"organization_id": user.OrganizationId}).All(&users)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "organization_user_retrieval_failed", "Failed to retrieve the users of the organization", err)
 	}
 
-	err := fleetCollection.Find(params.M{}).All(&retFleetsList)
-	if err != nil {
-		return nil, helpers.NewError(http.StatusInternalServerError, "query_fleets_failed", "Failed to get the fleets: "+err.Error(), err)
+	//Get fleets from all these users id
+	for _, user := range users {
+		fmt.Println("User+", user)
+		tempFleet := []models.Fleet{}
+		err := fleetCollection.Find(bson.M{"user_id": user.Id}).All(tempFleet)
+		if err != nil {
+			return nil, helpers.NewError(http.StatusInternalServerError, "query_fleets_failed", "Failed to get the user fleets: "+err.Error(), err)
+		}
+		fmt.Println(tempFleet)
+		retFleetsList = append(retFleetsList, tempFleet...)
 	}
 
 	return retFleetsList, nil

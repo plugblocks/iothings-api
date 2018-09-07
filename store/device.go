@@ -2,16 +2,24 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 )
 
 func CreateDevice(c context.Context, record *models.Device) error {
-	return FromContext(c).CreateDevice(Current(c), record)
+	if c.Value(CurrentKey) == nil {
+		fmt.Println("Nil context")
+		return FromContext(nil).CreateDevice("", record)
+	}
+
+	fmt.Println("Context: ", c)
+	return FromContext(c).CreateDevice(Current(c).OrganizationId, record)
 }
 
 func GetDevices(c context.Context) ([]*models.Device, error) {
+	fmt.Println("Context: ", c)
 	return FromContext(c).GetDevices(Current(c))
 }
 

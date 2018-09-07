@@ -13,6 +13,7 @@ func (a *API) SetupSeeds() error {
 		Name:   "PlugBlocks",
 		Active: true,
 		Admin:  true,
+		Siret:  84145095000016,
 	}
 	store.CreateOrganization(organization)
 

@@ -22,6 +22,7 @@ type Observation struct {
 
 func (o *Observation) BeforeCreate(device *Device) {
 	device.LastAccess = time.Now().Unix()
+	device.Active = true
 }
 
 const ObservationsCollection = "observations"

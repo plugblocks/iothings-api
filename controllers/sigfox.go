@@ -35,7 +35,10 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 
 	device, err := store.GetDeviceFromSigfoxId(c, sigfoxMessage.SigfoxId)
 	if err != nil {
-		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		fmt.Println("Sigfox Device ID not found", err)
+		/*device := models.Device{bson.NewObjectId().Hex(), "", "", "Sigfox Device: " + sigfoxMessage.SigfoxId,
+			"", "", sigfoxMessage.SigfoxId, time.Now().Unix(), false}
+		store.CreateDevice(c, &device)*/
 		return
 	}
 
