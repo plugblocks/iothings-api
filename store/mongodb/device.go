@@ -11,7 +11,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 )
 
-func (db *mongo) CreateDevice(organizationId string/*user *models.User*/, device *models.Device) error {
+func (db *mongo) CreateDevice(organizationId string /*user *models.User*/, device *models.Device) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)

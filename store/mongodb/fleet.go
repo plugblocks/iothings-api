@@ -68,7 +68,7 @@ func (db *mongo) GetFleets(user *models.User) ([]models.Fleet, error) {
 	}
 
 	//Get fleets from all these users id
-	for _, user := range users {
+	/*for _, user := range users {
 		fmt.Println("User+", user)
 		tempFleet := []models.Fleet{}
 		err := fleetCollection.Find(bson.M{"user_id": user.Id}).All(tempFleet)
@@ -77,6 +77,11 @@ func (db *mongo) GetFleets(user *models.User) ([]models.Fleet, error) {
 		}
 		fmt.Println(tempFleet)
 		retFleetsList = append(retFleetsList, tempFleet...)
+	}*/
+
+	err = fleetCollection.Find(params.M{}).All(&retFleetsList)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_fleets_failed", "Failed to get the fleets: "+err.Error(), err)
 	}
 
 	return retFleetsList, nil
