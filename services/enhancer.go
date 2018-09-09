@@ -559,7 +559,7 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 		return false, nil, nil
 	}
 
-	gpsGeoloc := &models.Geolocation{}
+	geoloc := &models.Geolocation{}
 	obs := &models.Observation{}
 	locProp := &models.DefaultProperty{"gps", "location"}
 	senProp := &models.DefaultProperty{"gps", "sensor"}
@@ -567,12 +567,12 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 	if (string(sigfoxMessage.Data[0:2]) == "4e") || (string(sigfoxMessage.Data[0:2]) == "53") {
 		if string(sigfoxMessage.Data[2:4]) != "00" {
 			decodedGPSFrame, decodedTemperature, status := decodeWisolGPSFrame(*sigfoxMessage)
-			gpsGeoloc = &decodedGPSFrame
-			gpsGeoloc.DeviceId = device.Id
+			geoloc = &decodedGPSFrame
+			geoloc.DeviceId = device.Id
 
-			latVal := models.QuantitativeValue{locProp, "latitude", "degrees", gpsGeoloc.Latitude}
-			lngVal := models.QuantitativeValue{locProp, "longitude", "degrees", gpsGeoloc.Longitude}
-			accVal := models.QuantitativeValue{locProp, "accuracy", "meters", gpsGeoloc.Radius}
+			latVal := models.QuantitativeValue{locProp, "latitude", "degrees", geoloc.Latitude}
+			lngVal := models.QuantitativeValue{locProp, "longitude", "degrees", geoloc.Longitude}
+			accVal := models.QuantitativeValue{locProp, "accuracy", "meters", geoloc.Radius}
 			tempVal := models.QuantitativeValue{senProp, "temperature", "celsius", decodedTemperature}
 			staVal := models.QuantitativeValue{senProp, "status", "", status}
 			obs.Values = append(obs.Values, latVal, lngVal, accVal, tempVal, staVal)
@@ -580,8 +580,8 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			obs.DeviceId = device.Id
 			obs.Resolver = "gps"
 
-			fmt.Println("Wisol GPS Geoloc: ", gpsGeoloc, "Obs:", obs)
-			return true, gpsGeoloc, obs
+			fmt.Println("Wisol GPS Geoloc: ", geoloc, "Obs:", obs)
+			return true, geoloc, obs
 
 		} else { //No GPS, frame is empty
 			sigfoxMessage.Data = "No GPS: " + sigfoxMessage.Data
@@ -592,15 +592,15 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			return false, nil, nil
 		}
 
-		status, gpsGeoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
+		status, geoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
 
 		if status == false {
 			fmt.Println("Error while resolving Wisol WiFi location")
 			return false, nil, nil
 		}
 
-		fmt.Println("Wisol WiFi Geoloc: ", gpsGeoloc, "Obs:", obs)
-		return true, gpsGeoloc, obs
+		fmt.Println("Wisol WiFi Geoloc: ", geoloc, "Obs:", obs)
+		return true, geoloc, obs
 	}
 	return false, nil, nil
 }

@@ -67,6 +67,8 @@ func (db *mongo) GetFleets(user *models.User) ([]*models.Fleet, error) {
 		return nil, helpers.NewError(http.StatusInternalServerError, "organization_user_retrieval_failed", "Failed to retrieve the users of the organization", err)
 	}
 
+	//BUG: Admin User Id does not change when admin is changing orgnanization
+
 	//Get fleets from all these users id
 	for _, user := range users {
 		fmt.Println("User+", user)
