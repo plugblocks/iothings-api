@@ -119,7 +119,26 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 			return
 		}
 	} else if sigfoxMessage.Resolver == "airqule" {
-		services.DecodeAirquleFrame(c, device, sigfoxMessage)
+		fmt.Println("AirQule frame")
+		typ, geoloc, observation := services.DecodeAirquleFrame(c, device, sigfoxMessage)
+
+		err = store.CreateObservation(c, observation)
+		if err != nil {
+			fmt.Println("Error while storing AirQule Observation")
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		if typ {
+			err = store.CreateGeolocation(c, geoloc)
+			if err != nil {
+				fmt.Println("Error while storing Wisol Geolocation")
+				c.Error(err)
+				c.Abort()
+				return
+			}
+		}
 	}
 
 	c.JSON(http.StatusCreated, sigfoxMessage)

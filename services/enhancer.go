@@ -445,6 +445,8 @@ func DecodeAirquleFrame(contxt *gin.Context, device *models.Device, msg *sigfox.
 
 	store.UpdateDeviceActivity(contxt, device.Id, 1)
 
+	typ := false
+
 	if string(msg.Data[0:6]) == "000000" { //Sensors
 		obs := &models.Observation{}
 		defp := &models.DefaultProperty{"spotit", "location"}
@@ -457,11 +459,12 @@ func DecodeAirquleFrame(contxt *gin.Context, device *models.Device, msg *sigfox.
 		obs.Timestamp = msg.Timestamp
 		obs.DeviceId = device.Id
 		obs.Resolver = "airqule"
-		return false, geoloc, obs
+		return typ, geoloc, obs
 	} else { //Wifi
 		_, geoloc, obs = ResolveWifiPosition(contxt, msg)
+		typ = true
 	}
-	return true, geoloc, obs
+	return typ, geoloc, obs
 }
 
 func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, float64, bool) {
