@@ -95,7 +95,7 @@ func (db *mongo) UpdateDevice(user *models.User, id string, m params.M) error {
 	return nil
 }
 
-func (db *mongo) UpdateDeviceActivity(user *models.User, id string, act int) error {
+func (db *mongo) UpdateDeviceActivity(id string, act int) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)
