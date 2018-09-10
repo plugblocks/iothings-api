@@ -95,6 +95,18 @@ func (db *mongo) UpdateDevice(user *models.User, id string, m params.M) error {
 	return nil
 }
 
+func (db *mongo) UpdateDeviceActivity(user *models.User, id string, act int) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	devices := db.C(models.DevicesCollection).With(session)
+
+	err := devices.Update(bson.M{"_id": id}, bson.M{"$inc": bson.M{"activity": act}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
+	}
+	return nil
+}
+
 func (db *mongo) DeleteDevice(user *models.User, id string) error {
 	session := db.Session.Copy()
 	defer session.Close()

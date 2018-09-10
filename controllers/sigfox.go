@@ -118,6 +118,8 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 			c.Abort()
 			return
 		}
+	} else if sigfoxMessage.Resolver == "airqule" {
+		services.DecodeAirquleFrame(c, device)
 	}
 
 	c.JSON(http.StatusCreated, sigfoxMessage)

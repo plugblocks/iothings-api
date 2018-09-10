@@ -54,6 +54,7 @@ type Store interface {
 	CountDevices() (int, error)
 	DeleteDeviceObservations(string) error
 	DeleteDeviceGeolocations(string) error
+	UpdateDeviceActivity(deviceId string, actDiff int) error
 
 	CreateAlert(*models.User, *models.Alert) error
 	GetAlert(*models.User, string) (*models.Alert, error)

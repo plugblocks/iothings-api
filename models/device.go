@@ -15,6 +15,7 @@ type Device struct {
 	WifiMac        string `json:"wifi_mac" bson:"wifi_mac" valid:"-"`
 	SigfoxId       string `json:"sigfox_id" bson:"sigfox_id" valid:"-"`
 	LastAccess     int64  `json:"last_access" bson:"last_access" valid:"-"`
+	Activity       int64  `json:"activity" bson:"activity" valid:"-"`
 	Active         bool   `json:"active" bson:"active" valid:"-"`
 }
 

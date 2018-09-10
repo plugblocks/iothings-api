@@ -27,6 +27,10 @@ func UpdateDevice(c context.Context, id string, m params.M) error {
 	return FromContext(c).UpdateDevice(Current(c), id, m)
 }
 
+func UpdateDeviceActivity(c context.Context, deviceId string, actDiff int) error {
+	return FromContext(c).UpdateDeviceActivity(deviceId, actDiff)
+}
+
 func DeleteDevice(c context.Context, id string) error {
 	return FromContext(c).DeleteDevice(Current(c), id)
 }

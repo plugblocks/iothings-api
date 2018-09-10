@@ -439,6 +439,31 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 	return true, spotitLoc, obs
 }
 
+func DecodeAirquleFrame(contxt *gin.Context, device *models.Device, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
+	geoloc := &models.Geolocation{}
+	obs := &models.Observation{}
+
+	store.UpdateDeviceActivity(contxt, device.Id, 1)
+
+	if string(msg.Data[0:6]) == "000000" { //Sensors
+		obs := &models.Observation{}
+		defp := &models.DefaultProperty{"spotit", "location"}
+		temp := models.QuantitativeValue{defp, "temperature", "degrees", 22}
+		pres := models.QuantitativeValue{defp, "presure", "degrees", 1100}
+		humi := models.QuantitativeValue{defp, "humidity", "meters", 55}
+		co2 := models.QuantitativeValue{defp, "co2", "meters", 250}
+		ppm := models.QuantitativeValue{defp, "ppm", "meters", 1174}
+		obs.Values = append(obs.Values, temp, humi, pres, co2, ppm)
+		obs.Timestamp = msg.Timestamp
+		obs.DeviceId = device.Id
+		obs.Resolver = "airqule"
+		return false, geoloc, obs
+	} else { //Wifi
+		_, geoloc, obs = ResolveWifiPosition(contxt, msg)
+	}
+	return true, geoloc, obs
+}
+
 func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, float64, bool) {
 	fmt.Print("GPS frame: \t\t\t")
 	var gpsLoc models.Geolocation
