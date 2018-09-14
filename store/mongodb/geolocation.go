@@ -40,7 +40,7 @@ func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string, sour
 	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
 	locations := []models.Geolocation{}
 
-	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&locations)
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": source, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&locations)
 
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)

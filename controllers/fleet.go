@@ -64,6 +64,10 @@ func (fc FleetController) GetDevicesFromFleet(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
+func (fc FleetController) EnhanceParams(c *gin.Context) {
+
+}
+
 func (fc FleetController) GetFleetGeoJSON(c *gin.Context) {
 	var params models.GeolocationQueryParams
 	if c.ShouldBind(&params) == nil {
@@ -105,6 +109,9 @@ func (fc FleetController) GetFleetsGeoJSON(c *gin.Context) {
 		}
 		if params.StartTime > params.EndTime {
 			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
+		}
+		if params.Source == "" {
+			params.Source = "sigfox"
 		}
 		geoJsonStruct, err := store.GetFleetsGeoJSON(c, params.Source, params.Limit, params.StartTime, params.EndTime)
 

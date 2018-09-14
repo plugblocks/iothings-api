@@ -125,6 +125,7 @@ func (dc DeviceController) GetDeviceGeoJSON(c *gin.Context) {
 	var params models.GeolocationQueryParams
 
 	if c.ShouldBind(&params) == nil {
+		source := ""
 		fmt.Println("params: ", params)
 		if params.Limit == 0 {
 			params.Limit = 100
@@ -135,7 +136,10 @@ func (dc DeviceController) GetDeviceGeoJSON(c *gin.Context) {
 		if params.StartTime > params.EndTime {
 			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
 		}
-		geoJsonStruct, err := store.GetDeviceGeoJSON(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
+		if params.Source == "" {
+			source = "gps"
+		}
+		geoJsonStruct, err := store.GetDeviceGeoJSON(c, c.Param("id"), source, params.Limit, params.StartTime, params.EndTime)
 
 		fmt.Println("len: ", len(geoJsonStruct.Features))
 

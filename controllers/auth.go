@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"gitlab.com/plugblocks/iothings-api/config"
@@ -51,6 +52,8 @@ func (ac AuthController) UserAuthentication(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, helpers.ErrorWithCode("token_generation_failed", "Could not generate the access token", err))
 		return
 	}
+
+	fmt.Println("User authenticated: ", user)
 
 	c.JSON(http.StatusOK, gin.H{"token": accessToken, "user": user.Sanitize()})
 }
