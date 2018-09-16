@@ -23,7 +23,34 @@ func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
+func (db *mongo) GetDeviceGeolocation(user *models.User, deviceId string, source string) (*models.Geolocation, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+	device := &models.Device{}
+
+	err := devices.Find(bson.M{"_id": deviceId}).One(device) //TODO: add security w/user organization_id , "organization_id": user.OrganizationId
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
+	}
+
+	//////////////////////////////////////
+
+	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
+	location := &models.Geolocation{}
+
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": source}).Sort("-timestamp").One(location)
+
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: " + err.Error(), err)
+	}
+
+	return location, nil
+}
+
+//TODO: DANGER: Protect by auth device GeoJSON
+func (db *mongo) GetDeviceGeoJSON(/*user *models.User, */ deviceId string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
