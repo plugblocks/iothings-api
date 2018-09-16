@@ -109,7 +109,7 @@ func (a *API) SetupRouter() {
 			//TODO: DANGER: Protect by auth device GeoJSON
 			devices.GET("/:id/locations/geojson", deviceController.GetDeviceGeoJSON)
 			devices.Use(authMiddleware)
-			devices.GET("/:id/location", deviceController.GetDeviceGeoJSON)
+			devices.GET("/:id/location/:source", deviceController.GetDeviceLastLocation)
 			devices.GET("/", deviceController.GetDevices)
 			devices.POST("/", deviceController.CreateDevice)
 			devices.PUT("/:id", deviceController.UpdateDevice)

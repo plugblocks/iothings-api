@@ -122,31 +122,14 @@ func (dc DeviceController) GetDevice(c *gin.Context) {
 }
 
 func (dc DeviceController) GetDeviceLastLocation(c *gin.Context) {
-	var params models.GeolocationQueryParams
-	params.Limit = 1
-	if c.ShouldBind(&params) == nil {
-		fmt.Println("params: ", params)
-		if params.EndTime == 0 {
-			params.EndTime = 2147483646 //Max uint32
-		}
-		if params.StartTime > params.EndTime {
-			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
-		}
-		if params.Source == "" {
-			params.Source = "wifi"
-		}
-		geoJsonStruct, err := store.GetDeviceGeolocation(c, c.Param("id"), params.Source)
-
-		if err != nil {
-			c.Error(err)
-			c.Abort()
-			return
-		}
-
-		c.JSON(http.StatusOK, geoJsonStruct)
-	} else {
+	lastLoc, err := store.GetDeviceGeolocation(c, c.Param("id"), c.Param("source"))
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, "Get last location error")
+		c.Error(err)
+		c.Abort()
+		return
 	}
+	c.JSON(http.StatusOK, lastLoc)
 }
 
 func (dc DeviceController) GetDeviceGeoJSON(c *gin.Context) {
