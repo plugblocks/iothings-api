@@ -40,7 +40,8 @@ func (db *mongo) GetDeviceGeolocation(user *models.User, deviceId string, source
 	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
 	location := &models.Geolocation{}
 
-	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": source}).Sort("-timestamp").One(location)
+	sources := []string{"gps", "wifi"}
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": bson.M{"$in":sources}}).Sort("-timestamp").One(location)
 
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: " + err.Error(), err)
