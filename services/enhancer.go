@@ -78,7 +78,7 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 	wifiLoc.Radius = resp.Accuracy
 
 	obs := &models.Observation{}
-	defp := &models.DefaultProperty{"wifi", "location"}
+	defp := &models.SemanticProperty{"wifi", "location"}
 	latVal := models.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
 	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
 	accVal := models.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
@@ -92,7 +92,7 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 
 func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
 	obs := &models.Observation{}
-	defp := &models.DefaultProperty{"sensit", "sensor"}
+	defp := &models.SemanticProperty{"sensit", "sensor"}
 	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
@@ -262,7 +262,7 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 
 func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
 	obs := &models.Observation{}
-	defp := &models.DefaultProperty{"sensit", "sensor"}
+	defp := &models.SemanticProperty{"sensit", "sensor"}
 	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
@@ -427,7 +427,7 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 	spotitLoc.Radius = loc.Radius
 
 	obs := &models.Observation{}
-	defp := &models.DefaultProperty{"spotit", "location"}
+	defp := &models.SemanticProperty{"spotit", "location"}
 	latVal := models.QuantitativeValue{defp, "latitude", "degrees", loc.Latitude}
 	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", loc.Longitude}
 	accVal := models.QuantitativeValue{defp, "accuracy", "meters", loc.Radius}
@@ -449,7 +449,7 @@ func DecodeAirquleFrame(contxt *gin.Context, device *models.Device, msg *sigfox.
 
 	if string(msg.Data[0:6]) == "000000" { //Sensors
 		obs := &models.Observation{}
-		defp := &models.DefaultProperty{"spotit", "location"}
+		defp := &models.SemanticProperty{"spotit", "location"}
 		temp := models.QuantitativeValue{defp, "temperature", "degrees", 22}
 		pres := models.QuantitativeValue{defp, "presure", "degrees", 1100}
 		humi := models.QuantitativeValue{defp, "humidity", "meters", 55}
@@ -589,8 +589,8 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 
 	geoloc := &models.Geolocation{}
 	obs := &models.Observation{}
-	locProp := &models.DefaultProperty{"gps", "location"}
-	senProp := &models.DefaultProperty{"gps", "sensor"}
+	locProp := &models.SemanticProperty{"gps", "location"}
+	senProp := &models.SemanticProperty{"gps", "sensor"}
 
 	if (string(sigfoxMessage.Data[0:2]) == "4e") || (string(sigfoxMessage.Data[0:2]) == "53") {
 		if string(sigfoxMessage.Data[2:4]) != "00" {

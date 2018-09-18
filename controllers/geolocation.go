@@ -32,7 +32,7 @@ func (gc GeolocationController) CreateGeolocation(c *gin.Context) {
 	}
 
 	obs := &models.Observation{}
-	defp := &models.DefaultProperty{"app", "location"}
+	defp := &models.SemanticProperty{"app", "location"}
 	latVal := models.QuantitativeValue{defp, "latitude", "degrees", geolocation.Latitude}
 	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", geolocation.Longitude}
 	accVal := models.QuantitativeValue{defp, "accuracy", "meters", geolocation.Radius}

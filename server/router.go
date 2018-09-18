@@ -48,15 +48,10 @@ func (a *API) SetupRouter() {
 	{
 		v1.GET("/", Index)
 
-		groups := v1.Group("/groups")
+		authentication := v1.Group("/auth")
 		{
-			groups.Use(authMiddleware)
-			groupsController := controllers.NewGroupController()
-			groups.GET("/", groupsController.GetGroups)
-			groups.POST("/", groupsController.CreateGroup)
-			groups.PUT("/:id", groupsController.EditGroup)
-			groups.GET("/:id", groupsController.GetGroupById)
-			groups.DELETE("/:id", groupsController.DeleteGroup)
+			authController := controllers.NewAuthController()
+			authentication.POST("/", authController.UserAuthentication)
 		}
 
 		users := v1.Group("/users")
@@ -77,15 +72,24 @@ func (a *API) SetupRouter() {
 		customers := v1.Group("/customers")
 		{
 			customerController := controllers.NewCustomerController()
-			customers.GET("/:id/activate/:activationKey", customerController.ActivateCustomer)
 			customers.Use(authMiddleware)
-			customers.GET("/:id/organization", customerController.GetCustomerOrganization)
 			customers.Use(adminMiddleware)
 			customers.POST("/", customerController.CreateCustomer)
-			customers.GET("/:id", customerController.GetCustomer)
+			customers.GET("/:id", customerController.GetCustomerById)
 			customers.DELETE("/:id", customerController.DeleteCustomer)
+			customers.PUT("/:id", customerController.EditCustomer)
 			customers.GET("/", customerController.GetCustomers)
-			customers.PUT("/:id/assign/:organization_id", customerController.AssignOrganization)
+		}
+
+		groups := v1.Group("/groups")
+		{
+			groups.Use(authMiddleware)
+			groupsController := controllers.NewGroupController()
+			groups.GET("/", groupsController.GetGroups)
+			groups.POST("/", groupsController.CreateGroup)
+			groups.PUT("/:id", groupsController.EditGroup)
+			groups.GET("/:id", groupsController.GetGroupById)
+			groups.DELETE("/:id", groupsController.DeleteGroup)
 		}
 
 		fleets := v1.Group("/fleets")
@@ -143,11 +147,28 @@ func (a *API) SetupRouter() {
 			organizations.GET("/:id/users", organizationsController.GetUsers)
 		}
 
-		authentication := v1.Group("/auth")
+		orders := v1.Group("/orders")
 		{
-			authController := controllers.NewAuthController()
-			authentication.POST("/", authController.UserAuthentication)
-			authentication.POST("/customer", authController.CustomerAuthentication)
+			orders.Use(authMiddleware)
+			orders.Use(adminMiddleware)
+			ordersController := controllers.NewOrderController()
+			orders.GET("/", ordersController.GetOrders)
+			orders.POST("/", ordersController.CreateOrder)
+			orders.PUT("/:id", ordersController.EditOrder)
+			orders.GET("/:id", ordersController.GetOrderById)
+			orders.DELETE("/:id", ordersController.DeleteOrder)
+		}
+
+		warehouses := v1.Group("/warehouses")
+		{
+			warehouses.Use(authMiddleware)
+			warehouses.Use(adminMiddleware)
+			warehousesController := controllers.NewWarehouseController()
+			warehouses.GET("/", warehousesController.GetWarehouses)
+			warehouses.POST("/", warehousesController.CreateWarehouse)
+			warehouses.PUT("/:id", warehousesController.EditWarehouse)
+			warehouses.GET("/:id", warehousesController.GetWarehouseById)
+			warehouses.DELETE("/:id", warehousesController.DeleteWarehouse)
 		}
 
 		observations := v1.Group("/observations")

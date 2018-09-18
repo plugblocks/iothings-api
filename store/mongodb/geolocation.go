@@ -41,17 +41,17 @@ func (db *mongo) GetDeviceGeolocation(user *models.User, deviceId string, source
 	location := &models.Geolocation{}
 
 	sources := []string{"gps", "wifi"}
-	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": bson.M{"$in":sources}}).Sort("-timestamp").One(location)
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": bson.M{"$in": sources}}).Sort("-timestamp").One(location)
 
 	if err != nil {
-		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: " + err.Error(), err)
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
 	}
 
 	return location, nil
 }
 
 //TODO: DANGER: Protect by auth device GeoJSON
-func (db *mongo) GetDeviceGeoJSON(/*user *models.User, */ deviceId string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
+func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string, source string, limit int, startTime int, endTime int) (*models.GeoJSON, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
@@ -75,7 +75,7 @@ func (db *mongo) GetDeviceGeoJSON(/*user *models.User, */ deviceId string, sourc
 	}
 
 	//TODO: use observations with trick to find values in observation
-	// if(locationObs.Values[0].DefaultProperty.Type) == "location"
+	// if(locationObs.Values[0].SemanticProperty.Type) == "location"
 	/*
 		observations := db.C(models.ObservationsCollection).With(session)
 		locationsObservations := []*models.Observation{}
@@ -140,7 +140,7 @@ func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string, source
 	}
 
 	//TODO: use observations with trick to find values in observation
-	// if(locationObs.Values[0].DefaultProperty.Type) == "location"
+	// if(locationObs.Values[0].SemanticProperty.Type) == "location"
 	/*
 		observations := db.C(models.ObservationsCollection).With(session)
 		locationsObservations := []*models.Observation{}
@@ -196,7 +196,7 @@ func (db *mongo) GetFleetsGeoJSON(source string, limit int, startTime int, endTi
 	}
 
 	//TODO: use observations with trick to find values in observation
-	// if(locationObs.Values[0].DefaultProperty.Type) == "location"
+	// if(locationObs.Values[0].SemanticProperty.Type) == "location"
 	/*
 		observations := db.C(models.ObservationsCollection).With(session)
 		locationsObservations := []*models.Observation{}
@@ -251,7 +251,7 @@ func (db *mongo) GetUserFleetsGeoJSON(user *models.User) (*models.GeoJSON, error
 	}
 
 	//TODO: use observations with trick to find values in observation
-	// if(locationObs.Values[0].DefaultProperty.Type) == "location"
+	// if(locationObs.Values[0].SemanticProperty.Type) == "location"
 	/*
 		observations := db.C(models.ObservationsCollection).With(session)
 		locationsObservations := []*models.Observation{}

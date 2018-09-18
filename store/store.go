@@ -25,16 +25,11 @@ type Store interface {
 	AssignOrganization(string, string) error
 	GetUserOrganization(user *models.User) (*models.Organization, error)
 
-	CreateCustomer(*models.Customer) error
-	DeleteCustomer(string) error
-	FindCustomerById(string) (*models.Customer, error)
-	ActivateCustomer(string, string) error
-	FindCustomer(params.M) (*models.Customer, error)
-	UpdateCustomer(*models.Customer, params.M) error
-	GetCustomers() ([]*models.Customer, error)
-	CountCustomers() (int, error)
-	CustomerAssignOrganization(string, string) error
-	GetCustomerOrganization(*models.Customer) (*models.Organization, error)
+	CreateCustomer(string, *models.Customer) error
+	GetCustomerById(string, string) (*models.Customer, error)
+	UpdateCustomer(string, string, params.M) error
+	GetAllCustomers(string) ([]models.Customer, error)
+	DeleteCustomer(string, string) error
 
 	CreateFleet(*models.User, *models.Fleet) error
 	AddDeviceToFleet(user *models.User, fleetId string, deviceId string) (*models.Fleet, error)
@@ -95,4 +90,16 @@ type Store interface {
 	GetFleetObservations(*models.User, string, string, string, int) ([]*models.Observation, error)
 	CountObservations() (int, error)
 	DeleteObservation(string) error
+
+	CreateOrder(string, *models.Order) error
+	GetOrderById(string, string) (*models.Order, error)
+	UpdateOrder(string, string, params.M) error
+	GetAllOrders(string) ([]models.Order, error)
+	DeleteOrder(string, string) error
+
+	CreateWarehouse(string, *models.Warehouse) error
+	GetWarehouseById(string, string) (*models.Warehouse, error)
+	UpdateWarehouse(string, string, params.M) error
+	GetAllWarehouses(string) ([]models.Warehouse, error)
+	DeleteWarehouse(string, string) error
 }
