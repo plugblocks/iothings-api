@@ -1,7 +1,7 @@
 package models
 
 type QuantitativeValue struct {
-	*DefaultProperty
+	*SemanticProperty
 
 	Identifier string      `json:"identifier" bson:"identifier"`
 	UnitText   string      `json:"unitText" bson:"unitText"`

@@ -7,23 +7,23 @@ type Property interface {
 	SetType(string)
 }
 
-type DefaultProperty struct {
+type SemanticProperty struct {
 	Context string `json:"context" bson:"context"`
 	Type    string `json:"type" bson:"type"`
 }
 
-func (dp *DefaultProperty) GetType() string {
+func (dp *SemanticProperty) GetType() string {
 	return dp.Type
 }
 
-func (dp *DefaultProperty) GetContext() string {
+func (dp *SemanticProperty) GetContext() string {
 	return dp.Context
 }
 
-func (dp *DefaultProperty) SetContext(ctxt string) {
+func (dp *SemanticProperty) SetContext(ctxt string) {
 	dp.Context = ctxt
 }
 
-func (dp *DefaultProperty) SetType(typ string) {
+func (dp *SemanticProperty) SetType(typ string) {
 	dp.Type = typ
 }
