@@ -5,6 +5,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
 )
@@ -95,4 +96,43 @@ func (oc OrderController) TerminateOrder(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, nil)
+}
+
+func (oc OrderController) GetOrderGeolocations(c *gin.Context) {
+	id := c.Param("id")
+
+	locations, err := store.GetOrderGeolocations(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, locations)
+}
+
+func (oc OrderController) GetMatchingMap(c *gin.Context) {
+	id := c.Param("id")
+
+	locations, err := store.GetOrderGeolocations(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	order, err := store.GetOrderById(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	mapping, err := services.GetMatchingRouteFromGeolocations(c, locations, order)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("mapping_fetch_failed", "Failed to fetch the route mapping", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, mapping)
 }

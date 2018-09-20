@@ -269,6 +269,30 @@ func (db *mongo) GetUserFleetsGeoJSON(user *models.User) (*models.GeoJSON, error
 	return geojson, nil
 }
 
+func (db *mongo) GetOrderGeolocations(organizationId string, orderId string) ([]*models.Geolocation, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	orders := db.C(models.OrdersCollection).With(session)
+
+	order := &models.Order{}
+	err := orders.Find(bson.M{"_id": orderId, "organization_id": organizationId}).One(order)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "order_not_found", "Order not found", err)
+	}
+
+	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
+
+	list := []*models.Geolocation{}
+	sources := []string{"gps", "wifi"}
+	err = geolocationCollection.Find(bson.M{"order_id": orderId, "source": bson.M{"$in": sources}}).Sort("-timestamp").All(&list)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	return list, nil
+}
+
 func (db *mongo) CountGeolocations() (int, error) {
 	session := db.Session.Copy()
 	defer session.Close()

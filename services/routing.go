@@ -2,15 +2,16 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/ryankurte/go-mapbox/lib"
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/directions"
+	"github.com/ryankurte/go-mapbox/lib/map_matching"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"time"
-	"fmt"
 )
 
 // Routing enhancer
@@ -23,9 +24,7 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 
 		mapBox, err := mapbox.NewMapbox(config.GetString(context, "MAPBOX_API_KEY"))
 
-		directionOpts := directions.RequestOpts{
-
-		}
+		directionOpts := directions.RequestOpts{}
 		loc := []base.Location{
 			{
 				location.Latitude,
@@ -56,9 +55,9 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 					fastestRoute = &route
 				}
 			}
+			order.LiveETA = time.Now().Add(time.Duration(fastestRoute.Duration) * time.Second).Unix()
 
 			s := GetTextSender(context)
-
 			if !order.HasNotifiedDelay && float64(time.Now().Unix())+fastestRoute.Duration > float64(order.ExpectedArrivalTime) {
 				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard. ETA: " + secondsToHours(int(fastestRoute.Duration))}
 				err = s.SendText(data)
@@ -77,6 +76,40 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 
 		store.UpdateOrder(order.OrganizationId, order.Id, params.M{"$set": order})
 	}
+}
+
+func GetMatchingRouteFromGeolocations(context context.Context, locations []*models.Geolocation, order *models.Order) (*mapmatching.MatchingResponse, error) {
+	mapBox, err := mapbox.NewMapbox(config.GetString(context, "MAPBOX_API_KEY"))
+	if err != nil {
+		return nil, err
+	}
+
+	var locs []base.Location
+
+	for _, geoloc := range locations {
+		locs = append(locs, base.Location{
+			Latitude:  geoloc.Latitude,
+			Longitude: geoloc.Longitude,
+		})
+	}
+
+	locs = append(locs, base.Location{
+		Latitude:  order.Destination.Latitude,
+		Longitude: order.Destination.Longitude,
+	})
+
+	fmt.Println(len(locs))
+
+	ops := &mapmatching.RequestOpts{
+		Geometries: mapmatching.GeometryGeojson,
+		Overview:   mapmatching.OverviewFull,
+	}
+	matching, err := mapBox.MapMatching.GetMatching(locs, mapmatching.RoutingDriving, ops)
+	if err != nil {
+		return nil, err
+	}
+
+	return matching, nil
 }
 
 func secondsToHours(inSeconds int) string {

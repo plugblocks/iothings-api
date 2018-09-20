@@ -165,6 +165,8 @@ func (a *API) SetupRouter() {
 			orders.GET("/:id", ordersController.GetOrderById)
 			orders.DELETE("/:id", ordersController.DeleteOrder)
 			orders.PUT("/:id/terminate", ordersController.TerminateOrder)
+			orders.GET("/:id/locations", ordersController.GetOrderGeolocations)
+			orders.GET("/:id/matching_map", ordersController.GetMatchingMap)
 		}
 
 		warehouses := v1.Group("/warehouses")

@@ -98,6 +98,7 @@ type Store interface {
 	GetAllOrders(string) ([]models.Order, error)
 	DeleteOrder(string, string) error
 	TerminateOrder(string, string) error
+	GetOrderGeolocations(string, string) ([]*models.Geolocation, error)
 
 	CreateWarehouse(string, *models.Warehouse) error
 	GetWarehouseById(string, string) (*models.Warehouse, error)

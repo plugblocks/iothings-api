@@ -14,6 +14,7 @@ type Order struct {
 	DeviceId            string         `json:"device_id" bson:"device_id"`
 	OrganizationId      string         `json:"organization_id" bson:"organization_id"`
 	HasNotifiedDelay    bool           `json:"has_notified_delay" bson:"has_notified_delay"`
+	LiveETA             int64          `json:"live_eta" bson:"live_eta"`
 }
 
 func (o *Order) BeforeCreate() {
