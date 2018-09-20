@@ -54,8 +54,9 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 				}
 			}
 
+			s := GetTextSender(context)
+
 			if !order.HasNotifiedDelay && float64(time.Now().Unix())+fastestRoute.Duration > float64(order.ExpectedArrivalTime) {
-				s := GetTextSender(context)
 				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard."}
 				err = s.SendText(data)
 				if err != nil {
@@ -66,6 +67,8 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 
 			if fastestRoute.Distance <= 3000 {
 				order.Status = models.Arrived.String()
+				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " est arrivée."}
+				s.SendText(data)
 			}
 		}
 
