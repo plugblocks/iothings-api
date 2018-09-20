@@ -10,6 +10,7 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"time"
+	"fmt"
 )
 
 // Routing enhancer
@@ -22,19 +23,21 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 
 		mapBox, err := mapbox.NewMapbox(config.GetString(context, "MAPBOX_API_KEY"))
 
-		var directionOpts directions.RequestOpts
+		directionOpts := directions.RequestOpts{
+
+		}
 		loc := []base.Location{
 			{
-				location.Longitude,
 				location.Latitude,
+				location.Longitude,
 			},
 			{
-				order.Destination.Longitude,
 				order.Destination.Latitude,
+				order.Destination.Longitude,
 			},
 		}
 
-		fetchedDirections, err := mapBox.Directions.GetDirections(loc, directions.RoutingDriving, &directionOpts)
+		fetchedDirections, err := mapBox.Directions.GetDirections(loc, directions.RoutingDrivingTraffic, &directionOpts)
 		if err != nil {
 			return
 		}
@@ -57,7 +60,7 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 			s := GetTextSender(context)
 
 			if !order.HasNotifiedDelay && float64(time.Now().Unix())+fastestRoute.Duration > float64(order.ExpectedArrivalTime) {
-				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard."}
+				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard. ETA: " + secondsToHours(int(fastestRoute.Duration))}
 				err = s.SendText(data)
 				if err != nil {
 					return
@@ -74,4 +77,11 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 
 		store.UpdateOrder(order.OrganizationId, order.Id, params.M{"$set": order})
 	}
+}
+
+func secondsToHours(inSeconds int) string {
+	hours := inSeconds / 3600
+	minutes := inSeconds % 3600 / 60
+	str := fmt.Sprintf("%dH%dm", int(hours), int(minutes))
+	return str
 }
