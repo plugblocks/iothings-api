@@ -48,6 +48,19 @@ func (dc DeviceController) GetDevices(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
+
+func (dc DeviceController) GetAvailableDevices(c *gin.Context) {
+	devices, err := store.GetAvailableDevices(c)
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, devices)
+}
+
 func (dc DeviceController) UpdateDevice(c *gin.Context) {
 	newDevice := models.Device{}
 

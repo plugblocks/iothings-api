@@ -17,6 +17,7 @@ type Device struct {
 	LastAccess     int64  `json:"last_access" bson:"last_access" valid:"-"`
 	Activity       int64  `json:"activity" bson:"activity" valid:"-"`
 	Active         bool   `json:"active" bson:"active" valid:"-"`
+	Available 	   bool   `json:"available" bson:"available"`
 }
 
 func (d *Device) BeforeCreate() {

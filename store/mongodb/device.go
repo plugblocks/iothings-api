@@ -19,6 +19,7 @@ func (db *mongo) CreateDevice(organizationId string /*user *models.User*/, devic
 	//fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
 	device.BeforeCreate()
 	device.OrganizationId = organizationId
+	device.Available = true
 
 	if device.SigfoxId != "" {
 		count, _ := devices.Find(bson.M{"sigfox_id": device.SigfoxId}).Count()
@@ -75,7 +76,22 @@ func (db *mongo) GetDevices(user *models.User) ([]*models.Device, error) {
 	return list, nil
 }
 
-func (db *mongo) UpdateDevice(user *models.User, id string, m params.M) error {
+func (db *mongo) GetAvailableDevices(organizationId string) ([]*models.Device, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+
+	list := []*models.Device{}
+	err := devices.Find(params.M{"organization_id": organizationId, "available": true}).All(&list)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "devices_not_found", "Devices not found", err)
+	}
+
+	return list, nil
+}
+
+func (db *mongo) UpdateDevice(organizationId, id string, m params.M) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	devices := db.C(models.DevicesCollection).With(session)
@@ -86,7 +102,7 @@ func (db *mongo) UpdateDevice(user *models.User, id string, m params.M) error {
 		Remove:    false,
 		ReturnNew: false,
 	}
-	_, err := devices.Find(bson.M{"_id": id, "organization_id": user.OrganizationId}).Apply(change, nil)
+	_, err := devices.Find(bson.M{"_id": id, "organization_id": organizationId}).Apply(change, nil)
 
 	if err != nil {
 		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update the device", err)
@@ -120,14 +136,14 @@ func (db *mongo) DeleteDevice(user *models.User, id string) error {
 	return nil
 }
 
-func (db *mongo) GetDevice(user *models.User, id string) (*models.Device, error) {
+func (db *mongo) GetDevice(organizationId string, id string) (*models.Device, error) {
 	session := db.Session.Copy()
 	defer session.Close()
 
 	devices := db.C(models.DevicesCollection).With(session)
 	device := &models.Device{}
 
-	err := devices.Find(bson.M{"_id": id, "organization_id": user.OrganizationId}).One(device)
+	err := devices.Find(bson.M{"_id": id, "organization_id": organizationId}).One(device)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
 	}

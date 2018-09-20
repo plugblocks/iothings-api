@@ -121,6 +121,13 @@ func (a *API) SetupRouter() {
 			devices.DELETE("/:id", deviceController.DeleteDevice)
 		}
 
+		filters := v1.Group("/filters")
+		{
+			deviceController := controllers.NewDeviceController()
+			filters.Use(authMiddleware)
+			filters.GET("/devices/available", deviceController.GetAvailableDevices)
+		}
+
 		alerts := v1.Group("/alerts")
 		{
 			alertController := controllers.NewAlertController()

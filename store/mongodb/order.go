@@ -16,9 +16,24 @@ func (db *mongo) CreateOrder(organizationId string, order *models.Order) error {
 	order.Id = bson.NewObjectId().Hex()
 	order.OrganizationId = organizationId
 
-	err := orders.Insert(order)
+	device, err := db.GetDevice(organizationId, order.DeviceId)
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "query_device_failed", "Failed to query the device from the database", err)
+	}
+
+	if !device.Available {
+		return helpers.NewError(http.StatusInternalServerError, "device_unavailable", "The device is not available", nil)
+	}
+
+	err = orders.Insert(order)
 	if err != nil {
 		return helpers.NewError(http.StatusInternalServerError, "order_creation_failed", "Failed to insert the order in the database", err)
+	}
+
+	device.Available = false
+	err = db.UpdateDevice(organizationId, order.DeviceId, params.M{"$set":device})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "update_device_failed", "Failed to update the device from the database", err)
 	}
 
 	return nil

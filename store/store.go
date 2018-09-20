@@ -42,9 +42,10 @@ type Store interface {
 
 	CreateDevice( /**models.User*/ string, *models.Device) error
 	GetDevices(*models.User) ([]*models.Device, error)
-	UpdateDevice(*models.User, string, params.M) error
+	GetAvailableDevices(string) ([]*models.Device, error)
+	UpdateDevice(string, string, params.M) error
 	DeleteDevice(*models.User, string) error
-	GetDevice(*models.User, string) (*models.Device, error)
+	GetDevice(string, string) (*models.Device, error)
 	GetDeviceFromSigfoxId(string) (*models.Device, error)
 	CountDevices() (int, error)
 	DeleteDeviceObservations(string) error
