@@ -48,7 +48,6 @@ func (dc DeviceController) GetDevices(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
-
 func (dc DeviceController) GetAvailableDevices(c *gin.Context) {
 	devices, err := store.GetAvailableDevices(c)
 

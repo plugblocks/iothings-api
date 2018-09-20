@@ -15,6 +15,7 @@ import (
 	"strings"
 )
 
+// These are all a mix of enhancers / resolvers. TODO: Split this in pieces.
 func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
 	if len(msg.Data) <= 12 {
 		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")

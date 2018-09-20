@@ -1,9 +1,9 @@
 package store
 
 import (
-	"gitlab.com/plugblocks/iothings-api/models"
 	"context"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
+	"gitlab.com/plugblocks/iothings-api/models"
 )
 
 func CreateWarehouse(c context.Context, record *models.Warehouse) error {
@@ -25,4 +25,3 @@ func UpdateWarehouse(c context.Context, id string, params params.M) error {
 func DeleteWarehouse(c context.Context, id string) error {
 	return FromContext(c).DeleteWarehouse(Current(c).OrganizationId, id)
 }
-

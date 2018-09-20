@@ -13,7 +13,7 @@ func (db *mongo) CreateOrder(organizationId string, order *models.Order) error {
 	defer session.Close()
 	orders := db.C(models.OrdersCollection).With(session)
 
-	order.Id = bson.NewObjectId().Hex()
+	order.BeforeCreate()
 	order.OrganizationId = organizationId
 
 	device, err := db.GetDevice(organizationId, order.DeviceId)
@@ -31,7 +31,8 @@ func (db *mongo) CreateOrder(organizationId string, order *models.Order) error {
 	}
 
 	device.Available = false
-	err = db.UpdateDevice(organizationId, order.DeviceId, params.M{"$set":device})
+	device.OrderId = &order.Id
+	err = db.UpdateDevice(organizationId, order.DeviceId, params.M{"$set": device})
 	if err != nil {
 		return helpers.NewError(http.StatusInternalServerError, "update_device_failed", "Failed to update the device from the database", err)
 	}
@@ -88,6 +89,37 @@ func (db *mongo) DeleteOrder(organizationId string, id string) error {
 	err := orders.Remove(bson.M{"_id": id, "organization_id": organizationId})
 	if err != nil {
 		return helpers.NewError(http.StatusInternalServerError, "order_delete_failed", "Failed to delete the order", err)
+	}
+
+	return nil
+}
+
+func (db *mongo) TerminateOrder(organizationId string, id string) error {
+	order, err := db.GetOrderById(organizationId, id)
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "order_fetch_failed", "Failed to fetch the order", err)
+	}
+
+	device, err := db.GetDevice(organizationId, order.DeviceId)
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "device_fetch_failed", "Failed to fetch the device", err)
+	}
+
+	//Update device
+	device.OrderId = nil
+	device.Available = true
+
+	//Update order
+	order.Status = models.Terminated.String()
+
+	err = db.UpdateOrder(organizationId, order.Id, params.M{"$set": order})
+	if err != nil {
+		return err
+	}
+
+	err = db.UpdateDevice(organizationId, device.Id, params.M{"$set": device})
+	if err != nil {
+		return err
 	}
 
 	return nil

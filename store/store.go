@@ -97,6 +97,7 @@ type Store interface {
 	UpdateOrder(string, string, params.M) error
 	GetAllOrders(string) ([]models.Order, error)
 	DeleteOrder(string, string) error
+	TerminateOrder(string, string) error
 
 	CreateWarehouse(string, *models.Warehouse) error
 	GetWarehouseById(string, string) (*models.Warehouse, error)

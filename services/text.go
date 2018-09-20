@@ -54,7 +54,7 @@ func NewTextSender(config *viper.Viper) TextSender {
 }
 
 func (s *TextSenderParams) SendAlertText(user *models.User, device *models.Device, observation *models.Observation, message string, templateLink string) error {
-	data := models.TextData{User: user, Message: message}
+	data := models.TextData{PhoneNumber: user.Phone, Message: message}
 	s.SendText(data)
 
 	return nil
@@ -113,7 +113,7 @@ func (s *TextSenderParams) SendText(data models.TextData) error {
 	params := &sns.PublishInput{
 		Subject:     aws.String(data.Subject),
 		Message:     aws.String(data.Message),
-		PhoneNumber: aws.String(data.User.Phone),
+		PhoneNumber: aws.String(data.PhoneNumber),
 	}
 	resp, err := svc.Publish(params)
 
@@ -122,7 +122,7 @@ func (s *TextSenderParams) SendText(data models.TextData) error {
 		return err
 	}
 
-	fmt.Println("SNS Text Sent to " + data.User.Firstname + " " + data.User.Lastname + " at number: " + data.User.Phone)
+	fmt.Println("SNS Text Sent to " + data.PhoneNumber)
 	fmt.Println(resp)
 
 	return nil

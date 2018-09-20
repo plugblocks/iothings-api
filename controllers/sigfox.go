@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
@@ -42,102 +43,80 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		return
 	}
 
+	var obs *models.Observation
+	var loc *models.Geolocation
 	if sigfoxMessage.Resolver == "wifi" {
 		res, geoLocation, observation := services.ResolveWifiPosition(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while enhancing WiFi computed location")
 			return
 		}
+		obs = observation
+		loc = geoLocation
+
 		fmt.Println("at: ", observation.Timestamp, "\tValues:", observation.Values)
-		geoLocation.DeviceId = device.Id
-
-		err = store.CreateGeolocation(c, geoLocation)
-		if err != nil {
-			fmt.Println("Error while creating WiFi Geolocation from Sigfox")
-			c.Error(err)
-			c.Abort()
-			return
-		}
-
-		err = store.CreateObservation(c, observation)
-		if err != nil {
-			fmt.Println("Error while storing WiFi Sigfox Observation")
-			c.Error(err)
-			c.Abort()
-			return
-		}
-
 	} else if sigfoxMessage.Resolver == "sensitv2" {
 		res, observation := services.DecodeSensitV2Message(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while enhancing Sensit v2")
 			return
 		}
-		fmt.Println("Resolved Sensit v2 Frame, containing: ", observation)
+		obs = observation
 
-		err = store.CreateObservation(c, observation)
-		if err != nil {
-			fmt.Println("Error while storing Sensit v2 Sigfox Observation")
-			c.Error(err)
-			c.Abort()
-			return
-		}
+		fmt.Println("Resolved Sensit v2 Frame, containing: ", observation)
 	} else if sigfoxMessage.Resolver == "sensitv3" {
 		res, observation := services.DecodeSensitV3Message(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while enhancing Sensit v3")
 			return
 		}
-		fmt.Println("Resolved Sensit v3 Frame, containing: ", observation)
+		obs = observation
 
-		err = store.CreateObservation(c, observation)
-		if err != nil {
-			fmt.Println("Error while storing Sensit v3 Sigfox Observation")
-			c.Error(err)
-			c.Abort()
-			return
-		}
+		fmt.Println("Resolved Sensit v3 Frame, containing: ", observation)
 	} else if sigfoxMessage.Resolver == "wisol" {
 		res, geoloc, observation := services.Wisol(c, sigfoxMessage)
 		if res == false {
 			fmt.Println("Error while enhancing Wisol frame")
 			return
 		}
-		err = store.CreateObservation(c, observation)
-		if err != nil {
-			fmt.Println("Error while storing Wisol Observation")
-			c.Error(err)
-			c.Abort()
-			return
-		}
-
-		err = store.CreateGeolocation(c, geoloc)
-		if err != nil {
-			fmt.Println("Error while storing Wisol Geolocation")
-			c.Error(err)
-			c.Abort()
-			return
-		}
+		obs = observation
+		loc = geoloc
+		fmt.Println("Resolved wisol Frame, containing: ", observation)
 	} else if sigfoxMessage.Resolver == "airqule" {
 		fmt.Println("AirQule frame")
 		typ, geoloc, observation := services.DecodeAirquleFrame(c, device, sigfoxMessage)
+		obs = observation
 
-		err = store.CreateObservation(c, observation)
+		if typ {
+			loc = geoloc
+		}
+		fmt.Println("Resolved AirQule Frame, containing: ", observation)
+	}
+
+	if device.OrderId != nil {
+		obs.OrderId = device.OrderId
+	}
+
+	err = store.CreateObservation(c, obs)
+	if err != nil {
+		fmt.Println("Error while storing Observation")
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	if loc != nil {
+		loc.DeviceId = device.Id
+		loc.OrderId = device.OrderId
+
+		services.CheckLocation(c, store.FromContext(c), device, loc)
+
+		err = store.CreateGeolocation(c, loc)
 		if err != nil {
-			fmt.Println("Error while storing AirQule Observation")
+			fmt.Println("Error while creating WiFi Geolocation from Sigfox")
 			c.Error(err)
 			c.Abort()
 			return
-		}
-
-		if typ {
-			err = store.CreateGeolocation(c, geoloc)
-			if err != nil {
-				fmt.Println("Error while storing Wisol Geolocation")
-				c.Error(err)
-				c.Abort()
-				return
-			}
 		}
 	}
 

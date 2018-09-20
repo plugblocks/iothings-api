@@ -12,7 +12,7 @@ type EmailData struct {
 }
 
 type TextData struct {
-	User    *User
-	Subject string
-	Message string
+	PhoneNumber string
+	Subject     string
+	Message     string
 }

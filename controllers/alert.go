@@ -107,7 +107,7 @@ func (ac AlertController) TextTest(c *gin.Context) {
 	}
 
 	s := services.GetTextSender(c)
-	data := models.TextData{User: user, Subject: "Text Alert", Message: "You just received an alert, check at: https://demo.plugblocks.com"}
+	data := models.TextData{PhoneNumber: user.Phone, Subject: "Text Alert", Message: "You just received an alert, check at: https://demo.plugblocks.com"}
 	err = s.SendText(data)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, helpers.ErrorWithCode("text_send_error", "Text sending error", err))

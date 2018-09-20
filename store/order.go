@@ -25,3 +25,7 @@ func UpdateOrder(c context.Context, id string, params params.M) error {
 func DeleteOrder(c context.Context, id string) error {
 	return FromContext(c).DeleteOrder(Current(c).OrganizationId, id)
 }
+
+func TerminateOrder(c context.Context, id string) error {
+	return FromContext(c).TerminateOrder(Current(c).OrganizationId, id)
+}

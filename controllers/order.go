@@ -84,3 +84,15 @@ func (oc OrderController) DeleteOrder(c *gin.Context) {
 
 	c.JSON(http.StatusOK, nil)
 }
+
+func (oc OrderController) TerminateOrder(c *gin.Context) {
+	err := store.TerminateOrder(c, c.Param("id"))
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+}
