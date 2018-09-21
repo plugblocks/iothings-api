@@ -157,7 +157,6 @@ func (a *API) SetupRouter() {
 		orders := v1.Group("/orders")
 		{
 			orders.Use(authMiddleware)
-			//customers.Use(adminMiddleware)
 			ordersController := controllers.NewOrderController()
 			orders.GET("/", ordersController.GetOrders)
 			orders.POST("/", ordersController.CreateOrder)
@@ -172,7 +171,6 @@ func (a *API) SetupRouter() {
 		warehouses := v1.Group("/warehouses")
 		{
 			warehouses.Use(authMiddleware)
-			//customers.Use(adminMiddleware)
 			warehousesController := controllers.NewWarehouseController()
 			warehouses.GET("/", warehousesController.GetWarehouses)
 			warehouses.POST("/", warehousesController.CreateWarehouse)
@@ -209,7 +207,6 @@ func (a *API) SetupRouter() {
 			geolocations.DELETE("/:id", geolocationController.DeleteGeolocation)
 
 			geolocations.Use(authMiddleware)
-			//customers.Use(adminMiddleware)
 			geolocations.GET("/user/fleets", fleetsController.GetUserFleetsGeoJSON)
 		}
 	}
