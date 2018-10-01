@@ -93,7 +93,7 @@ func GetMatchingRouteFromGeolocations(context context.Context, locations []*mode
 			locs = locs[1:]
 		}
 
-		if len(timestampsData) == 10 {
+		if len(timestampsData) == 100 {
 			timestampsData = timestampsData[1:]
 		}
 
