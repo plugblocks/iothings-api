@@ -55,6 +55,7 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 					fastestRoute = &route
 				}
 			}
+			fmt.Println(fastestRoute.Duration)
 			order.LiveETA = time.Now().Add(time.Duration(fastestRoute.Duration) * time.Second).Unix()
 
 			s := GetTextSender(context)
@@ -85,24 +86,34 @@ func GetMatchingRouteFromGeolocations(context context.Context, locations []*mode
 	}
 
 	var locs []base.Location
+	var timestampsData []int64
 
 	for _, geoloc := range locations {
+		if len(locs) == 100 { // max size is 100
+			locs = locs[1:]
+		}
+
+		if len(timestampsData) == 10 {
+			timestampsData = timestampsData[1:]
+		}
+
 		locs = append(locs, base.Location{
 			Latitude:  geoloc.Latitude,
 			Longitude: geoloc.Longitude,
 		})
+
+		timestampsData = append(timestampsData, geoloc.Timestamp)
 	}
 
-	locs = append(locs, base.Location{
-		Latitude:  order.Destination.Latitude,
-		Longitude: order.Destination.Longitude,
-	})
-
-	fmt.Println(len(locs))
+	timestampsString := ""
+	for _, timestamp := range timestampsData {
+		timestampsString += string(timestamp) + ";"
+	}
 
 	ops := &mapmatching.RequestOpts{
 		Geometries: mapmatching.GeometryGeojson,
 		Overview:   mapmatching.OverviewFull,
+		Timestamps: timestampsString,
 	}
 	matching, err := mapBox.MapMatching.GetMatching(locs, mapmatching.RoutingDriving, ops)
 	if err != nil {
