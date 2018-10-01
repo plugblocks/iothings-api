@@ -13,6 +13,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // These are all a mix of enhancers / resolvers. TODO: Split this in pieces.
@@ -58,7 +59,7 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 
 	resp, err := c.Geolocate(context.Background(), r)
 	if err != nil {
-		fmt.Println("Google Maps Geolocation Request, Position:", err)
+		fmt.Println("Google WiFi Geolocation: ", err, "ssid1: ", ssid1, "ssid2: ", ssid2)
 		return false, nil, nil
 	}
 
@@ -624,7 +625,7 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 		status, geoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
 
 		if status == false {
-			fmt.Println("Error while resolving Wisol WiFi location")
+			fmt.Println("Error while resolving Wisol WiFi location for device: ", sigfoxMessage.SigfoxId, "at ", time.Unix(sigfoxMessage.Timestamp, 0))
 			return false, nil, nil
 		}
 
