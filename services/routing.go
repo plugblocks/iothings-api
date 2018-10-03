@@ -62,18 +62,27 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 
 			s := GetTextSender(context)
 			if !order.HasNotifiedDelay && float64(time.Now().Unix())+fastestRoute.Duration > float64(order.ExpectedArrivalTime) {
-				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard. ETA: " + secondsToHours(int(fastestRoute.Duration))}
-				err = s.SendText(data)
+				textData := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard. ETA: " + secondsToHours(int(fastestRoute.Duration))}
+				err = s.SendText(textData)
 				if err != nil {
 					return
 				}
 				order.HasNotifiedDelay = true
+
+				mailData := models.EmailData{ReceiverMail: "adrien@plugblocks.com", ReceiverName: "Adrien Chapelet", Body: "La livraison " + order.Reference + " sera en retard. ETA: " + secondsToHours(int(fastestRoute.Duration)), Subject: "La livraison " + order.Reference + " sera en retard.", AppName: config.GetString(context, "mail_sender_name")}
+				s2 := GetEmailSender(context)
+				s2.SendEmail(&mailData)
 			}
 
 			if fastestRoute.Distance <= 3000 {
 				order.Status = models.Arrived.String()
-				data := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " est arrivée."}
-				s.SendText(data)
+				textData := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " est arrivée."}
+				s.SendText(textData)
+
+				unixTimeUTC := time.Unix(int64(order.ExpectedArrivalTime), 0) //gives unix time stamp in utc
+				mailData := models.EmailData{ReceiverMail: "adrien@plugblocks.com", ReceiverName: "Adrien Chapelet", Body: "La livraison " + order.Reference + " est arrivée. Arrivée estimée:" + unixTimeUTC.Format(time.RFC3339), Subject: "La livraison " + order.Reference + " est arrivée.", AppName: config.GetString(context, "mail_sender_name")}
+				s2 := GetEmailSender(context)
+				s2.SendEmail(&mailData)
 			}
 		}
 

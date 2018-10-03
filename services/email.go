@@ -42,6 +42,7 @@ type EmailSender interface {
 	//SendAlertEmail(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
 	CheckMailCredit(c *gin.Context) int
 	SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error
+	SendEmail(data *models.EmailData) error
 }
 
 type FakeEmailSender struct{}
@@ -108,6 +109,86 @@ func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) int {
 		return false
 	}*/
 	return mailCredit
+}
+
+func (s *EmailSenderParams) SendEmail(data *models.EmailData) error {
+	file, err := ioutil.ReadFile("./templates/html/mail_squeletton.html")
+	if err != nil {
+		return err
+	}
+
+	htmlTemplate := template.Must(template.New("emailTemplate").Parse(string(file)))
+
+	buffer := new(bytes.Buffer)
+	err = htmlTemplate.Execute(buffer, data)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String("eu-west-1")},
+	)
+
+	creds := credentials.NewStaticCredentials(s.apiID, s.apiKey, "")
+
+	// Create an SES session.
+	svc := ses.New(sess, &aws.Config{Credentials: creds})
+
+	// Assemble the email.
+	input := &ses.SendEmailInput{
+		Destination: &ses.Destination{
+			CcAddresses: []*string{},
+			ToAddresses: []*string{
+				aws.String(data.ReceiverMail),
+			},
+		},
+		Message: &ses.Message{
+			Body: &ses.Body{
+				Html: &ses.Content{
+					Charset: aws.String("UTF-8"),
+					Data:    aws.String(buffer.String()),
+				},
+			},
+			Subject: &ses.Content{
+				Charset: aws.String("UTF-8"),
+				Data:    aws.String(data.Subject),
+			},
+		},
+		Source: aws.String(s.senderEmail),
+		// Uncomment to use a configuration set
+		// ConfigurationSetName: aws.String(ConfigurationSet),
+	}
+
+	// Attempt to send the email.
+	_, err = svc.SendEmail(input)
+
+	// Display error messages if they occur.
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case ses.ErrCodeMessageRejected:
+				fmt.Println(ses.ErrCodeMessageRejected, aerr.Error())
+			case ses.ErrCodeMailFromDomainNotVerifiedException:
+				fmt.Println(ses.ErrCodeMailFromDomainNotVerifiedException, aerr.Error())
+			case ses.ErrCodeConfigurationSetDoesNotExistException:
+				fmt.Println(ses.ErrCodeConfigurationSetDoesNotExistException, aerr.Error())
+			default:
+				fmt.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+		}
+
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Println("SES Email Sent to " + data.ReceiverName + " at address: " + data.ReceiverMail)
+
+	return nil
 }
 
 func (s *EmailSenderParams) SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error {

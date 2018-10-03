@@ -441,7 +441,7 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 	return true, spotitLoc, obs
 }
 
-func DecodeAirquleFrame(contxt *gin.Context, device *models.Device, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
+func DecodeLockitFrame(contxt *gin.Context, device *models.Device, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
 	geoloc := &models.Geolocation{}
 	obs := &models.Observation{}
 
@@ -460,7 +460,7 @@ func DecodeAirquleFrame(contxt *gin.Context, device *models.Device, msg *sigfox.
 		obs.Values = append(obs.Values, temp, humi, pres, co2, ppm)
 		obs.Timestamp = msg.Timestamp
 		obs.DeviceId = device.Id
-		obs.Resolver = "airqule"
+		obs.Resolver = "lockit"
 		return typ, geoloc, obs
 	} else { //Wifi
 		_, geoloc, obs = ResolveWifiPosition(contxt, msg)

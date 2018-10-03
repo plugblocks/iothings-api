@@ -82,15 +82,6 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		obs = observation
 		loc = geoloc
 		fmt.Println("Resolved wisol Frame, containing: ", observation)
-	} else if sigfoxMessage.Resolver == "airqule" {
-		fmt.Println("AirQule frame")
-		typ, geoloc, observation := services.DecodeAirquleFrame(c, device, sigfoxMessage)
-		obs = observation
-
-		if typ {
-			loc = geoloc
-		}
-		fmt.Println("Resolved AirQule Frame, containing: ", observation)
 	}
 
 	if device.OrderId != nil {
