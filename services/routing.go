@@ -11,9 +11,9 @@ import (
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/store"
-	"time"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Routing enhancer
@@ -113,7 +113,7 @@ func GetMatchingRouteFromGeolocations(context context.Context, locations []*mode
 			Longitude: geoloc.Longitude,
 		})
 
-		timestampsData = append(timestampsData, strconv.FormatInt(geoloc.Timestamp,10))
+		timestampsData = append(timestampsData, strconv.FormatInt(geoloc.Timestamp, 10))
 	}
 
 	timestampsString := strings.Join(timestampsData, ";")
