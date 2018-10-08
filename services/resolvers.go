@@ -548,6 +548,7 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	case 6:
 		orientation = "Ventre"
 	}
+	fmt.Println("Decoded orientation: ", ori, "\t : ", orientation)
 
 	moves, _ = strconv.ParseInt(msg.Data[18:20], 16, 8)
 
