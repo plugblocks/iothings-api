@@ -52,6 +52,10 @@ func CountDevices(c context.Context) (int, error) {
 	return FromContext(c).CountDevices()
 }
 
+func GetDeviceGeolocations(c context.Context, id string, source string, limit int, startTime int, endTime int) ([]*models.Geolocation, error) {
+	return FromContext(c).GetDeviceGeolocations(id, source, limit, startTime, endTime)
+}
+
 func DeleteDeviceObservations(c context.Context, deviceId string) error {
 	return FromContext(c).DeleteDeviceObservations(deviceId)
 }

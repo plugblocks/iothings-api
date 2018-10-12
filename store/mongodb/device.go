@@ -151,6 +151,30 @@ func (db *mongo) GetDevice(organizationId string, id string) (*models.Device, er
 	return device, nil
 }
 
+func (db *mongo) GetDeviceGeolocations(deviceId string, source string, limit int, startTime int, endTime int) ([]*models.Geolocation, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+	device := &models.Device{}
+
+	err := devices.Find(bson.M{"_id": deviceId}).One(device)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
+	}
+
+	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
+	deviceGeolocations := []*models.Geolocation{}
+
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": source, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&deviceGeolocations)
+
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	return deviceGeolocations, nil
+}
+
 func (db *mongo) GetDeviceFromSigfoxId(sigfoxId string) (*models.Device, error) {
 	session := db.Session.Copy()
 	defer session.Close()

@@ -113,6 +113,7 @@ func (a *API) SetupRouter() {
 			devices.GET("/:id/locations/geojson", deviceController.GetDeviceGeoJSON)
 			devices.Use(authMiddleware)
 			devices.GET("/:id/location/:source", deviceController.GetDeviceLastLocation)
+			devices.GET("/:id/locations", deviceController.GetDeviceGeolocations)
 			devices.GET("/", deviceController.GetDevices)
 			devices.POST("/", deviceController.CreateDevice)
 			devices.PUT("/:id", deviceController.UpdateDevice)
