@@ -20,6 +20,7 @@ type Store interface {
 	ActivateUser(string, string) error
 	FindUser(params.M) (*models.User, error)
 	UpdateUser(*models.User, params.M) error
+	ChangeLanguage(string, string) error
 	GetUsers() ([]*models.User, error)
 	CountUsers() (int, error)
 	AssignOrganization(string, string) error

@@ -86,6 +86,18 @@ func (db *mongo) ActivateUser(activationKey string, id string) error {
 	return nil
 }
 
+func (db *mongo) ChangeLanguage(id string, language string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	users := db.C(models.UsersCollection).With(session)
+
+	err := users.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"language": language}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "user_activation_failed", "Couldn't find the user to change language", err)
+	}
+	return nil
+}
+
 func (db *mongo) UpdateUser(user *models.User, params params.M) error {
 	session := db.Session.Copy()
 	defer session.Close()

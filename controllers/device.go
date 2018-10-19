@@ -158,9 +158,6 @@ func (dc DeviceController) GetDeviceGeolocations(c *gin.Context) {
 		if params.StartTime > params.EndTime {
 			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
 		}
-		if params.Source == "" {
-			params.Source = "wifi"
-		}
 		deviceLocations, err := store.GetDeviceGeolocations(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
 
 		fmt.Println("deviceLocations len: ", len(deviceLocations))

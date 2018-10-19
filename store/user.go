@@ -31,6 +31,10 @@ func ActivateUser(c context.Context, activationKey string, id string) error {
 	return FromContext(c).ActivateUser(activationKey, id)
 }
 
+func ChangeLanguage(c context.Context, id string, language string) error {
+	return FromContext(c).ChangeLanguage(id, language)
+}
+
 func UpdateUser(c context.Context, params params.M) error {
 	return FromContext(c).UpdateUser(Current(c), params)
 }

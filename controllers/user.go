@@ -70,6 +70,15 @@ func (uc UserController) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+func (uc UserController) ChangeLanguage(c *gin.Context) {
+	if err := store.ChangeLanguage(c, c.Param("id"), c.Param("language")); err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
 func (uc UserController) ActivateUser(c *gin.Context) {
 	if err := store.ActivateUser(c, c.Param("activationKey"), c.Param("id")); err != nil {
 		c.Error(err)
