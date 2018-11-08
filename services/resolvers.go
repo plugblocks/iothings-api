@@ -441,32 +441,21 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 	return true, spotitLoc, obs
 }
 
-func DecodeLockitFrame(contxt *gin.Context, device *models.Device, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
-	geoloc := &models.Geolocation{}
+func DecodeLevelFrame(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+	//store.UpdateDeviceActivity(contxt, device.Id, 1)
+
+	//if string(msg.Data[0:6]) == "000000"
+	//humi, _ := strconv.ParseInt(msg.Data[0:32], 2, 16)
+
 	obs := &models.Observation{}
-
-	store.UpdateDeviceActivity(contxt, device.Id, 1)
-
-	typ := false
-
-	if string(msg.Data[0:6]) == "000000" { //Sensors
-		obs := &models.Observation{}
-		defp := &models.SemanticProperty{"spotit", "location"}
-		temp := models.QuantitativeValue{defp, "temperature", "degrees", 22}
-		pres := models.QuantitativeValue{defp, "presure", "degrees", 1100}
-		humi := models.QuantitativeValue{defp, "humidity", "meters", 55}
-		co2 := models.QuantitativeValue{defp, "co2", "meters", 250}
-		ppm := models.QuantitativeValue{defp, "ppm", "meters", 1174}
-		obs.Values = append(obs.Values, temp, humi, pres, co2, ppm)
-		obs.Timestamp = msg.Timestamp
-		obs.DeviceId = device.Id
-		obs.Resolver = "lockit"
-		return typ, geoloc, obs
-	} else { //Wifi
-		_, geoloc, obs = ResolveWifiPosition(contxt, msg)
-		typ = true
-	}
-	return typ, geoloc, obs
+	defp := &models.SemanticProperty{"level", "sensor"}
+	temp := models.QuantitativeValue{defp, "temperature", "degrees", 22}
+	dist := models.QuantitativeValue{defp, "distance", "milimeter", 1100}
+	obs.Values = append(obs.Values, temp, dist)
+	obs.Timestamp = msg.Timestamp
+	//obs.DeviceId = device.Id
+	obs.Resolver = "lockit"
+	return true, obs
 }
 
 func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64, float64, bool) {

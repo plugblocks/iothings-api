@@ -82,6 +82,15 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		obs = observation
 		loc = geoloc
 		fmt.Println("Resolved wisol Frame, containing: ", observation)
+	} else if sigfoxMessage.Resolver == "level" {
+		res, observation := services.DecodeLevelFrame(c, sigfoxMessage)
+		if res == false {
+			fmt.Println("Error while enhancing Level")
+			return
+		}
+		obs = observation
+
+		fmt.Println("Resolved Level Frame, containing: ", observation)
 	}
 
 	if device.OrderId != nil {

@@ -38,8 +38,8 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	}
 
 	appName := config.GetString(c, "mail_sender_name")
-	subject := "Welcome to " + appName + "! Please confirm your account"
-	templateLink := "./templates/html/mail_user_activate_account.html"
+	subject := "Bienvenue sur " + appName + "! Merci de confirmer votre compte"
+	templateLink := "./templates/html/mail_utilisateur_activation.html"
 
 	if err := store.CreateUser(c, user); err != nil {
 		c.Error(err)
