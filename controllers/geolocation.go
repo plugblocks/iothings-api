@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
@@ -19,13 +20,18 @@ func NewGeolocationController() GeolocationController {
 func (gc GeolocationController) CreateGeolocation(c *gin.Context) {
 	geolocation := &models.Geolocation{}
 
-	err := c.BindJSON(geolocation)
-	if err != nil {
+	if err := c.BindJSON(geolocation); err != nil {
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
 		return
 	}
 
 	if err := store.CreateGeolocation(c, geolocation); err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	if err := store.UpdateDeviceActivity(c, geolocation.DeviceId, int(time.Now().Unix())); err != nil {
 		c.Error(err)
 		c.Abort()
 		return
