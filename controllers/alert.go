@@ -16,6 +16,19 @@ func NewAlertController() AlertController {
 	return AlertController{}
 }
 
+func (dc DeviceController) GetAlerts(c *gin.Context) {
+	alerts, err := store.GetAlerts(c)
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, alerts)
+}
+
+
 func (ac AlertController) CreateAlert(c *gin.Context) {
 	alert := &models.Alert{}
 

@@ -132,6 +132,7 @@ func (a *API) SetupRouter() {
 		{
 			alertController := controllers.NewAlertController()
 			alerts.Use(authMiddleware)
+			alerts.GET("/", alertController.GetAlerts)
 			alerts.GET("/:id", alertController.GetAlert)
 			alerts.POST("/", alertController.CreateAlert)
 			alerts.PUT("/:id", alertController.UpdateAlert)

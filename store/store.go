@@ -54,6 +54,7 @@ type Store interface {
 	DeleteDeviceGeolocations(string) error
 	UpdateDeviceActivity(deviceId string, actDiff int) error
 
+	GetAlerts(*models.User) ([]*models.Alert, error)
 	CreateAlert(*models.User, *models.Alert) error
 	GetAlert(*models.User, string) (*models.Alert, error)
 	GetFleetAlerts(*models.User, string) ([]*models.Alert, error)

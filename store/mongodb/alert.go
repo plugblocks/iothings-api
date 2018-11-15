@@ -8,6 +8,20 @@ import (
 	"net/http"
 )
 
+func (db *mongo) GetAlerts(user *models.User) ([]*models.Alert, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	orderCollection := db.C(models.OrdersCollection).With(session)
+
+	alerts := []*models.Alert{}
+	err := orderCollection.Find(bson.M{}).All(&alerts)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_orders_failed", "Failed to get the orders: "+err.Error(), err)
+	}
+
+	return alerts, nil
+}
+
 func (db *mongo) CreateAlert(user *models.User, alert *models.Alert) error {
 	session := db.Session.Copy()
 	defer session.Close()

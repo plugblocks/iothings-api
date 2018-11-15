@@ -2,9 +2,15 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 )
+
+
+func GetAlerts(c context.Context) ([]*models.Alert, error) {
+	return FromContext(c).GetAlerts(Current(c))
+}
 
 func CreateAlert(c context.Context, alert *models.Alert) error {
 	return FromContext(c).CreateAlert(Current(c), alert)
