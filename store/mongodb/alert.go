@@ -11,10 +11,10 @@ import (
 func (db *mongo) GetAlerts(user *models.User) ([]*models.Alert, error) {
 	session := db.Session.Copy()
 	defer session.Close()
-	orderCollection := db.C(models.OrdersCollection).With(session)
+	alertsCollection := db.C(models.AlertsCollection).With(session)
 
 	alerts := []*models.Alert{}
-	err := orderCollection.Find(bson.M{}).All(&alerts)
+	err := alertsCollection.Find(bson.M{}).All(&alerts)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_orders_failed", "Failed to get the orders: "+err.Error(), err)
 	}
