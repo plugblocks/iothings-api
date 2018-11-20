@@ -16,7 +16,7 @@ func NewAlertController() AlertController {
 	return AlertController{}
 }
 
-func (dc DeviceController) GetAlerts(c *gin.Context) {
+func (ac AlertController) GetAlerts(c *gin.Context) {
 	alerts, err := store.GetAlerts(c)
 
 	if err != nil {

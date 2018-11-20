@@ -43,6 +43,11 @@ func (db *mongo) AddDeviceToFleet(user *models.User, fleetId string, deviceId st
 		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
 	}
 
+	err = deviceCollection.Update(bson.M{"_id": deviceId}, bson.M{"$set": bson.M{"available": false}})
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
+	}
+
 	fleet.DeviceIds = append(fleet.DeviceIds, device.Id)
 	err = fleetCollection.Update(bson.M{"_id": fleet.Id, "user_id": user.Id}, fleet)
 	if err != nil {

@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 )
