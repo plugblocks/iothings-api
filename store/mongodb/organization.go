@@ -105,3 +105,18 @@ func (db *mongo) CountOrganizations() (int, error) {
 
 	return nbr, nil
 }
+
+func (db *mongo) GetOrganizationSubscription(id string) (*models.Subscription, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	susbcriptionsCollection := db.C(models.SubscriptionsCollection).With(session)
+
+	subscription := &models.Subscription{}
+
+	err := susbcriptionsCollection.Find(bson.M{"organization_id": id}).One(subscription)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "organization_subscription_retrieval_failed", "Failed to retrieve the subscription of the organization", err)
+	}
+
+	return subscription, nil
+}

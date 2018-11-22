@@ -28,7 +28,6 @@ func (ac AlertController) GetAlerts(c *gin.Context) {
 	c.JSON(http.StatusOK, alerts)
 }
 
-
 func (ac AlertController) CreateAlert(c *gin.Context) {
 	alert := &models.Alert{}
 

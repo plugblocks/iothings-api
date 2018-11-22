@@ -6,7 +6,6 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models"
 )
 
-
 func GetAlerts(c context.Context) ([]*models.Alert, error) {
 	return FromContext(c).GetAlerts(Current(c))
 }

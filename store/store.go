@@ -88,6 +88,13 @@ type Store interface {
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
 	CountOrganizations() (int, error)
+	GetOrganizationSubscription(string) (*models.Subscription, error)
+
+	CreateSubscription(*models.Subscription) error
+	GetSubscription(string) (*models.Subscription, error)
+	UpdateSubscription(string, params.M) error
+	GetSubscriptions() ([]models.Subscription, error)
+	DeleteSubscription(string) error
 
 	CreateObservation(*models.Observation) error
 	GetDeviceObservations(string, string, string, int) ([]*models.Observation, error)

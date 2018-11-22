@@ -33,3 +33,7 @@ func GetOrganizationUsers(c context.Context, id string) ([]models.SanitizedUser,
 func CountOrganizations(c context.Context) (int, error) {
 	return FromContext(c).CountOrganizations()
 }
+
+func GetOrganizationSubscription(c context.Context, id string) (*models.Subscription, error) {
+	return FromContext(c).GetOrganizationSubscription(id)
+}
