@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/ryankurte/go-mapbox/lib"
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/directions"
@@ -17,7 +18,7 @@ import (
 )
 
 // Routing enhancer
-func CheckLocation(context context.Context, store store.Store, device *models.Device, location *models.Geolocation) {
+func CheckLocation(context *gin.Context, store store.Store, device *models.Device, location *models.Geolocation) {
 	if device.OrderId != nil {
 		order, err := store.GetOrderById(device.OrganizationId, *location.OrderId)
 		if err != nil {
@@ -61,9 +62,15 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 			order.LiveETA = time.Now().Add(time.Duration(fastestRoute.Duration) * time.Second).Unix()
 
 			s := GetTextSender(context)
+			subscription, err := store.GetOrganizationSubscription(device.OrganizationId)
+			if err != nil {
+				fmt.Println("Get organization subscription error")
+				return
+			}
+
 			if !order.HasNotifiedDelay && float64(time.Now().Unix())+fastestRoute.Duration > float64(order.ExpectedArrivalTime) {
 				textData := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " sera en retard. ETA: " + secondsToHours(int(fastestRoute.Duration))}
-				err = s.SendText(textData)
+				err = s.SendText(context, subscription, textData)
 				if err != nil {
 					return
 				}
@@ -77,7 +84,7 @@ func CheckLocation(context context.Context, store store.Store, device *models.De
 			if fastestRoute.Distance <= 3000 {
 				order.Status = models.Arrived.String()
 				textData := models.TextData{PhoneNumber: order.ContactPhoneNumber, Subject: "Text Alert", Message: "La livraison " + order.Reference + " est arrivée."}
-				s.SendText(textData)
+				s.SendText(context, subscription, textData)
 
 				unixTimeUTC := time.Unix(int64(order.ExpectedArrivalTime), 0) //gives unix time stamp in utc
 				mailData := models.EmailData{ReceiverMail: "adrien@plugblocks.com", ReceiverName: "Adrien Chapelet", Body: "La livraison " + order.Reference + " est arrivée. Arrivée estimée:" + unixTimeUTC.Format(time.RFC3339), Subject: "La livraison " + order.Reference + " est arrivée.", AppName: config.GetString(context, "mail_sender_name")}

@@ -24,9 +24,9 @@ func GetTextSender(c context.Context) TextSender {
 }
 
 type TextSender interface {
-	SendAlertText(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
-	CheckTextCredit(c *gin.Context) bool
-	SendText(data models.TextData) error
+	SendAlertText(c *gin.Context, subscription *models.Subscription, user *models.User, device *models.Device, observation *models.Observation, message string, templateLink string) error
+	CheckTextCredit(c *gin.Context, subscription *models.Subscription) bool
+	SendText(ctx *gin.Context, subscription *models.Subscription, data models.TextData) error
 }
 
 type FakeTextSender struct{}
@@ -53,15 +53,16 @@ func NewTextSender(config *viper.Viper) TextSender {
 	}
 }
 
-func (s *TextSenderParams) SendAlertText(user *models.User, device *models.Device, observation *models.Observation, message string, templateLink string) error {
+func (s *TextSenderParams) SendAlertText(c *gin.Context, subscription *models.Subscription, user *models.User, device *models.Device, observation *models.Observation, message string, templateLink string) error {
 	data := models.TextData{PhoneNumber: user.Phone, Message: message}
-	s.SendText(data)
+	s.SendText(c, subscription, data)
 
 	return nil
 }
 
-func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
-	textCredit := config.GetInt(c, "plan_credit_text")
+func (s *TextSenderParams) CheckTextCredit(c *gin.Context, subscription *models.Subscription) bool {
+	//textCredit := config.GetInt(c, "plan_credit_text")
+	textCredit := subscription.PlanCreditTexts
 	fmt.Println("Text Organization credit:", textCredit)
 	es := GetEmailSender(c)
 	if textCredit > 0 {
@@ -74,8 +75,8 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
 		templateLink := "./templates/html/mail_token_empty.html"
 		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		EmailSender.SendEmailFromTemplate(es, c, &userData, templateLink)
-		EmailSender.SendEmailFromTemplate(es, c, &adminData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, subscription, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, subscription, &adminData, templateLink)
 		config.Set(c, "plan_credit_text", -1)
 		return false
 	} else if textCredit > -10 {
@@ -88,15 +89,16 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context) bool {
 		templateLink := "./templates/html/mail_token_empty.html"
 		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		EmailSender.SendEmailFromTemplate(es, c, &userData, templateLink)
-		EmailSender.SendEmailFromTemplate(es, c, &adminData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, subscription, &userData, templateLink)
+		EmailSender.SendEmailFromTemplate(es, c, subscription, &adminData, templateLink)
 		config.Set(c, "plan_credit_text", -1000)
 		return false
 	}
 	return true
 }
 
-func (s *TextSenderParams) SendText(data models.TextData) error {
+func (s *TextSenderParams) SendText(ctx *gin.Context, subscription *models.Subscription, data models.TextData) error {
+	s.CheckTextCredit(ctx, subscription)
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("eu-west-1")},
 	)

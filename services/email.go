@@ -40,8 +40,8 @@ type EmailSender interface {
 	GetEmailParams() *EmailSenderParams
 	//SendUserValidationEmail(user *models.User, subject string, templateLink string) error
 	//SendAlertEmail(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
-	CheckMailCredit(c *gin.Context) int
-	SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error
+	CheckMailCredit(c *gin.Context, subscription *models.Subscription) int
+	SendEmailFromTemplate(ctx *gin.Context, subscription *models.Subscription, data *models.EmailData, templateLink string) error
 	SendEmail(data *models.EmailData) error
 }
 
@@ -61,9 +61,6 @@ type EmailSenderParams struct {
 
 func NewEmailSender(config *viper.Viper) EmailSender {
 	return &EmailSenderParams{
-		/*config.GetString("sendgrid_address"),
-		config.GetString("sendgrid_name"),
-		config.GetString("sendgrid_api_key"),*/
 		config.GetString("mail_sender_address"),
 		config.GetString("mail_sender_name"),
 		config.GetString("aws_api_id"),
@@ -76,8 +73,9 @@ func (s *EmailSenderParams) GetEmailParams() *EmailSenderParams {
 	return s
 }
 
-func (s *EmailSenderParams) CheckMailCredit(c *gin.Context) int {
-	mailCredit := config.GetInt(c, "plan_credit_mail")
+func (s *EmailSenderParams) CheckMailCredit(c *gin.Context, subscription *models.Subscription) int {
+	//mailCredit := config.GetInt(c, "plan_credit_mail")
+	mailCredit := subscription.PlanCreditWifi
 	fmt.Println("Mail Check Organization credit:", mailCredit)
 	/*if mailCredit > 0 {
 		config.Set(c, "plan_credit_mail", mailCredit - 1)
@@ -191,26 +189,8 @@ func (s *EmailSenderParams) SendEmail(data *models.EmailData) error {
 	return nil
 }
 
-func (s *EmailSenderParams) SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error {
-	// Sendgrid Way
-	/*to := mail.NewEmail(user.Firstname, user.Email)
-
-	file, err := ioutil.ReadFile(templateLink)
-	if err != nil {
-		return nil, err
-	}
-
-	htmlTemplate := template.Must(template.New("emailTemplate").Parse(string(file)))
-
-	data := Data{User: user, HostAddress: s.baseUrl, AppName: s.senderName}
-	buffer := new(bytes.Buffer)
-	err = htmlTemplate.Execute(buffer, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.SendEmail([]*mail.Email{to}, "text/html", subject, buffer.String())*/
-	mailCredit := s.CheckMailCredit(ctx)
+func (s *EmailSenderParams) SendEmailFromTemplate(ctx *gin.Context, subscription *models.Subscription, data *models.EmailData, templateLink string) error {
+	mailCredit := s.CheckMailCredit(ctx, subscription)
 
 	if mailCredit <= 0 {
 		err := errors.New("Your mail credit is spent")
