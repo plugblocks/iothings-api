@@ -11,7 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gitlab.com/plugblocks/iothings-api/config"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"gitlab.com/plugblocks/iothings-api/store"
 	"golang.org/x/net/context"
 )
 
@@ -61,12 +63,11 @@ func (s *TextSenderParams) SendAlertText(c *gin.Context, subscription *models.Su
 }
 
 func (s *TextSenderParams) CheckTextCredit(c *gin.Context, subscription *models.Subscription) bool {
-	//textCredit := config.GetInt(c, "plan_credit_text")
 	textCredit := subscription.PlanCreditTexts
 	fmt.Println("Text Organization credit:", textCredit)
 	es := GetEmailSender(c)
 	if textCredit > 0 {
-		config.Set(c, "plan_credit_text", textCredit-1)
+		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_text": textCredit - 1}})
 		return true
 	} else if textCredit == 0 {
 		fmt.Println("Text Check Credit Organization no credit warning mails sent")
@@ -77,10 +78,10 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context, subscription *models.
 		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 		EmailSender.SendEmailFromTemplate(es, c, subscription, &userData, templateLink)
 		EmailSender.SendEmailFromTemplate(es, c, subscription, &adminData, templateLink)
-		config.Set(c, "plan_credit_text", -1)
+		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_text": -1}})
 		return false
 	} else if textCredit > -10 {
-		config.Set(c, "plan_credit_text", -100)
+		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_text": -100}})
 		return false
 	} else if textCredit == -100 {
 		fmt.Println("Text Check Credit Organization no credit disable wifi sent")
@@ -91,10 +92,10 @@ func (s *TextSenderParams) CheckTextCredit(c *gin.Context, subscription *models.
 		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Texts", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 		EmailSender.SendEmailFromTemplate(es, c, subscription, &userData, templateLink)
 		EmailSender.SendEmailFromTemplate(es, c, subscription, &adminData, templateLink)
-		config.Set(c, "plan_credit_text", -1000)
+		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_text": -1000}})
 		return false
 	}
-	return true
+	return false
 }
 
 func (s *TextSenderParams) SendText(ctx *gin.Context, subscription *models.Subscription, data models.TextData) error {

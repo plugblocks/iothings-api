@@ -595,7 +595,7 @@ func CheckWifiCredit(c *gin.Context, subscription *models.Subscription) bool {
 		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_wifi": wifiCredit - 1000}})
 		return false
 	}
-	return true
+	return false
 }
 
 func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {

@@ -120,7 +120,7 @@ func (ac AlertController) TextTest(c *gin.Context) {
 	}
 
 	s := services.GetTextSender(c)
-	data := models.TextData{PhoneNumber: user.Phone, Subject: "Text Alert", Message: "You just received an alert, check at: https://demo.plugblocks.com"}
+	data := models.TextData{PhoneNumber: user.Phone, Subject: "Text Alert", Message: "You just received an alert, check at: https://app.plugblocks.com"}
 
 	subscription, err := store.GetOrganizationSubscription(c, user.OrganizationId)
 	if err != nil {
