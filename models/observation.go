@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+type QuantitativeValue struct {
+	*SemanticProperty
+
+	Identifier string      `json:"identifier" bson:"identifier"`
+	UnitText   string      `json:"unitText" bson:"unitText"`
+	Value      interface{} `json:"value" bson:"value"`
+}
+
 type ObservationQueryParams struct {
 	Order     string `form:"order" json:"order"`
 	Limit     int    `form:"limit" json:"limit"`

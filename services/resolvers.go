@@ -3,6 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
+	"math"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -10,11 +16,6 @@ import (
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"googlemaps.github.io/maps"
-	"log"
-	"math"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // These are all a mix of enhancers / resolvers. TODO: Split this in pieces.
@@ -81,10 +82,10 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 	wifiLoc.Radius = resp.Accuracy
 
 	obs := &models.Observation{}
-	defp := &models.SemanticProperty{"wifi", "location"}
-	latVal := models.QuantitativeValue{defp, "latitude", "degrees", resp.Location.Lat}
-	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", resp.Location.Lng}
-	accVal := models.QuantitativeValue{defp, "accuracy", "meters", resp.Accuracy}
+	defp := &models.SemanticProperty{Context: "wifi", Type: "location"}
+	latVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: resp.Location.Lat}
+	lngVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: resp.Location.Lng}
+	accVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: resp.Accuracy}
 	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = msg.Timestamp
 	obs.DeviceId = device.Id
@@ -95,7 +96,7 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 
 func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
 	obs := &models.Observation{}
-	defp := &models.SemanticProperty{"sensit", "sensor"}
+	defp := &models.SemanticProperty{Context: "sensit", Type: "sensor"}
 	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
@@ -220,40 +221,40 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 			typeStr = ""
 		}
 
-		eventData := models.QuantitativeValue{defp, "eventType", "", typeStr}
-		modeData := models.QuantitativeValue{defp, "mode", "", modeStr}
-		timeData := models.QuantitativeValue{defp, "timeframe", timeUnit, timeVal}
-		batData := models.QuantitativeValue{defp, "battery", "volt", batVal}
-		tempData := models.QuantitativeValue{defp, "temperature", "celsius", tempVal} //Precision differs w/mode
+		eventData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "eventType", UnitText: "", Value: typeStr}
+		modeData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "mode", UnitText: "", Value: modeStr}
+		timeData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "timeframe", UnitText: timeUnit, Value: timeVal}
+		batData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "battery", UnitText: "volt", Value: batVal}
+		tempData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "temperature", UnitText: "celsius", Value: tempVal} //Precision differs w/mode
 		obs.Values = append(obs.Values, eventData, modeData, timeData, batData, tempData)
 
 		switch mode {
 		case 0:
-			swRevData := models.QuantitativeValue{defp, "softwareRevision", "", swRev}
+			swRevData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "softwareRevision", UnitText: "", Value: swRev}
 			obs.Values = append(obs.Values, swRevData)
 		case 1:
 			//fmt.Println(humidity, "% RH")
-			humiData := models.QuantitativeValue{defp, "humidity", "percent", humidity}
+			humiData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "humidity", UnitText: "percent", Value: humidity}
 			obs.Values = append(obs.Values, humiData)
 		case 2:
 			//fmt.Println(light, "lux")
 			alerts, _ := strconv.ParseInt(data[24:32], 2, 16)
-			lightData := models.QuantitativeValue{defp, "light", "lux", light}
-			alertData := models.QuantitativeValue{defp, "alert", "", alerts}
+			lightData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "light", UnitText: "lux", Value: light}
+			alertData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "alert", UnitText: "", Value: alerts}
 			obs.Values = append(obs.Values, lightData, alertData)
 		case 3, 4, 5:
 			alerts, _ := strconv.ParseInt(data[24:32], 2, 16)
-			alertData := models.QuantitativeValue{defp, "alert", "", alerts}
+			alertData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "alert", UnitText: "", Value: alerts}
 			obs.Values = append(obs.Values, alertData)
 		}
 		if reedSwitch {
-			reedData := models.QuantitativeValue{defp, "reedSwitch", "", true}
+			reedData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "reedSwitch", UnitText: "", Value: true}
 			obs.Values = append(obs.Values, reedData)
 		}
 	} else { //len: 24 exactly, 12 bytes
 		fmt.Println("Sensit Daily Downlink Message")
 		//TODO: Decode sensit downlink message
-		dlData := models.QuantitativeValue{defp, "downlink", "", true}
+		dlData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "downlink", UnitText: "", Value: true}
 		obs.Values = append(obs.Values, dlData)
 	}
 	obs.Timestamp = msg.Timestamp
@@ -265,7 +266,7 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 
 func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
 	obs := &models.Observation{}
-	defp := &models.SemanticProperty{"sensit", "sensor"}
+	defp := &models.SemanticProperty{Context: "sensit", Type: "sensor"}
 	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
@@ -372,37 +373,37 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 			modeStr = ""
 		}
 
-		modeData := models.QuantitativeValue{defp, "mode", "", modeStr}
-		butData := models.QuantitativeValue{defp, "button", "", buttonStr}
-		batData := models.QuantitativeValue{defp, "battery", "volt", batVal}
+		modeData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "mode", UnitText: "", Value: modeStr}
+		butData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "button", UnitText: "", Value: buttonStr}
+		batData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "battery", UnitText: "volt", Value: batVal}
 		obs.Values = append(obs.Values, modeData, butData, batData)
 		if evtVal != "" { //Modes 3,4,5
-			eventData := models.QuantitativeValue{defp, "event", "", evtVal}
+			eventData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "event", UnitText: "", Value: evtVal}
 			obs.Values = append(obs.Values, eventData)
 		}
 
 		switch mode {
 		case 0:
-			swRevData := models.QuantitativeValue{defp, "softwareRevision", "", fwRevVal}
+			swRevData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "softwareRevision", UnitText: "", Value: fwRevVal}
 			obs.Values = append(obs.Values, swRevData)
 		case 1:
 			//fmt.Println(humidity, "% RH")
-			tempData := models.QuantitativeValue{defp, "temperature", "celsius", tempVal}
-			humiData := models.QuantitativeValue{defp, "humidity", "percent", humiVal}
+			tempData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "temperature", UnitText: "celsius", Value: tempVal}
+			humiData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "humidity", UnitText: "percent", Value: humiVal}
 			obs.Values = append(obs.Values, tempData, humiData)
 		case 2:
 			//fmt.Println(light, "lux")
-			lightData := models.QuantitativeValue{defp, "light", "lux", lightVal}
+			lightData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "light", UnitText: "lux", Value: lightVal}
 			obs.Values = append(obs.Values, lightData)
 		case 3, 4, 5:
-			evtData := models.QuantitativeValue{defp, "event", "", evtVal}
+			evtData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "event", UnitText: "", Value: evtVal}
 			obs.Values = append(obs.Values, evtData)
 		}
 
 	} else { //len: 24 exactly, 12 bytes
 		fmt.Println("Sensit Daily Downlink Message")
 		//TODO: Decode sensit downlink message
-		dlData := models.QuantitativeValue{defp, "downlink", "", true}
+		dlData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "downlink", UnitText: "", Value: true}
 		obs.Values = append(obs.Values, dlData)
 	}
 
@@ -430,10 +431,10 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 	spotitLoc.Radius = loc.Radius
 
 	obs := &models.Observation{}
-	defp := &models.SemanticProperty{"spotit", "location"}
-	latVal := models.QuantitativeValue{defp, "latitude", "degrees", loc.Latitude}
-	lngVal := models.QuantitativeValue{defp, "longitude", "degrees", loc.Longitude}
-	accVal := models.QuantitativeValue{defp, "accuracy", "meters", loc.Radius}
+	defp := &models.SemanticProperty{Context: "spotit", Type: "location"}
+	latVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: loc.Latitude}
+	lngVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: loc.Longitude}
+	accVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: loc.Radius}
 	obs.Values = append(obs.Values, latVal, lngVal, accVal)
 	obs.Timestamp = loc.Timestamp
 	obs.DeviceId = device.Id
@@ -449,9 +450,9 @@ func DecodeLevelFrame(contxt *gin.Context, msg *sigfox.Message) (bool, *models.O
 	//humi, _ := strconv.ParseInt(msg.Data[0:32], 2, 16)
 
 	obs := &models.Observation{}
-	defp := &models.SemanticProperty{"level", "sensor"}
-	temp := models.QuantitativeValue{defp, "temperature", "degrees", 22}
-	dist := models.QuantitativeValue{defp, "distance", "milimeter", 1100}
+	defp := &models.SemanticProperty{Context: "level", Type: "sensor"}
+	temp := models.QuantitativeValue{SemanticProperty: defp, Identifier: "temperature", UnitText: "degrees", Value: 22}
+	dist := models.QuantitativeValue{SemanticProperty: defp, Identifier: "distance", UnitText: "milimeter", Value: 1100}
 	obs.Values = append(obs.Values, temp, dist)
 	obs.Timestamp = msg.Timestamp
 	//obs.DeviceId = device.Id
@@ -607,8 +608,8 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 
 	geoloc := &models.Geolocation{}
 	obs := &models.Observation{}
-	locProp := &models.SemanticProperty{"gps", "location"}
-	senProp := &models.SemanticProperty{"gps", "sensor"}
+	locProp := &models.SemanticProperty{Context: "gps", Type: "location"}
+	senProp := &models.SemanticProperty{Context: "gps", Type: "sensor"}
 
 	if (string(sigfoxMessage.Data[0:2]) == "4e") || (string(sigfoxMessage.Data[0:2]) == "53") {
 		if string(sigfoxMessage.Data[2:4]) != "00" {
@@ -616,12 +617,12 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			geoloc = &decodedGPSFrame
 			geoloc.DeviceId = device.Id
 
-			latVal := models.QuantitativeValue{locProp, "latitude", "degrees", geoloc.Latitude}
-			lngVal := models.QuantitativeValue{locProp, "longitude", "degrees", geoloc.Longitude}
-			accVal := models.QuantitativeValue{locProp, "accuracy", "meters", geoloc.Radius}
-			tempVal := models.QuantitativeValue{senProp, "temperature", "celsius", decodedTemperature}
-			orVal := models.QuantitativeValue{senProp, "orientation", "", decodedOrientation}
-			movVal := models.QuantitativeValue{senProp, "moves", "", decodedMoves}
+			latVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "latitude", UnitText: "degreesValue: ", Value: geoloc.Latitude}
+			lngVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "longitude", UnitText: "degreesValue: ", Value: geoloc.Longitude}
+			accVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "accuracy", UnitText: "metersValue: ", Value: geoloc.Radius}
+			tempVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "temperature", UnitText: "celsiusValue: ", Value: decodedTemperature}
+			orVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "orientation", UnitText: "", Value: decodedOrientation}
+			movVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "moves", UnitText: "", Value: decodedMoves}
 			//staVal := models.QuantitativeValue{senProp, "status", "", status}
 			obs.Values = append(obs.Values, latVal, lngVal, accVal, tempVal, orVal, movVal /*, staVal*/)
 			obs.Timestamp = sigfoxMessage.Timestamp

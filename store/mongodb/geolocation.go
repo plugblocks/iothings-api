@@ -1,11 +1,12 @@
 package mongodb
 
 import (
+	"net/http"
+
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"net/http"
 )
 
 func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
@@ -91,12 +92,12 @@ func (db *mongo) GetDeviceGeoJSON( /*user *models.User, */ deviceId string, sour
 		coords := []float64{}
 		coords = append(coords, location.Longitude, location.Latitude)
 
-		geometry := models.Geometry{"Point", coords}
-		feature := models.Feature{"Feature", geometry}
+		geometry := models.Geometry{Type: "Point", Coordinates: coords}
+		feature := models.Feature{Type: "Feature", Geometry: geometry}
 
 		features = append(features, feature)
 	}
-	geojson := &models.GeoJSON{"FeatureCollection", features}
+	geojson := &models.GeoJSON{Type: "FeatureCollection", Features: features}
 
 	//fmt.Println("GetDeviceGeoJSON: device: ", device, "\t locations:", locations)
 
@@ -132,8 +133,8 @@ func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string, source
 			coords := []float64{}
 			coords = append(coords, location.Longitude, location.Latitude)
 
-			geometry := models.Geometry{"Point", coords}
-			feature := models.Feature{"Feature", geometry}
+			geometry := models.Geometry{Type: "Point", Coordinates: coords}
+			feature := models.Feature{Type: "Feature", Geometry: geometry}
 
 			features = append(features, feature)
 		}
@@ -151,7 +152,7 @@ func (db *mongo) GetFleetGeoJSON( /*user *models.User, */ fleetId string, source
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 		}*/
 
-	geojson := &models.GeoJSON{"FeatureCollection", features}
+	geojson := &models.GeoJSON{Type: "FeatureCollection", Features: features}
 
 	//fmt.Println("GetFleetGeoJSON: fleet: ", fleet, "\t locations:", locations)
 
@@ -187,8 +188,8 @@ func (db *mongo) GetFleetsGeoJSON(source string, limit int, startTime int, endTi
 				coords := []float64{}
 				coords = append(coords, location.Longitude, location.Latitude)
 
-				geometry := models.Geometry{"Point", coords}
-				feature := models.Feature{"Feature", geometry}
+				geometry := models.Geometry{Type: "Point", Coordinates: coords}
+				feature := models.Feature{Type: "Feature", Geometry: geometry}
 
 				features = append(features, feature)
 			}
@@ -207,7 +208,7 @@ func (db *mongo) GetFleetsGeoJSON(source string, limit int, startTime int, endTi
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 		}*/
 
-	geojson := &models.GeoJSON{"FeatureCollection", features}
+	geojson := &models.GeoJSON{Type: "FeatureCollection", Features: features}
 
 	//fmt.Println("GetFleetGeoJSON: fleet: ", fleet, "\t locations:", locations)
 
@@ -242,8 +243,8 @@ func (db *mongo) GetUserFleetsGeoJSON(user *models.User) (*models.GeoJSON, error
 				coords := []float64{}
 				coords = append(coords, location.Longitude, location.Latitude)
 
-				geometry := models.Geometry{"Point", coords}
-				feature := models.Feature{"Feature", geometry}
+				geometry := models.Geometry{Type: "Point", Coordinates: coords}
+				feature := models.Feature{Type: "Feature", Geometry: geometry}
 
 				features = append(features, feature)
 			}
@@ -262,7 +263,7 @@ func (db *mongo) GetUserFleetsGeoJSON(user *models.User) (*models.GeoJSON, error
 			return nil, helpers.NewError(http.StatusNotFound, "observations_device_not_found", "Failed to find observations for device", err)
 		}*/
 
-	geojson := &models.GeoJSON{"FeatureCollection", features}
+	geojson := &models.GeoJSON{Type: "FeatureCollection", Features: features}
 
 	//fmt.Println("GetFleetGeoJSON: fleet: ", fleet, "\t locations:", locations)
 

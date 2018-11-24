@@ -30,12 +30,12 @@ func CheckLocation(context *gin.Context, store store.Store, device *models.Devic
 		directionOpts := directions.RequestOpts{}
 		loc := []base.Location{
 			{
-				location.Latitude,
-				location.Longitude,
+				Latitude:  location.Latitude,
+				Longitude: location.Longitude,
 			},
 			{
-				order.Destination.Latitude,
-				order.Destination.Longitude,
+				Latitude:  order.Destination.Latitude,
+				Longitude: order.Destination.Longitude,
 			},
 		}
 

@@ -91,13 +91,13 @@ func (db *mongo) GetGeoJSON() (*models.GeoJSON, error) {
 		coords := []float64{}
 		coords = append(coords, location.Longitude, location.Latitude)
 
-		geometry := models.Geometry{"Point", coords}
-		feature := models.Feature{"Feature", geometry}
+		geometry := models.Geometry{Type: "Point", Coordinates: coords}
+		feature := models.Feature{Type: "Feature", Geometry: geometry}
 
 		features = append(features, feature)
 	}
 
-	geojson := &models.GeoJSON{"FeatureCollection", features}
+	geojson := &models.GeoJSON{Type: "FeatureCollection", Features: features}
 
 	return geojson, nil
 }
