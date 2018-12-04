@@ -78,16 +78,9 @@ func (db *mongo) CreateObservation(record *models.Observation) error {
 	session := db.Session.Copy()
 	defer session.Close()
 	observations := db.C(models.ObservationsCollection).With(session)
-	//devices := db.C(models.DevicesCollection).With(session)
+	devices := db.C(models.DevicesCollection).With(session)
 
 	device := &models.Device{}
-
-	/*err := devices.Find(bson.M{"_id": record.DeviceId}).One(device)
-	if err != nil {
-		return helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
-	}*/
-
-	record.BeforeCreate(device)
 
 	record.Id = bson.NewObjectId().Hex()
 
@@ -96,6 +89,12 @@ func (db *mongo) CreateObservation(record *models.Observation) error {
 		fmt.Println(err)
 		//return helpers.NewError(http.StatusInternalServerError, "observation_creation_failed", "Failed to create the observation", err)
 	}
+
+	err = devices.Find(bson.M{"_id": record.DeviceId}).One(device)
+	if err != nil {
+		return helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
+	}
+	record.BeforeCreate(device)
 
 	return nil
 }
