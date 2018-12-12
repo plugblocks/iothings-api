@@ -1,13 +1,11 @@
 package mongodb
 
 import (
-	"net/http"
-	"time"
-
 	"github.com/globalsign/mgo/bson"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
+	"net/http"
 )
 
 func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
@@ -24,9 +22,9 @@ func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
 	devices := db.C(models.GeolocationsCollection).With(session)
 	//device := &models.Device{}
 
-	err = devices.Update(bson.M{"_id": location.DeviceId}, bson.M{"$set": bson.M{"last_access": /*location.Timestamp*/time.Now().Unix()}})
+	err = devices.Update(bson.M{"_id": location.DeviceId}, bson.M{"$set": bson.M{"last_access": location.Timestamp}})
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "device_access_update_failed", "Failed to update device last access, DeviceID:" + location.DeviceId +" Time:" + string(/*location.Timestamp*/time.Now().Unix()), err)
+		return helpers.NewError(http.StatusInternalServerError, "device_access_update_failed", "Failed to update device last access, DeviceID:" + location.DeviceId +" Time:" + string(location.Timestamp), err)
 	}
 
 	/*err = devices.Find(bson.M{"_id": location.DeviceId}).One(device)

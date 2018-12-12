@@ -617,10 +617,10 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			geoloc = &decodedGPSFrame
 			geoloc.DeviceId = device.Id
 
-			latVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "latitude", UnitText: "degreesValue: ", Value: geoloc.Latitude}
-			lngVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "longitude", UnitText: "degreesValue: ", Value: geoloc.Longitude}
-			accVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "accuracy", UnitText: "metersValue: ", Value: geoloc.Radius}
-			tempVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "temperature", UnitText: "celsiusValue: ", Value: decodedTemperature}
+			latVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "latitude", UnitText: "degrees", Value: geoloc.Latitude}
+			lngVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "longitude", UnitText: "degrees", Value: geoloc.Longitude}
+			accVal := models.QuantitativeValue{SemanticProperty: locProp, Identifier: "accuracy", UnitText: "meters", Value: geoloc.Radius}
+			tempVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "temperature", UnitText: "celsius", Value: decodedTemperature}
 			orVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "orientation", UnitText: "", Value: decodedOrientation}
 			movVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "moves", UnitText: "", Value: decodedMoves}
 			//staVal := models.QuantitativeValue{senProp, "status", "", status}
