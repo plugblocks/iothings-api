@@ -19,13 +19,13 @@ func (db *mongo) CreateGeolocation(location *models.Geolocation) error {
 		return helpers.NewError(http.StatusInternalServerError, "geolocation_creation_failed", "Failed to insert the geolocation", err)
 	}
 
-	devices := db.C(models.GeolocationsCollection).With(session)
+	//devices := db.C(models.GeolocationsCollection).With(session)
 	//device := &models.Device{}
 
-	err = devices.Update(bson.M{"_id": location.DeviceId}, bson.M{"$set": bson.M{"last_access": location.Timestamp}})
+	/*err = devices.Update(bson.M{"_id": location.DeviceId}, bson.M{"$set": bson.M{"last_access": int64(location.Timestamp)}})
 	if err != nil {
-		return helpers.NewError(http.StatusInternalServerError, "device_access_update_failed", "Failed to update device last access, DeviceID:" + location.DeviceId +" Time:" + string(location.Timestamp), err)
-	}
+		return helpers.NewError(http.StatusInternalServerError, "device_access_update_failed", "Failed to update device last access, DeviceID:" + location.DeviceId +" Time:" + string(int64(location.Timestamp)), err)
+	}*/
 
 	/*err = devices.Find(bson.M{"_id": location.DeviceId}).One(device)
 	if err != nil {
