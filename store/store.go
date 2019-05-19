@@ -48,6 +48,7 @@ type Store interface {
 	DeleteDevice(*models.User, string) error
 	GetDevice(string, string) (*models.Device, error)
 	GetDeviceGeolocations(string, string, int, int, int) ([]*models.Geolocation, error)
+	GetDevicePreciseGeolocations(string, int, int, int) ([]*models.Geolocation, error)
 	GetDeviceFromSigfoxId(string) (*models.Device, error)
 	CountDevices() (int, error)
 	DeleteDeviceObservations(string) error

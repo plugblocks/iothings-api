@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"net/http"
+	"sort"
 
 	"errors"
 	"github.com/globalsign/mgo"
@@ -171,6 +172,42 @@ func (db *mongo) GetDeviceGeolocations(deviceId string, source string, limit int
 	} else {
 		err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": source, "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&deviceGeolocations)
 	}
+
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)
+	}
+
+	return deviceGeolocations, nil
+}
+
+func (db *mongo) GetDevicePreciseGeolocations(deviceId string, limit int, startTime int, endTime int) ([]*models.Geolocation, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+	device := &models.Device{}
+
+	err := devices.Find(bson.M{"_id": deviceId}).One(device)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
+	}
+
+	if limit == 0 {
+		limit = 50
+	}
+
+	geolocationCollection := db.C(models.GeolocationsCollection).With(session)
+	deviceGeolocations := []*models.Geolocation{}
+	wifiGeolocations := []*models.Geolocation{}
+	gpsGeolocations := []*models.Geolocation{}
+
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": "gps", "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&gpsGeolocations)
+	err = geolocationCollection.Find(bson.M{"device_id": deviceId, "source": "wifi", "timestamp": bson.M{"$gt": startTime, "$lt": endTime}}).Sort("-timestamp").Limit(limit).All(&wifiGeolocations)
+
+	deviceGeolocations = append(deviceGeolocations, gpsGeolocations...)
+	deviceGeolocations = append(deviceGeolocations, wifiGeolocations...)
+
+	sort.Slice(deviceGeolocations, func(i, j int) bool { return deviceGeolocations[i].Timestamp < deviceGeolocations[i].Timestamp })
 
 	if err != nil {
 		return nil, helpers.NewError(http.StatusInternalServerError, "query_locations_failed", "Failed to get the locations: "+err.Error(), err)

@@ -56,6 +56,10 @@ func GetDeviceGeolocations(c context.Context, id string, source string, limit in
 	return FromContext(c).GetDeviceGeolocations(id, source, limit, startTime, endTime)
 }
 
+func GetDevicePreciseGeolocations(c context.Context, id string, limit int, startTime int, endTime int) ([]*models.Geolocation, error) {
+	return FromContext(c).GetDevicePreciseGeolocations(id, limit, startTime, endTime)
+}
+
 func DeleteDeviceObservations(c context.Context, deviceId string) error {
 	return FromContext(c).DeleteDeviceObservations(deviceId)
 }

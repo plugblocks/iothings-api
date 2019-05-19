@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"gitlab.com/plugblocks/iothings-api/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -158,17 +159,17 @@ func (dc DeviceController) GetDeviceGeolocations(c *gin.Context) {
 		if params.StartTime > params.EndTime {
 			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
 		}
-		deviceLocations, err := store.GetDeviceGeolocations(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
-
-		fmt.Println("deviceLocations len: ", len(deviceLocations))
-
-		if err != nil {
-			c.Error(err)
-			c.Abort()
-			return
+		if params.Source != "" {
+			deviceLocations, err := store.GetDeviceGeolocations(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
+			utils.CheckErr(err)
+			fmt.Println("deviceLocations len: ", len(deviceLocations))
+			c.JSON(http.StatusOK, deviceLocations)
+		} else {
+			deviceLocations, err := store.GetDevicePreciseGeolocations(c, c.Param("id"), params.Limit, params.StartTime, params.EndTime)
+			utils.CheckErr(err)
+			fmt.Println("devicePreciseLocations len: ", len(deviceLocations))
+			c.JSON(http.StatusOK, deviceLocations)
 		}
-
-		c.JSON(http.StatusOK, deviceLocations)
 	} else {
 		c.JSON(http.StatusInternalServerError, "GetDeviceLocations GeolocationQueryParams bind error")
 	}
