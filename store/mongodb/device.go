@@ -246,7 +246,7 @@ func (db *mongo) GetDeviceMessages(sigfoxId string) ([]*sigfox.Message, error) {
 		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
 	}
 
-	err = messages.Find(bson.M{"sigfox_id": sigfoxId}).All(deviceMessages)
+	err = messages.Find(bson.M{"sigfox_id": sigfoxId}).All(&deviceMessages)
 	if err != nil {
 		return nil, helpers.NewError(http.StatusNotFound, "device_messages_not_found", "Device messages not found", err)
 	}
