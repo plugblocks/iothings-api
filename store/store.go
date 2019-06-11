@@ -54,6 +54,7 @@ type Store interface {
 	DeleteDeviceObservations(string) error
 	DeleteDeviceGeolocations(string) error
 	UpdateDeviceActivity(deviceId string, actDiff int) error
+	GetDeviceMessages(string) ([]*sigfox.Message, error)
 
 	GetAlerts(*models.User) ([]*models.Alert, error)
 	CreateAlert(*models.User, *models.Alert) error

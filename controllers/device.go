@@ -175,6 +175,18 @@ func (dc DeviceController) GetDeviceGeolocations(c *gin.Context) {
 	}
 }
 
+func (dc DeviceController) GetDeviceMessages(c *gin.Context) {
+	deviceMessages, err := store.GetDeviceMessages(c, c.Param("id"))
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, deviceMessages)
+}
+
 func (dc DeviceController) GetDeviceGeoJSON(c *gin.Context) {
 	var params models.GeolocationQueryParams
 

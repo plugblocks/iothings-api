@@ -114,6 +114,7 @@ func (a *API) SetupRouter() {
 			devices.Use(authMiddleware)
 			devices.GET("/:id/location/:source", deviceController.GetDeviceLastLocation)
 			devices.GET("/:id/locations", deviceController.GetDeviceGeolocations)
+			devices.GET("/:id/messages", deviceController.GetDeviceMessages)
 			devices.GET("/", deviceController.GetDevices)
 			devices.POST("/", deviceController.CreateDevice)
 			devices.PUT("/:id", deviceController.UpdateDevice)

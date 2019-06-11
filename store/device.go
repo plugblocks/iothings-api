@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
@@ -46,6 +47,10 @@ func GetDevice(c context.Context, id string) (*models.Device, error) {
 
 func GetDeviceFromSigfoxId(c context.Context, sigfoxId string) (*models.Device, error) {
 	return FromContext(c).GetDeviceFromSigfoxId(sigfoxId)
+}
+
+func GetDeviceMessages(c context.Context, sigfoxId string) ([]*sigfox.Message, error) {
+	return FromContext(c).GetDeviceMessages(sigfoxId)
 }
 
 func CountDevices(c context.Context) (int, error) {

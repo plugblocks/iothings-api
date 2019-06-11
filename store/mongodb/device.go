@@ -1,6 +1,7 @@
 package mongodb
 
 import (
+	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"net/http"
 	"sort"
 
@@ -229,6 +230,28 @@ func (db *mongo) GetDeviceFromSigfoxId(sigfoxId string) (*models.Device, error) 
 	}
 
 	return device, nil
+}
+
+func (db *mongo) GetDeviceMessages(sigfoxId string) ([]*sigfox.Message, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	devices := db.C(models.DevicesCollection).With(session)
+	messages := db.C(sigfox.SigfoxMessagesCollection).With(session)
+	device := &models.Device{}
+	deviceMessages := []*sigfox.Message{}
+
+	err := devices.Find(bson.M{"sigfox_id": sigfoxId}).One(device)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "device_not_found", "Device not found", err)
+	}
+
+	err = messages.Find(bson.M{"sigfox_id": sigfoxId}).All(deviceMessages)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusNotFound, "device_messages_not_found", "Device messages not found", err)
+	}
+
+	return deviceMessages, nil
 }
 
 func (db *mongo) CountDevices() (int, error) {
