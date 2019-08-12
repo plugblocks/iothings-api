@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"gitlab.com/plugblocks/iothings-api/config"
@@ -20,7 +21,7 @@ func NewAuthController() AuthController {
 	return AuthController{}
 }
 
-func (ac AuthController) Authentication(c *gin.Context) {
+func (ac AuthController) UserAuthentication(c *gin.Context) {
 	userInput := models.User{}
 	if err := c.Bind(&userInput); err != nil {
 		c.AbortWithError(http.StatusBadRequest, helpers.ErrorWithCode("invalid_input", "Failed to bind the body data", err))
@@ -39,6 +40,11 @@ func (ac AuthController) Authentication(c *gin.Context) {
 		return
 	}
 
+	if !user.Active {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_needs_activation", "User needs to be activated via email", nil))
+		return
+	}
+
 	//Read base64 private key
 	encodedKey := []byte(config.GetString(c, "rsa_private"))
 	accessToken, err := helpers.GenerateAccessToken(encodedKey, user.Id)
@@ -46,6 +52,8 @@ func (ac AuthController) Authentication(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, helpers.ErrorWithCode("token_generation_failed", "Could not generate the access token", err))
 		return
 	}
+
+	fmt.Println("User authenticated: ", user)
 
 	c.JSON(http.StatusOK, gin.H{"token": accessToken, "user": user.Sanitize()})
 }

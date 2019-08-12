@@ -1,15 +1,16 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
-	"gitlab.com/plugblocks/iothings-api/services"
 	"gitlab.com/plugblocks/iothings-api/store"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/plugblocks/iothings-api/services"
 )
 
 type UserController struct{}
@@ -37,19 +38,53 @@ func (uc UserController) CreateUser(c *gin.Context) {
 		return
 	}
 
+	appName := config.GetString(c, "mail_sender_name")
+	subject := "Bienvenue sur " + appName + "! Merci de confirmer votre compte"
+	templateLink := "./templates/html/mail_utilisateur_activation.html"
+
 	if err := store.CreateUser(c, user); err != nil {
 		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	//TODO: Remove business logic from controller
-	appName := config.GetString(c, "sendgrid_name")
-	subject := "Welcome to " + appName + "! Account confirmation"
-	templateLink := "./templates/html/mail_activate_account.html"
-	services.GetEmailSender(c).SendEmailFromTemplate(user, subject, templateLink)
+	s := services.GetEmailSender(c)
+	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, User: user, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
+
+	subscription, err := store.GetOrganizationSubscription(c, user.OrganizationId)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = s.SendEmailFromTemplate(c, subscription, &data, templateLink)
+	if err != nil {
+		c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("mail_credit_spent", "Your mail credit is spent", err))
+		return
+	}
 
 	c.JSON(http.StatusCreated, user.Sanitize())
+}
+
+func (uc UserController) DeleteUser(c *gin.Context) {
+	err := store.DeleteUser(c, c.Param("id"))
+
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+}
+
+func (uc UserController) ChangeLanguage(c *gin.Context) {
+	if err := store.ChangeLanguage(c, c.Param("id"), c.Param("language")); err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, nil)
 }
 
 func (uc UserController) ActivateUser(c *gin.Context) {
@@ -58,8 +93,23 @@ func (uc UserController) ActivateUser(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	//c.JSON(http.StatusOK, nil)
 
-	c.JSON(http.StatusOK, nil)
+	/*user, err := store.FindUserById(c, c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, helpers.ErrorWithCode("user_not_found", "The user does not exist", err))
+		return
+	}
+
+	vars := gin.H{
+		"User": user,
+		"AppName": config.GetString(c, "mail_sender_name"),
+		"AppUrl": config.GetString(c, "front_url"),
+	}
+
+	c.HTML(http.StatusOK, "./templates/html/page_account_activated.html", vars)*/
+
+	c.Redirect(http.StatusMovedPermanently, "https://"+config.GetString(c, "front_url"))
 }
 
 func (uc UserController) GetUsers(c *gin.Context) {

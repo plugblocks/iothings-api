@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -15,8 +16,19 @@ func NewFleetController() FleetController {
 	return FleetController{}
 }
 
-func (gtc FleetController) GetFleets(c *gin.Context) {
-	fleets, err := store.GetAllFleets(c)
+func (fc FleetController) AddDeviceToFleet(c *gin.Context) {
+	fleet, err := store.AddDeviceToFleet(c, c.Param("id"), c.Param("deviceId"))
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, fleet)
+}
+
+func (fc FleetController) GetFleets(c *gin.Context) {
+	fleets, err := store.GetFleets(c)
 	if err != nil {
 		c.Error(err)
 		c.Abort()
@@ -26,7 +38,7 @@ func (gtc FleetController) GetFleets(c *gin.Context) {
 	c.JSON(http.StatusOK, fleets)
 }
 
-func (gtc FleetController) GetFleetById(c *gin.Context) {
+func (fc FleetController) GetFleetById(c *gin.Context) {
 	id := c.Param("id")
 
 	fleet, err := store.GetFleetById(c, id)
@@ -39,7 +51,105 @@ func (gtc FleetController) GetFleetById(c *gin.Context) {
 	c.JSON(http.StatusOK, fleet)
 }
 
-func (gtc FleetController) CreateFleet(c *gin.Context) {
+func (fc FleetController) GetDevicesFromFleet(c *gin.Context) {
+	id := c.Param("id")
+
+	devices, err := store.GetDevicesFromFleet(c, id)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, devices)
+}
+
+func (fc FleetController) EnhanceParams(c *gin.Context) {
+
+}
+
+func (fc FleetController) GetFleetGeoJSON(c *gin.Context) {
+	var params models.GeolocationQueryParams
+	if c.ShouldBind(&params) == nil {
+		fmt.Println("params: ", params)
+		if params.Limit == 0 {
+			params.Limit = 100
+		}
+		if params.EndTime == 0 {
+			params.EndTime = 2147483646 //Max uint32
+		}
+		if params.StartTime > params.EndTime {
+			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
+		}
+		geoJsonStruct, err := store.GetFleetGeoJSON(c, c.Param("id"), params.Source, params.Limit, params.StartTime, params.EndTime)
+
+		fmt.Println("len: ", len(geoJsonStruct.Features))
+
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, geoJsonStruct)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Fleets geolocations error")
+	}
+}
+
+func (fc FleetController) GetFleetsGeoJSON(c *gin.Context) {
+	var params models.GeolocationQueryParams
+	if c.ShouldBind(&params) == nil {
+		fmt.Println("params: ", params)
+		if params.Limit == 0 {
+			params.Limit = 100
+		}
+		if params.EndTime == 0 {
+			params.EndTime = 2147483646 //Max uint32
+		}
+		if params.StartTime > params.EndTime {
+			c.JSON(http.StatusInternalServerError, "Fleets geolocations query error, endTime > startTime in query")
+		}
+		if params.Source == "" {
+			params.Source = "sigfox"
+		}
+		geoJsonStruct, err := store.GetFleetsGeoJSON(c, params.Source, params.Limit, params.StartTime, params.EndTime)
+
+		fmt.Println("len: ", len(geoJsonStruct.Features))
+
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, geoJsonStruct)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Fleets geolocations error")
+	}
+
+	/*geoJsonStruct, err := store.GetFleetsGeoJSON(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, geoJsonStruct)*/
+}
+
+func (fc FleetController) GetUserFleetsGeoJSON(c *gin.Context) {
+	geoJsonStruct, err := store.GetUserFleetsGeoJSON(c)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, geoJsonStruct)
+}
+
+func (fc FleetController) CreateFleet(c *gin.Context) {
 	fleet := &models.Fleet{}
 
 	if err := c.BindJSON(fleet); err != nil {
@@ -56,7 +166,7 @@ func (gtc FleetController) CreateFleet(c *gin.Context) {
 	c.JSON(http.StatusCreated, fleet)
 }
 
-func (gtc FleetController) EditFleet(c *gin.Context) {
+func (fc FleetController) UpdateFleet(c *gin.Context) {
 	fleet := &models.Fleet{}
 	id := c.Param("id")
 

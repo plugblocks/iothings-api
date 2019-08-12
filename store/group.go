@@ -25,3 +25,7 @@ func UpdateGroup(c context.Context, id string, params params.M) error {
 func DeleteGroup(c context.Context, id string) error {
 	return FromContext(c).DeleteGroup(Current(c), id)
 }
+
+func CountGroups(c context.Context) (int, error) {
+	return FromContext(c).CountGroups()
+}

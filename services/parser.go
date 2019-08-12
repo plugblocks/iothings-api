@@ -1,11 +1,11 @@
 package services
 
 import (
-	"gitlab.com/plugblocks/iothings-api/models/schema_org"
+	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 )
 
-func parse(message sigfox.Message, syntaxes sigfox.Syntax) []schema_org.QuantitativeValue {
+func parse(message sigfox.Message, syntaxes sigfox.Syntax) []models.QuantitativeValue {
 	/*rawData := message.Data
 	decodedValues := []schema_org.QuantitativeValue{}
 

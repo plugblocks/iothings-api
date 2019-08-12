@@ -17,10 +17,12 @@ type User struct {
 	Email          string `json:"email" bson:"email" valid:"email,required"`
 	Phone          string `json:"phone" bson:"phone"`
 	Active         bool   `json:"active" bson:"active"`
+	Language       string `json:"language" bson:"language"`
 	OrganizationId string `json:"organization_id" bson:"organization_id"`
 	ActivationKey  string `json:"activationKey" bson:"activationKey"`
 	ResetKey       string `json:"resetKey" bson:"resetKey"`
 	Admin          bool   `json:"admin" bson:"admin"`
+	LastAccess     int64  `json:"last_access" bson:"last_access" valid:"-"`
 }
 
 type SanitizedUser struct {

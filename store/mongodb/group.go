@@ -77,3 +77,16 @@ func (db *mongo) DeleteGroup(user *models.User, id string) error {
 
 	return nil
 }
+
+func (db *mongo) CountGroups() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	groups := db.C(models.GroupsCollection).With(session)
+
+	nbr, err := groups.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "hroups_not_found", "Groups not found", err)
+	}
+	return nbr, nil
+}

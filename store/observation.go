@@ -9,18 +9,18 @@ func CreateObservation(c context.Context, record *models.Observation) error {
 	return FromContext(c).CreateObservation(record)
 }
 
-func GetDeviceObservations(c context.Context, customerId string, deviceId string, typ string) ([]models.Observation, error) {
-	return FromContext(c).GetDeviceObservations(customerId, deviceId, typ)
+func GetDeviceObservations(c context.Context, deviceId string, typ string, ord string, lim int) ([]*models.Observation, error) {
+	return FromContext(c).GetDeviceObservations(deviceId, typ, ord, lim)
 }
 
-func GetDeviceLatestObservation(c context.Context, customerId string, deviceId string, typ string) (*models.Observation, error) {
-	return FromContext(c).GetDeviceLatestObservation(customerId, deviceId, typ)
+func GetFleetObservations(c context.Context, fleetId string, typ string, ord string, lim int) ([]*models.Observation, error) {
+	return FromContext(c).GetFleetObservations(Current(c), fleetId, typ, ord, lim)
 }
 
-func GetFleetObservations(c context.Context, fleetId string, typ string) ([]models.Observation, error) {
-	return FromContext(c).GetFleetObservations(Current(c), fleetId, typ)
+func CountObservations(c context.Context) (int, error) {
+	return FromContext(c).CountObservations()
 }
 
-func GetFleetLatestObservation(c context.Context, fleetId string, typ string) ([]models.Observation, error) {
-	return FromContext(c).GetFleetLatestObservation(Current(c), fleetId, typ)
+func DeleteObservation(c context.Context, id string) error {
+	return FromContext(c).DeleteObservation(id)
 }

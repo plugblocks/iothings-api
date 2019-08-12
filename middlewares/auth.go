@@ -5,9 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/helpers"
+	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/store"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -28,8 +30,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		user, _ := store.FindUserById(c, claims["sub"].(string))
-
 		c.Set(store.CurrentKey, user)
+
+		user.LastAccess = time.Now().Unix()
+		//fmt.Println("user:", user)
+		store.UpdateUser(c, params.M{"$set": params.M{"last_access": user.LastAccess}})
 
 		c.Next()
 	}

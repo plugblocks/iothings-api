@@ -7,7 +7,8 @@ import (
 
 type Location struct {
 	Id          string  `json:"id" bson:"_id,omitempty" valid:"-"`
-	SigfoxId    string  `json:"sigfoxId" bson:"sigfoxId" valid:"-"`
+	DeviceId    string  `json:"device_id" bson:"device_id"`
+	SigfoxId    string  `json:"sigfox_id" bson:"sigfox_id" valid:"-"`
 	FrameNumber uint    `json:"frameNumber" bson:"frameNumber" valid:"-"` //Device : (daily frames under 140)
 	Timestamp   int64   `json:"timestamp" bson:"timestamp" valid:"-"`
 	Latitude    float64 `json:"latitude" bson:"latitude" valid:"-"`

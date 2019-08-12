@@ -22,17 +22,42 @@ func (a *API) SetupIndexes() error {
 		},
 	}
 
+	customers := database.C(models.CustomersCollection)
+	collectionIndexes[customers] = []mgo.Index{
+		{
+			Key:    []string{"email"},
+			Unique: true,
+		},
+	}
+
 	// Devices indexes & validators
 	devices := database.C(models.DevicesCollection)
 	CreateValidator(devices, bson.M{"organization_id": bson.M{"$exists": true}})
-	collectionIndexes[devices] = []mgo.Index{
+
+	organizations := database.C(models.OrganizationsCollection)
+	collectionIndexes[organizations] = []mgo.Index{
 		{
-			Key: []string{"userId"},
-		},
-		{
-			Key: []string{"tokens._id"},
+			Key:    []string{"name"},
+			Unique: true,
 		},
 	}
+	/*collectionIndexes[devices] = []mgo.Index{
+		{
+			Key: []string{"organization_id"},
+		},
+		{
+			Key:    []string{"sigfox_id"},
+			Unique: true,
+		},
+		{
+			Key:    []string{"ble_mac"},
+			Unique: true,
+		},
+		{
+			Key:    []string{"wifi_mac"},
+			Unique: true,
+		},
+	}*/
 
 	for collection, indexes := range collectionIndexes {
 		for _, index := range indexes {

@@ -2,7 +2,7 @@ package sigfox
 
 type Message struct {
 	Id          string `json:"id" bson:"_id,omitempty" valid:"-"`
-	SigfoxId    string `json:"sigfoxId" bson:"sigfoxId" valid:"-"`
+	SigfoxId    string `json:"sigfox_id" bson:"sigfox_id" valid:"-"`
 	FrameNumber uint   `json:"frameNumber" bson:"frameNumber" valid:"-"` //Sigfox: (daily frames under 140)
 	Timestamp   int64  `json:"timestamp" bson:"timestamp" valid:"-"`     //Sigfox: time
 	/* These values will be deprecated on June 1st 2019 */
@@ -13,8 +13,8 @@ type Message struct {
 	Lat     int8    `json:"lat" bson:"lat" valid:"-"`         //
 	Lng     int8    `json:"lng" bson:"lng" valid:"-"`
 	/* End of deprecate */
-	Type string `json:"type" bson:"type" valid:"-"` //Custom: message type to dispatch cases
-	Data string `json:"data" bson:"data" valid:"-"` //Sigfox: data
+	Resolver string `json:"resolver" bson:"resolver" valid:"-"` //Custom: message type to dispatch cases
+	Data     string `json:"data" bson:"data" valid:"-"`         //Sigfox: data
 	//Ack for downlink
 }
 

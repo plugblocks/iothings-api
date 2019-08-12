@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/models"
@@ -15,7 +16,7 @@ func NewObservationController() ObservationController {
 	return ObservationController{}
 }
 
-func (oc ObservationController) CreateObservation(c *gin.Context) {
+func (ObservationController) CreateObservation(c *gin.Context) {
 	observation := &models.Observation{}
 
 	err := c.BindJSON(observation)
@@ -33,48 +34,63 @@ func (oc ObservationController) CreateObservation(c *gin.Context) {
 	c.JSON(http.StatusCreated, observation)
 }
 
-func (oc ObservationController) GetDeviceObservations(c *gin.Context) {
-	observations, err := store.GetDeviceObservations(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"))
+func (ObservationController) GetDeviceObservations(c *gin.Context) {
+	var params models.ObservationQueryParams
+	if c.ShouldBind(&params) == nil {
+		if params.Limit == 0 {
+			params.Limit = 10
+		}
+		order := "-timestamp"
+		if params.Order != "" {
+			order = params.Order
+		}
 
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
+		observations, err := store.GetDeviceObservations(c, c.Param("deviceId"), params.Resolver, order, params.Limit)
+
+		fmt.Println("len: ", len(observations))
+
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, observations)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Device observation error")
 	}
+}
+func (ObservationController) GetFleetObservations(c *gin.Context) {
+	var params models.ObservationQueryParams
+	if c.ShouldBind(&params) == nil {
+		if params.Limit == 0 {
+			params.Limit = 10
+		}
+		order := "-timestamp"
+		if params.Order == "" {
+			order = params.Order
+		}
+		observations, err := store.GetFleetObservations(c, c.Param("fleetId"), params.Resolver, order, params.Limit)
 
-	c.JSON(http.StatusOK, observations)
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, observations)
+	} else {
+		c.JSON(http.StatusInternalServerError, "Fleet observation error")
+	}
 }
 
-func (oc ObservationController) GetDeviceLatestObservation(c *gin.Context) {
-	observation, err := store.GetDeviceLatestObservation(c, c.Param("customerId"), c.Param("deviceId"), c.Param("type"))
-
+func (ObservationController) DeleteObservation(c *gin.Context) {
+	err := store.DeleteObservation(c, c.Param("id"))
 	if err != nil {
 		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	c.JSON(http.StatusOK, observation)
-}
-func (oc ObservationController) GetFleetObservations(c *gin.Context) {
-	observations, err := store.GetFleetObservations(c, c.Param("id"), c.Param("type"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, observations)
-}
-func (oc ObservationController) GetFleetLatestObservation(c *gin.Context) {
-	observation, err := store.GetFleetLatestObservation(c, c.Param("id"), c.Param("type"))
-
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
-	}
-
-	c.JSON(http.StatusOK, observation)
+	c.JSON(http.StatusOK, nil)
 }

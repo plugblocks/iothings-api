@@ -91,3 +91,32 @@ func (db *mongo) GetOrganizationUsers(id string) ([]models.SanitizedUser, error)
 
 	return users, nil
 }
+
+func (db *mongo) CountOrganizations() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	organizations := db.C(models.OrganizationsCollection).With(session)
+
+	nbr, err := organizations.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "organizations_not_found", "Organizations not found", err)
+	}
+
+	return nbr, nil
+}
+
+func (db *mongo) GetOrganizationSubscription(id string) (*models.Subscription, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	susbcriptionsCollection := db.C(models.SubscriptionsCollection).With(session)
+
+	subscription := &models.Subscription{}
+
+	err := susbcriptionsCollection.Find(bson.M{"organization_id": id}).One(subscription)
+	if err != nil {
+		return nil, helpers.NewError(http.StatusInternalServerError, "organization_subscription_retrieval_failed", "Failed to retrieve the subscription of the organization", err)
+	}
+
+	return subscription, nil
+}

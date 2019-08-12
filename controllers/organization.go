@@ -73,7 +73,7 @@ func (oc OrganizationController) UpdateOrganization(c *gin.Context) {
 	c.JSON(http.StatusOK, organization)
 }
 
-func (fc OrganizationController) DeleteOrganization(c *gin.Context) {
+func (oc OrganizationController) DeleteOrganization(c *gin.Context) {
 	err := store.DeleteOrganization(c, c.Param("id"))
 
 	if err != nil {
@@ -85,7 +85,7 @@ func (fc OrganizationController) DeleteOrganization(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
-func (fc OrganizationController) GetUsers(c *gin.Context) {
+func (oc OrganizationController) GetUsers(c *gin.Context) {
 	users, err := store.GetOrganizationUsers(c, c.Param("id"))
 
 	if err != nil {
@@ -95,4 +95,15 @@ func (fc OrganizationController) GetUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, users)
+}
+
+func (oc OrganizationController) GetOrganizationSubscription(c *gin.Context) {
+	subscription, err := store.GetOrganizationSubscription(c, c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, "Get subscription error")
+		c.Error(err)
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, subscription)
 }

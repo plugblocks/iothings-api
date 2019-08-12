@@ -25,3 +25,7 @@ func GetBool(c context.Context, key string) bool {
 func GetInt(c context.Context, key string) int {
 	return FromContext(c).GetInt(key)
 }
+
+func Set(c context.Context, key string, value interface{}) {
+	FromContext(c).Set(key, value)
+}

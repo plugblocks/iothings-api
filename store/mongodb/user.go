@@ -61,6 +61,19 @@ func (db *mongo) FindUser(params params.M) (*models.User, error) {
 	return user, err
 }
 
+func (db *mongo) DeleteUser(user *models.User, userId string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	users := db.C(models.UsersCollection).With(session)
+
+	err := users.Remove(bson.M{"_id": userId})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "user_delete_failed", "Failed to delete the user", err)
+	}
+
+	return nil
+}
+
 func (db *mongo) ActivateUser(activationKey string, id string) error {
 	session := db.Session.Copy()
 	defer session.Close()
@@ -69,6 +82,18 @@ func (db *mongo) ActivateUser(activationKey string, id string) error {
 	err := users.Update(bson.M{"$and": []bson.M{{"_id": id}, {"activationKey": activationKey}}}, bson.M{"$set": bson.M{"active": true}})
 	if err != nil {
 		return helpers.NewError(http.StatusInternalServerError, "user_activation_failed", "Couldn't find the user to activate", err)
+	}
+	return nil
+}
+
+func (db *mongo) ChangeLanguage(id string, language string) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	users := db.C(models.UsersCollection).With(session)
+
+	err := users.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"language": language}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "user_activation_failed", "Couldn't find the user to change language", err)
 	}
 	return nil
 }
@@ -126,4 +151,17 @@ func (db *mongo) GetUserOrganization(user *models.User) (*models.Organization, e
 	}
 
 	return organization, err
+}
+
+func (db *mongo) CountUsers() (int, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+
+	users := db.C(models.UsersCollection).With(session)
+
+	nbr, err := users.Find(params.M{}).Count()
+	if err != nil {
+		return -1, helpers.NewError(http.StatusNotFound, "users_not_found", "Users not found", err)
+	}
+	return nbr, nil
 }

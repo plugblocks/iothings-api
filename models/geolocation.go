@@ -1,5 +1,10 @@
 package models
 
+import (
+	"gopkg.in/mgo.v2/bson"
+	"time"
+)
+
 type GeoJSON struct {
 	Type     string    `json:"type" bson:"type"`
 	Features []Feature `json:"features" bson:"features"`
@@ -12,13 +17,8 @@ type Feature struct {
 }
 
 type Geometry struct {
-	Type        string       `json:"type" bson:"type"`
-	Coordinates []Coordinate `json:"coordinates" bson:"coordinates"`
-}
-
-type Coordinate struct {
-	Longitude float64
-	Latitude  float64
+	Type        string    `json:"type" bson:"type"`
+	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
 }
 
 /*{
@@ -48,3 +48,29 @@ type Coordinate struct {
     }
   ]
 }*/
+
+type Geolocation struct {
+	Id        string  `json:"id" bson:"_id,omitempty" valid:"-"`
+	DeviceId  string  `json:"device_id" bson:"device_id"`
+	OrderId   *string `json:"order_id,omitempty" bson:"order_id,omitempty"`
+	Timestamp int64   `json:"timestamp" bson:"timestamp" valid:"-"`
+	Latitude  float64 `json:"latitude" bson:"latitude" valid:"-"`
+	Longitude float64 `json:"longitude" bson:"longitude" valid:"-"`
+	Radius    float64 `json:"radius" bson:"radius" valid:"-"`
+	Source    string  `json:"source" bson:"source" valid:"-"`
+}
+
+type GeolocationQueryParams struct {
+	Order     bool   `form:"order" json:"order"`
+	Limit     int    `form:"limit" json:"limit"`
+	Source    string `form:"source" json:"source"`
+	StartTime int    `form:"starttime" json:"starttime"`
+	EndTime   int    `form:"endtime" json:"endtime"`
+}
+
+func (l *Geolocation) BeforeCreate() {
+	l.Id = bson.NewObjectId().Hex()
+	l.Timestamp = time.Now().Unix()
+}
+
+const GeolocationsCollection = "geolocations"
