@@ -1,4 +1,4 @@
-things-api
+things-api/
 .idea/
 base.rsa
 base.rsa.pub
@@ -6,6 +6,8 @@ base.rsa.pub
 .env.prod
 .env.prod.*
 .env.testing
+
+vendor/
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
