@@ -2,24 +2,10 @@ package services
 
 import (
 	"bytes"
-	"github.com/pkg/errors"
-	"gitlab.com/plugblocks/iothings-api/config"
-	"gitlab.com/plugblocks/iothings-api/helpers"
-	"gitlab.com/plugblocks/iothings-api/helpers/params"
-	"gitlab.com/plugblocks/iothings-api/store"
+	"fmt"
 	"html/template"
 	"io/ioutil"
-	"net/http"
 
-	//"net/http"
-
-	"gitlab.com/plugblocks/iothings-api/models"
-
-	/*"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go
-	"github.com/sendgrid/sendgrid-go/helpers/mail"*/
-
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -27,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"gitlab.com/plugblocks/iothings-api/models"
 	"golang.org/x/net/context"
 )
 
@@ -42,8 +29,7 @@ type EmailSender interface {
 	GetEmailParams() *EmailSenderParams
 	//SendUserValidationEmail(user *models.User, subject string, templateLink string) error
 	//SendAlertEmail(user *models.User, device *models.Device, observation *models.Observation, subject string, templateLink string) error
-	CheckMailCredit(c *gin.Context, subscription *models.Subscription) bool
-	SendEmailFromTemplate(ctx *gin.Context, subscription *models.Subscription, data *models.EmailData, templateLink string) error
+	SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error
 	SendEmail(data *models.EmailData) error
 }
 
@@ -73,41 +59,6 @@ func NewEmailSender(config *viper.Viper) EmailSender {
 
 func (s *EmailSenderParams) GetEmailParams() *EmailSenderParams {
 	return s
-}
-
-func (s *EmailSenderParams) CheckMailCredit(c *gin.Context, subscription *models.Subscription) bool {
-	mailCredit := subscription.PlanCreditWifi
-	fmt.Println("Mail Check Organization credit:", mailCredit)
-	if mailCredit > 0 {
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_mail": mailCredit - 1}})
-		return true
-	} else if mailCredit == 0 {
-		fmt.Println("Mail Check Credit Organization no credit warning mails sent")
-		appName := config.GetString(c, "mail_sender_name")
-		subject := appName + ", your mail token is empty, we give you 10 mails"
-		templateLink := "./templates/html/mail_token_empty.html"
-		userData := models.EmailData{ReceiverMail: s.senderEmail, ReceiverName: s.senderName, Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		s.SendEmailFromTemplate(c, subscription, &userData, templateLink)
-		s.SendEmailFromTemplate(c, subscription, &adminData, templateLink)
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_mail": -1}})
-		return false
-	} else if mailCredit > -10 {
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_mail": mailCredit - 100}})
-		return false
-	} else if mailCredit == -100 {
-		fmt.Println("Mail Check Credit Organization no credit disable mails sent")
-		appName := config.GetString(c, "mail_sender_name")
-		subject := appName + ", your mail token is empty"
-		templateLink := "./templates/html/mail_token_empty.html"
-		userData := models.EmailData{ReceiverMail: s.senderEmail, ReceiverName: s.senderName, Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Mail", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		s.SendEmailFromTemplate(c, subscription, &userData, templateLink)
-		s.SendEmailFromTemplate(c, subscription, &adminData, templateLink)
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_mail": mailCredit - 1000}})
-		return false
-	}
-	return false
 }
 
 func (s *EmailSenderParams) SendEmail(data *models.EmailData) error {
@@ -190,13 +141,7 @@ func (s *EmailSenderParams) SendEmail(data *models.EmailData) error {
 	return nil
 }
 
-func (s *EmailSenderParams) SendEmailFromTemplate(ctx *gin.Context, subscription *models.Subscription, data *models.EmailData, templateLink string) error {
-
-	if !s.CheckMailCredit(ctx, subscription) {
-		err := errors.New("Your mail credit is spent")
-		return helpers.NewError(http.StatusExpectationFailed, "mail_credit_spent", err.Error(), err)
-	}
-
+func (s *EmailSenderParams) SendEmailFromTemplate(ctx *gin.Context, data *models.EmailData, templateLink string) error {
 	file, err := ioutil.ReadFile(templateLink)
 	if err != nil {
 		return err

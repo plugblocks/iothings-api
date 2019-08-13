@@ -90,31 +90,10 @@ type Store interface {
 	GetAllOrganizations() ([]models.Organization, error)
 	DeleteOrganization(string) error
 	CountOrganizations() (int, error)
-	GetOrganizationSubscription(string) (*models.Subscription, error)
-
-	CreateSubscription(*models.Subscription) error
-	GetSubscription(string) (*models.Subscription, error)
-	UpdateSubscription(string, params.M) error
-	GetSubscriptions() ([]models.Subscription, error)
-	DeleteSubscription(string) error
 
 	CreateObservation(*models.Observation) error
 	GetDeviceObservations(string, string, string, int) ([]*models.Observation, error)
 	GetFleetObservations(*models.User, string, string, string, int) ([]*models.Observation, error)
 	CountObservations() (int, error)
 	DeleteObservation(string) error
-
-	CreateOrder(string, *models.Order) error
-	GetOrderById(string, string) (*models.Order, error)
-	UpdateOrder(string, string, params.M) error
-	GetAllOrders(string) ([]models.Order, error)
-	DeleteOrder(string, string) error
-	TerminateOrder(string, string) error
-	GetOrderGeolocations(string, string) ([]*models.Geolocation, error)
-
-	CreateWarehouse(string, *models.Warehouse) error
-	GetWarehouseById(string, string) (*models.Warehouse, error)
-	UpdateWarehouse(string, string, params.M) error
-	GetAllWarehouses(string) ([]models.Warehouse, error)
-	DeleteWarehouse(string, string) error
 }

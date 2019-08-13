@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"gitlab.com/plugblocks/iothings-api/config"
@@ -51,13 +50,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	s := services.GetEmailSender(c)
 	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, User: user, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 
-	subscription, err := store.GetOrganizationSubscription(c, user.OrganizationId)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	err = s.SendEmailFromTemplate(c, subscription, &data, templateLink)
+	err := s.SendEmailFromTemplate(c, &data, templateLink)
 	if err != nil {
 		c.AbortWithError(http.StatusUnauthorized, helpers.ErrorWithCode("mail_credit_spent", "Your mail credit is spent", err))
 		return

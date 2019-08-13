@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/helpers"
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -122,12 +121,7 @@ func (ac AlertController) TextTest(c *gin.Context) {
 	s := services.GetTextSender(c)
 	data := models.TextData{PhoneNumber: user.Phone, Subject: "Text Alert", Message: "You just received an alert, check at: https://app.plugblocks.com"}
 
-	subscription, err := store.GetOrganizationSubscription(c, user.OrganizationId)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	err = s.SendText(c, subscription, data)
+	err = s.SendText(c, data)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, helpers.ErrorWithCode("text_send_error", "Text sending error", err))
 		return

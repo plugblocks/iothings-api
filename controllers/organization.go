@@ -96,14 +96,3 @@ func (oc OrganizationController) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
-
-func (oc OrganizationController) GetOrganizationSubscription(c *gin.Context) {
-	subscription, err := store.GetOrganizationSubscription(c, c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, "Get subscription error")
-		c.Error(err)
-		c.Abort()
-		return
-	}
-	c.JSON(http.StatusOK, subscription)
-}

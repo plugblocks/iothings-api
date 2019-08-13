@@ -109,8 +109,6 @@ func (sc SigfoxController) CreateSigfoxMessage(c *gin.Context) {
 		loc.DeviceId = device.Id
 		loc.OrderId = device.OrderId
 
-		services.CheckLocation(c, store.FromContext(c), device, loc)
-
 		err = store.CreateGeolocation(c, loc)
 		if err != nil {
 			fmt.Println("Error while creating WiFi Geolocation from Sigfox")

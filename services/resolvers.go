@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
-	"gitlab.com/plugblocks/iothings-api/helpers/params"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 	"gitlab.com/plugblocks/iothings-api/store"
@@ -558,47 +557,6 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	return gpsLoc, orientation, moves, temperature, status
 }
 
-func CheckWifiCredit(c *gin.Context, subscription *models.Subscription) bool {
-	//wifiCredit := config.GetInt(c, "plan_credit_wifi")
-	wifiCredit := subscription.PlanCreditWifi
-	fmt.Println("Wifi Organization credit:", wifiCredit)
-	es := GetEmailSender(c)
-	if wifiCredit > 0 {
-		//config.Set(c, "plan_credit_wifi", wifiCredit-1)
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_wifi": wifiCredit - 1}})
-		return true
-	} else if wifiCredit == 0 {
-		fmt.Println("Wifi Check Credit Organization no credit warning mails sent")
-		appName := config.GetString(c, "mail_sender_name")
-		subject := appName + ", your wifi token is empty, we give you 10 wifi"
-		templateLink := "./templates/html/mail_token_empty.html"
-		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		EmailSender.SendEmailFromTemplate(es, c, subscription, &userData, templateLink)
-		EmailSender.SendEmailFromTemplate(es, c, subscription, &adminData, templateLink)
-		//config.Set(c, "plan_credit_wifi", -1)
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_wifi": wifiCredit - 1}})
-		return false
-	} else if wifiCredit > -10 {
-		//config.Set(c, "plan_credit_wifi", -100)
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_wifi": wifiCredit - 100}})
-		return false
-	} else if wifiCredit == -100 {
-		fmt.Println("Wifi Check Credit Organization no credit disable wifi sent")
-		appName := config.GetString(c, "mail_sender_name")
-		subject := appName + ", your wifi token is empty"
-		templateLink := "./templates/html/mail_token_empty.html"
-		userData := models.EmailData{ReceiverMail: EmailSender.GetEmailParams(es).senderEmail, ReceiverName: EmailSender.GetEmailParams(es).senderName, Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		adminData := models.EmailData{ReceiverMail: "contact@plugblocks.com", ReceiverName: "PlugBlocks Admin", Subject: subject, Body: "Wifi", ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
-		EmailSender.SendEmailFromTemplate(es, c, subscription, &userData, templateLink)
-		EmailSender.SendEmailFromTemplate(es, c, subscription, &adminData, templateLink)
-		//config.Set(c, "plan_credit_wifi", -1000)
-		store.UpdateSubscription(c, subscription.Id, params.M{"$set": params.M{"plan_credit_wifi": wifiCredit - 1000}})
-		return false
-	}
-	return false
-}
-
 func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
 	device, err := store.GetDeviceFromSigfoxId(contxt, sigfoxMessage.SigfoxId)
 	if err != nil {
@@ -637,15 +595,6 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			fmt.Println("Wisol No GPS Frame")
 		}
 	} else {
-		subscription, err := store.GetOrganizationSubscription(contxt, device.OrganizationId)
-		if err != nil {
-			fmt.Println(err)
-			return false, nil, nil
-		}
-		if !CheckWifiCredit(contxt, subscription) {
-			return false, nil, nil
-		}
-
 		status, geoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
 
 		if status == false {

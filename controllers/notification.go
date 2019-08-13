@@ -1,12 +1,10 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/plugblocks/iothings-api/config"
 	"gitlab.com/plugblocks/iothings-api/models"
 	"gitlab.com/plugblocks/iothings-api/services"
-	"gitlab.com/plugblocks/iothings-api/store"
 )
 
 type NotificationController struct {
@@ -24,10 +22,5 @@ func (nc NotificationController) SendAlertMail(c *gin.Context, user *models.User
 	s := services.GetEmailSender(c)
 	data := models.EmailData{ReceiverMail: user.Email, ReceiverName: user.Firstname + " " + user.Lastname, Subject: subject, ApiUrl: config.GetString(c, "api_url"), AppName: config.GetString(c, "mail_sender_name")}
 
-	subscription, err := store.GetOrganizationSubscription(c, user.OrganizationId)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	s.SendEmailFromTemplate(c, subscription, &data, templateLink)
+	s.SendEmailFromTemplate(c, &data, templateLink)
 }

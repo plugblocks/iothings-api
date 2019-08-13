@@ -152,46 +152,8 @@ func (a *API) SetupRouter() {
 			organizations.POST("/", organizationsController.CreateOrganization)
 			organizations.PUT("/:id", organizationsController.UpdateOrganization)
 			organizations.GET("/:id", organizationsController.GetOrganizationById)
-			organizations.GET("/:id/subscription", organizationsController.GetOrganizationSubscription)
 			organizations.DELETE("/:id", organizationsController.DeleteOrganization)
 			organizations.GET("/:id/users", organizationsController.GetUsers)
-		}
-
-		subscriptions := v1.Group("/subscriptions")
-		{
-			subscriptions.Use(authMiddleware)
-			subscriptions.Use(adminMiddleware)
-			subscriptionsController := controllers.NewSubscriptionController()
-			subscriptions.GET("/", subscriptionsController.GetSubscriptions)
-			subscriptions.POST("/", subscriptionsController.CreateSubscription)
-			subscriptions.PUT("/:id", subscriptionsController.UpdateSubscription)
-			subscriptions.GET("/:id", subscriptionsController.GetSubscription)
-			subscriptions.DELETE("/:id", subscriptionsController.DeleteSubscription)
-		}
-
-		orders := v1.Group("/orders")
-		{
-			orders.Use(authMiddleware)
-			ordersController := controllers.NewOrderController()
-			orders.GET("/", ordersController.GetOrders)
-			orders.POST("/", ordersController.CreateOrder)
-			orders.PUT("/:id", ordersController.EditOrder)
-			orders.GET("/:id", ordersController.GetOrderById)
-			orders.DELETE("/:id", ordersController.DeleteOrder)
-			orders.PUT("/:id/terminate", ordersController.TerminateOrder)
-			orders.GET("/:id/locations", ordersController.GetOrderGeolocations)
-			orders.GET("/:id/matching_map", ordersController.GetMatchingMap)
-		}
-
-		warehouses := v1.Group("/warehouses")
-		{
-			warehouses.Use(authMiddleware)
-			warehousesController := controllers.NewWarehouseController()
-			warehouses.GET("/", warehousesController.GetWarehouses)
-			warehouses.POST("/", warehousesController.CreateWarehouse)
-			warehouses.PUT("/:id", warehousesController.EditWarehouse)
-			warehouses.GET("/:id", warehousesController.GetWarehouseById)
-			warehouses.DELETE("/:id", warehousesController.DeleteWarehouse)
 		}
 
 		observations := v1.Group("/observations")
