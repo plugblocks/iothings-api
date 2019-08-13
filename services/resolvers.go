@@ -17,8 +17,31 @@ import (
 	"googlemaps.github.io/maps"
 )
 
+func GoogleWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (resp *maps.GeolocationResult, err error) {
+	googleApiKey := config.GetString(cont, "google_api_key")
+
+	c, err := maps.NewClient(maps.WithAPIKey(googleApiKey))
+	if err != nil {
+		log.Fatalf("API connection fatal error: %s", err)
+	}
+	r := &maps.GeolocationRequest{
+		ConsiderIP: false,
+		WiFiAccessPoints: []maps.WiFiAccessPoint{{
+			MACAddress: ssid1,
+		}, {
+			MACAddress: ssid2,
+		}},
+	}
+
+	resp, err = c.Geolocate(context.Background(), r)
+	if err != nil {
+		fmt.Println("Google WiFi Geolocation: ", err, "ssid1: ", ssid1, "ssid2: ", ssid2)
+		return resp, err
+	}
+}
+
 // These are all a mix of enhancers / resolvers. TODO: Split this in pieces.
-func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
+func ResolveWifiPosition(cont *gin.Context, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
 	if len(msg.Data) <= 12 {
 		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")
 		return false, nil, nil
@@ -43,28 +66,9 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 
 	//fmt.Print("WiFis: SSID1: ", ssid1, "\t SSID2:", ssid2, "\t")
 
-	googleApiKey := config.GetString(contxt, "google_api_key")
+	resp, err := GoogleWifiResolving(cont, ssid1, ssid2)
 
-	c, err := maps.NewClient(maps.WithAPIKey(googleApiKey))
-	if err != nil {
-		log.Fatalf("API connection fatal error: %s", err)
-	}
-	r := &maps.GeolocationRequest{
-		ConsiderIP: false,
-		WiFiAccessPoints: []maps.WiFiAccessPoint{{
-			MACAddress: ssid1,
-		}, {
-			MACAddress: ssid2,
-		}},
-	}
-
-	resp, err := c.Geolocate(context.Background(), r)
-	if err != nil {
-		fmt.Println("Google WiFi Geolocation: ", err, "ssid1: ", ssid1, "ssid2: ", ssid2)
-		return false, nil, nil
-	}
-
-	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
+	device, err := store.GetDeviceFromSigfoxId(cont, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
 		return false, nil, nil
@@ -93,10 +97,10 @@ func ResolveWifiPosition(contxt *gin.Context, msg *sigfox.Message) (bool, *model
 	return true, wifiLoc, obs
 }
 
-func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+func DecodeSensitV2Message(cont *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
 	obs := &models.Observation{}
 	defp := &models.SemanticProperty{Context: "sensit", Type: "sensor"}
-	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
+	device, err := store.GetDeviceFromSigfoxId(cont, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
 		return false, nil
@@ -263,10 +267,10 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 	return true, obs
 }
 
-func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+func DecodeSensitV3Message(cont *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
 	obs := &models.Observation{}
 	defp := &models.SemanticProperty{Context: "sensit", Type: "sensor"}
-	device, err := store.GetDeviceFromSigfoxId(contxt, msg.SigfoxId)
+	device, err := store.GetDeviceFromSigfoxId(cont, msg.SigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
 		return false, nil
@@ -412,8 +416,8 @@ func DecodeSensitV3Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 	return true, obs
 }
 
-func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geolocation, *models.Observation) {
-	device, err := store.GetDeviceFromSigfoxId(contxt, loc.SigfoxId)
+func SigfoxSpotit(cont *gin.Context, loc *sigfox.Location) (bool, *models.Geolocation, *models.Observation) {
+	device, err := store.GetDeviceFromSigfoxId(cont, loc.SigfoxId)
 	if err != nil {
 		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
 		return false, nil, nil
@@ -442,8 +446,8 @@ func SigfoxSpotit(contxt *gin.Context, loc *sigfox.Location) (bool, *models.Geol
 	return true, spotitLoc, obs
 }
 
-func DecodeLevelFrame(contxt *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
-	//store.UpdateDeviceActivity(contxt, device.Id, 1)
+func DecodeLevelFrame(cont *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+	//store.UpdateDeviceActivity(cont, device.Id, 1)
 
 	//if string(msg.Data[0:6]) == "000000"
 	//humi, _ := strconv.ParseInt(msg.Data[0:32], 2, 16)
@@ -557,8 +561,8 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	return gpsLoc, orientation, moves, temperature, status
 }
 
-func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
-	device, err := store.GetDeviceFromSigfoxId(contxt, sigfoxMessage.SigfoxId)
+func Wisol(cont *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
+	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxMessage.SigfoxId)
 	if err != nil {
 		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
 		return false, nil, nil
@@ -595,7 +599,7 @@ func Wisol(contxt *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Ge
 			fmt.Println("Wisol No GPS Frame")
 		}
 	} else {
-		status, geoloc, obs := ResolveWifiPosition(contxt, sigfoxMessage)
+		status, geoloc, obs := ResolveWifiPosition(cont, sigfoxMessage)
 
 		if status == false {
 			fmt.Println("Error while resolving Wisol WiFi location for device: ", sigfoxMessage.SigfoxId, "at ", time.Unix(sigfoxMessage.Timestamp, 0))
