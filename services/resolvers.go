@@ -136,8 +136,8 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 		batVal := (float64(battery) * 0.05) + 2.7
 		batVal = math.Round(batVal*100) / 100
 		//Byte 3
-		temperature := int64(0)
-		tempVal := float32(0)
+		var temperature int64
+		var tempVal float32
 
 		reedSwitch := false
 		if mode == 0 || mode == 1 {
@@ -155,8 +155,8 @@ func DecodeSensitV2Message(contxt *gin.Context, msg *sigfox.Message) (bool, *mod
 
 		modeStr := ""
 		swRev := ""
-		humidity := float64(0.0)
-		light := float64(0.0)
+		humidity := 0.0
+		light := 0.0
 
 		switch mode {
 		case 0:

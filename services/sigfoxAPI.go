@@ -55,7 +55,7 @@ func SigfoxAPIMessagesInflating(c *gin.Context) {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("User: ", authResp.User.Firstname, authResp.User.Lastname, " succesfully authenticated")
+	fmt.Println("User: ", authResp.User.Firstname, authResp.User.Lastname, " successfully authenticated")
 
 	// Step 2: Create device and checks if it already exists
 	thingsDeviceParams := map[string]string{"name": "Sigfox Device ID: " + c.Param("sigfoxId"), "sigfox_id": c.Param("sigfoxId")}

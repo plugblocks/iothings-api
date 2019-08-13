@@ -1,5 +1,7 @@
 package middlewares
 
+// Source: https://github.com/itsjamie/gin-cors/blob/master/cors.go
+
 /*
 This code implements the flow chart that can be found here.
 http://www.html5rocks.com/static/images/cors_server_flowchart.png
@@ -60,7 +62,7 @@ type Config struct {
 	RequestHeaders string
 	requestHeaders []string
 
-	// These are headers that should be accessable by the CORS client, they are in addition to those defined by the spec as "simple response headers"
+	// These are headers that should be accessible by the CORS client, they are in addition to those defined by the spec as "simple response headers"
 	//	 Cache-Control
 	//	 Content-Language
 	//	 Content-Type

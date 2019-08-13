@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"gitlab.com/plugblocks/iothings-api/server"
 	"gitlab.com/plugblocks/iothings-api/services"
+	"gitlab.com/plugblocks/iothings-api/utils"
 )
 
 func main() {
@@ -33,9 +34,9 @@ func main() {
 	}
 
 	// Seeds setup
-	api.SetupSeeds()
+	utils.CheckErr(api.SetupSeeds())
 
 	// Router setup
 	api.SetupRouter()
-	api.Router.Run(api.Config.GetString("host_address"))
+	utils.CheckErr(api.Router.Run(api.Config.GetString("host_address")))
 }
