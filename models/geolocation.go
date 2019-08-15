@@ -52,7 +52,6 @@ type Geometry struct {
 type Geolocation struct {
 	Id        string  `json:"id" bson:"_id,omitempty" valid:"-"`
 	DeviceId  string  `json:"device_id" bson:"device_id"`
-	OrderId   *string `json:"order_id,omitempty" bson:"order_id,omitempty"`
 	Timestamp int64   `json:"timestamp" bson:"timestamp" valid:"-"`
 	Latitude  float64 `json:"latitude" bson:"latitude" valid:"-"`
 	Longitude float64 `json:"longitude" bson:"longitude" valid:"-"`

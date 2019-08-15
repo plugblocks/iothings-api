@@ -21,7 +21,6 @@ func (db *mongo) CreateDevice(organizationId string /*user *models.User*/, devic
 	//fmt.Println("Mongo User: " + user.Email + "OrgaId" + user.OrganizationId)
 	device.BeforeCreate()
 	device.OrganizationId = organizationId
-	device.Available = true
 
 	if device.SigfoxId != "" {
 		count, _ := devices.Find(bson.M{"sigfox_id": device.SigfoxId}).Count()

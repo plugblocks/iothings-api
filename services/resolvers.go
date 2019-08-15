@@ -1,10 +1,15 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"gitlab.com/plugblocks/iothings-api/utils"
+	"io/ioutil"
 	"log"
 	"math"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -38,79 +43,137 @@ func GoogleWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (resp *m
 		fmt.Println("Google WiFi Geolocation: ", err, "ssid1: ", ssid1, "ssid2: ", ssid2)
 		return resp, err
 	}
+
+	return resp, nil
 }
 
-// These are all a mix of enhancers / resolvers. TODO: Split this in pieces.
-func ResolveWifiPosition(cont *gin.Context, msg *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
-	if len(msg.Data) <= 12 {
+func HereWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (location models.HereLocation) {
+	hereApiId, hereApiCode := config.GetString(cont, "here_api_id"), config.GetString(cont, "here_api_code")
+
+	client := &http.Client{}
+	wlan1, wlan2 := models.Wlan{Mac: ssid1}, models.Wlan{Mac: ssid2}
+	params := models.HereRequest{Wlan: []models.Wlan{wlan1, wlan2}}
+	jsonValDevice, _ := json.Marshal(params)
+	req, _ := http.NewRequest("POST", "https://pos.api.here.com/positioning/v1/locate?app_id="+hereApiId+"&app_code="+hereApiCode, bytes.NewBuffer(jsonValDevice))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	utils.CheckErr(err)
+
+	bodyResp, err := ioutil.ReadAll(resp.Body)
+	utils.CheckErr(err)
+
+	err = json.Unmarshal(bodyResp, &location)
+	if err != nil {
+		var hereError = new(models.HereError)
+		err = json.Unmarshal(bodyResp, &hereError)
+		utils.CheckErr(err)
+	}
+
+	return location
+}
+
+// These are all a mix of enhancers / resolvers.
+func ResolveWifiPosition(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *models.Geolocation, *models.Observation, *models.Observation) {
+	wifiLocGoogle, wifiObsGoogle := &models.Geolocation{}, &models.Observation{}
+	wifiLocHere, wifiObsHere := &models.Geolocation{}, &models.Observation{}
+
+	msgData, msgSigfoxId, msgTime := string(""), string(""), int64(0)
+
+	switch msg := message.(type) {
+	case *sigfox.Message:
+		msgData = msg.Data
+		msgSigfoxId = msg.SigfoxId
+		msgTime = msg.Timestamp
+	case *sigfox.MessageDataAdvanced:
+		msgData = msg.Data
+		msgSigfoxId = msg.SigfoxId
+		msgTime = msg.Timestamp
+	}
+
+	if len(msgData) <= 12 {
 		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")
-		return false, nil, nil
+		return false, nil, nil, nil, nil
 	}
 
 	ssid1 := ""
 	for i := 0; i <= 10; i += 2 {
 		if i == 10 {
-			ssid1 += fmt.Sprint(string(msg.Data[i : i+2]))
+			ssid1 += fmt.Sprint(string(msgData[i : i+2]))
 		} else {
-			ssid1 += fmt.Sprint(string(msg.Data[i:i+2]), ":")
+			ssid1 += fmt.Sprint(string(msgData[i:i+2]), ":")
 		}
 	}
 	ssid2 := ""
 	for i := 12; i <= 22; i += 2 {
 		if i == 22 {
-			ssid2 += fmt.Sprint(string(msg.Data[i : i+2]))
+			ssid2 += fmt.Sprint(string(msgData[i : i+2]))
 		} else {
-			ssid2 += fmt.Sprint(string(msg.Data[i:i+2]), ":")
+			ssid2 += fmt.Sprint(string(msgData[i:i+2]), ":")
 		}
 	}
 
 	//fmt.Print("WiFis: SSID1: ", ssid1, "\t SSID2:", ssid2, "\t")
 
-	resp, err := GoogleWifiResolving(cont, ssid1, ssid2)
-
-	device, err := store.GetDeviceFromSigfoxId(cont, msg.SigfoxId)
+	device, err := store.GetDeviceFromSigfoxId(cont, msgSigfoxId)
 	if err != nil {
 		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
-		return false, nil, nil
+		return false, nil, nil, nil, nil
 	}
 
-	//Else, position is resolved
-	//var wifiLoc sigfox.Location
-	wifiLoc := &models.Geolocation{}
-	wifiLoc.DeviceId = device.Id
-	wifiLoc.Timestamp = msg.Timestamp
-	wifiLoc.Source = "wifi"
-	wifiLoc.Latitude = resp.Location.Lat
-	wifiLoc.Longitude = resp.Location.Lng
-	wifiLoc.Radius = resp.Accuracy
+	resp, err := GoogleWifiResolving(cont, ssid1, ssid2)
 
-	obs := &models.Observation{}
-	defp := &models.SemanticProperty{Context: "wifi", Type: "location"}
+	wifiLocGoogle.DeviceId = device.Id
+	wifiLocGoogle.Timestamp = msgTime
+	wifiLocGoogle.Source = "wifi-google"
+	wifiLocGoogle.Latitude = resp.Location.Lat
+	wifiLocGoogle.Longitude = resp.Location.Lng
+	wifiLocGoogle.Radius = resp.Accuracy
+
+	defp := &models.SemanticProperty{Context: "wifi-google", Type: "location"}
 	latVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: resp.Location.Lat}
 	lngVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: resp.Location.Lng}
 	accVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: resp.Accuracy}
-	obs.Values = append(obs.Values, latVal, lngVal, accVal)
-	obs.Timestamp = msg.Timestamp
-	obs.DeviceId = device.Id
-	obs.Resolver = "wifi"
+	wifiObsGoogle.Values = append(wifiObsGoogle.Values, latVal, lngVal, accVal)
+	wifiObsGoogle.Timestamp = msgTime
+	wifiObsGoogle.DeviceId = device.Id
+	wifiObsGoogle.Resolver = "wifi-google"
 
-	return true, wifiLoc, obs
+	loc := HereWifiResolving(cont, ssid1, ssid2)
+
+	wifiLocHere.DeviceId = device.Id
+	wifiLocHere.Timestamp = msgTime
+	wifiLocHere.Source = "wifi-here"
+	wifiLocHere.Latitude = loc.Location.Lat
+	wifiLocHere.Longitude = loc.Location.Lng
+	wifiLocHere.Radius = float64(loc.Location.Accuracy)
+
+	defp = &models.SemanticProperty{Context: "wifi-here", Type: "location"}
+	latVal = models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: loc.Location.Lat}
+	lngVal = models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: loc.Location.Lng}
+	accVal = models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: loc.Location.Accuracy}
+	wifiObsHere.Values = append(wifiObsHere.Values, latVal, lngVal, accVal)
+	wifiObsHere.Timestamp = msgTime
+	wifiObsHere.DeviceId = device.Id
+	wifiObsHere.Resolver = "wifi-here"
+
+	return true, wifiLocGoogle, wifiLocHere, wifiObsGoogle, wifiObsHere
 }
 
-func DecodeSensitV2Message(cont *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+func DecodeSensitV2Message(cont *gin.Context, sigfoxId string, data string, timestamp int64) (bool, *models.Observation) {
 	obs := &models.Observation{}
 	defp := &models.SemanticProperty{Context: "sensit", Type: "sensor"}
-	device, err := store.GetDeviceFromSigfoxId(cont, msg.SigfoxId)
+	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
 		return false, nil
 	}
 
 	//Decoder itself
-	if len(msg.Data) <= 12 { //8 exactly, 4 bytes
+	if len(data) <= 12 { //8 exactly, 4 bytes
 		fmt.Println("Sensit Uplink Message")
 
-		parsed, err := strconv.ParseUint(msg.Data, 16, 32)
+		parsed, err := strconv.ParseUint(data, 16, 32)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -260,17 +323,17 @@ func DecodeSensitV2Message(cont *gin.Context, msg *sigfox.Message) (bool, *model
 		dlData := models.QuantitativeValue{SemanticProperty: defp, Identifier: "downlink", UnitText: "", Value: true}
 		obs.Values = append(obs.Values, dlData)
 	}
-	obs.Timestamp = msg.Timestamp
+	obs.Timestamp = timestamp
 	obs.DeviceId = device.Id
 	obs.Resolver = "sensitv2"
 
 	return true, obs
 }
 
-func DecodeSensitV3Message(cont *gin.Context, msg *sigfox.Message) (bool, *models.Observation) {
+func DecodeSensitV3Message(cont *gin.Context, sigfoxId string, data string, timestamp int64) (bool, *models.Observation) {
 	obs := &models.Observation{}
 	defp := &models.SemanticProperty{Context: "sensit", Type: "sensor"}
-	device, err := store.GetDeviceFromSigfoxId(cont, msg.SigfoxId)
+	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxId)
 	if err != nil {
 		fmt.Println("Enhancer Sigfox Device ID not found", err)
 		return false, nil
@@ -282,12 +345,12 @@ func DecodeSensitV3Message(cont *gin.Context, msg *sigfox.Message) (bool, *model
 	tempVal := float32(0.0)
 	lightVal := float32(0.0)
 
-	fmt.Println("len(msg.Data):", len(msg.Data))
-	//Decoder itself
-	if len(msg.Data) <= 12 { //8 exactly, 4 bytes
+	// fmt.Println("len(msg.Data):", len(data))
+	// Decoder itself
+	if len(data) <= 12 { //8 exactly, 4 bytes
 		fmt.Println("Sensit Uplink Message")
 
-		parsed, err := strconv.ParseUint(msg.Data, 16, 32)
+		parsed, err := strconv.ParseUint(data, 16, 32)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -410,7 +473,7 @@ func DecodeSensitV3Message(cont *gin.Context, msg *sigfox.Message) (bool, *model
 		obs.Values = append(obs.Values, dlData)
 	}
 
-	obs.Timestamp = msg.Timestamp
+	obs.Timestamp = timestamp
 	obs.DeviceId = device.Id
 	obs.Resolver = "sensitv3"
 	return true, obs
@@ -599,7 +662,7 @@ func Wisol(cont *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geol
 			fmt.Println("Wisol No GPS Frame")
 		}
 	} else {
-		status, geoloc, obs := ResolveWifiPosition(cont, sigfoxMessage)
+		status, geoloc, _, obs, _ := ResolveWifiPosition(cont, sigfoxMessage)
 
 		if status == false {
 			fmt.Println("Error while resolving Wisol WiFi location for device: ", sigfoxMessage.SigfoxId, "at ", time.Unix(sigfoxMessage.Timestamp, 0))
