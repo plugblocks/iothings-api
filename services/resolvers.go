@@ -78,7 +78,7 @@ func ResolveWifiPosition(cont *gin.Context, message interface{}) (bool, *models.
 	wifiLocGoogle, wifiObsGoogle := &models.Geolocation{}, &models.Observation{}
 	wifiLocHere, wifiObsHere := &models.Geolocation{}, &models.Observation{}
 
-	msgData, msgSigfoxId, msgTime := string(""), string(""), int64(0)
+	msgData, msgSigfoxId, msgTime := "", "", int64(0)
 
 	switch msg := message.(type) {
 	case *sigfox.Message:
@@ -526,7 +526,17 @@ func DecodeLevelFrame(cont *gin.Context, msg *sigfox.Message) (bool, *models.Obs
 	return true, obs
 }
 
-func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64, float64, bool) {
+func decodeWisolGPSFrame(message interface{}) (models.Geolocation, string, int64, float64, bool) {
+	data, timestamp := "", int64(0)
+	switch msg := message.(type) {
+	case *sigfox.Message:
+		data = msg.Data
+		timestamp = msg.Timestamp
+	case *sigfox.MessageDataAdvanced:
+		data = msg.Data
+		timestamp = msg.Timestamp
+	}
+
 	fmt.Print("GPS frame: \t\t\t")
 	var gpsLoc models.Geolocation
 	var temperature float64
@@ -538,10 +548,10 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	var lngDeg, lngMin, lngSec float64
 
 	isNorth, isEast := false, false
-	if string(msg.Data[0:2]) == "4e" {
+	if string(data[0:2]) == "4e" {
 		isNorth = true
 	}
-	if string(msg.Data[10:12]) == "45" {
+	if string(data[10:12]) == "45" {
 		isEast = true
 	}
 
@@ -551,11 +561,11 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 		fmt.Print("S:")
 	}
 
-	valLatDeg, _ := strconv.ParseInt(msg.Data[2:4], 16, 8)
+	valLatDeg, _ := strconv.ParseInt(data[2:4], 16, 8)
 	latDeg = float64(valLatDeg)
-	valLatMin, _ := strconv.ParseInt(msg.Data[4:6], 16, 8)
+	valLatMin, _ := strconv.ParseInt(data[4:6], 16, 8)
 	latMin = float64(valLatMin)
-	valLatSec, _ := strconv.ParseInt(msg.Data[6:8], 16, 8)
+	valLatSec, _ := strconv.ParseInt(data[6:8], 16, 8)
 	latSec = float64(valLatSec)
 	fmt.Print(latDeg, "° ", latMin, "m ", latSec, "s\t")
 
@@ -566,11 +576,11 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	} else {
 		fmt.Print("W:")
 	}
-	valLngDeg, _ := strconv.ParseInt(msg.Data[10:12], 16, 8)
+	valLngDeg, _ := strconv.ParseInt(data[10:12], 16, 8)
 	lngDeg = float64(valLngDeg)
-	valLngMin, _ := strconv.ParseInt(msg.Data[12:14], 16, 8)
+	valLngMin, _ := strconv.ParseInt(data[12:14], 16, 8)
 	lngMin = float64(valLngMin)
-	valLngSec, _ := strconv.ParseInt(msg.Data[14:16], 16, 8)
+	valLngSec, _ := strconv.ParseInt(data[14:16], 16, 8)
 	lngSec = float64(valLngSec)
 	fmt.Print(lngDeg, "° ", lngMin, "m ", lngSec, "s")
 
@@ -580,7 +590,7 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	// Populating returned location
 	gpsLoc.Latitude = latitude
 	gpsLoc.Longitude = longitude
-	gpsLoc.Timestamp = msg.Timestamp
+	gpsLoc.Timestamp = timestamp
 	gpsLoc.Radius = 10
 	gpsLoc.Source = "gps"
 
@@ -590,7 +600,7 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 		status = false
 	}*/
 
-	ori, _ = strconv.ParseInt(msg.Data[16:18], 16, 8)
+	ori, _ = strconv.ParseInt(data[16:18], 16, 8)
 	switch ori {
 	case 1:
 		orientation = "Haut"
@@ -607,13 +617,13 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	}
 	fmt.Println("Decoded orientation: ", ori, "\t : ", orientation)
 
-	moves, _ = strconv.ParseInt(msg.Data[18:20], 16, 8)
+	moves, _ = strconv.ParseInt(data[18:20], 16, 8)
 
-	temperature, err := strconv.ParseFloat(msg.Data[20:22], 64)
+	temperature, err := strconv.ParseFloat(data[20:22], 64)
 	if err != nil {
 		fmt.Println("Error while converting temperature main")
 	}
-	dec, err := strconv.ParseFloat(msg.Data[22:24], 64)
+	dec, err := strconv.ParseFloat(data[22:24], 64)
 	if err != nil {
 		fmt.Println("Error while converting temperature decimal")
 	}
@@ -624,8 +634,20 @@ func decodeWisolGPSFrame(msg sigfox.Message) (models.Geolocation, string, int64,
 	return gpsLoc, orientation, moves, temperature, status
 }
 
-func Wisol(cont *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geolocation, *models.Observation) {
-	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxMessage.SigfoxId)
+func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *models.Observation) {
+	data, sigfoxId, timestamp := "", "", int64(0)
+	switch msg := message.(type) {
+	case *sigfox.Message:
+		data = msg.Data
+		sigfoxId = msg.SigfoxId
+		timestamp = msg.Timestamp
+	case *sigfox.MessageDataAdvanced:
+		data = msg.Data
+		sigfoxId = msg.SigfoxId
+		timestamp = msg.Timestamp
+	}
+
+	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxId)
 	if err != nil {
 		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
 		return false, nil, nil
@@ -636,9 +658,9 @@ func Wisol(cont *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geol
 	locProp := &models.SemanticProperty{Context: "gps", Type: "location"}
 	senProp := &models.SemanticProperty{Context: "gps", Type: "sensor"}
 
-	if (string(sigfoxMessage.Data[0:2]) == "4e") || (string(sigfoxMessage.Data[0:2]) == "53") {
-		if string(sigfoxMessage.Data[2:4]) != "00" {
-			decodedGPSFrame, decodedOrientation, decodedMoves, decodedTemperature, _ := decodeWisolGPSFrame(*sigfoxMessage)
+	if (string(data[0:2]) == "4e") || (string(data[0:2]) == "53") {
+		if string(data[2:4]) != "00" {
+			decodedGPSFrame, decodedOrientation, decodedMoves, decodedTemperature, _ := decodeWisolGPSFrame(message)
 			geoloc = &decodedGPSFrame
 			geoloc.DeviceId = device.Id
 
@@ -650,7 +672,7 @@ func Wisol(cont *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geol
 			movVal := models.QuantitativeValue{SemanticProperty: senProp, Identifier: "moves", UnitText: "", Value: decodedMoves}
 			//staVal := models.QuantitativeValue{senProp, "status", "", status}
 			obs.Values = append(obs.Values, latVal, lngVal, accVal, tempVal, orVal, movVal /*, staVal*/)
-			obs.Timestamp = sigfoxMessage.Timestamp
+			obs.Timestamp = timestamp
 			obs.DeviceId = device.Id
 			obs.Resolver = "gps"
 
@@ -658,14 +680,16 @@ func Wisol(cont *gin.Context, sigfoxMessage *sigfox.Message) (bool, *models.Geol
 			return true, geoloc, obs
 
 		} else { //No GPS, frame is empty
-			sigfoxMessage.Data = "No GPS: " + sigfoxMessage.Data
+			data = "No GPS: " + data
 			fmt.Println("Wisol No GPS Frame")
 		}
 	} else {
+		sigfoxMessage := sigfox.Message{"", sigfoxId, 0, timestamp, 0, 0, 0, "",
+			0, 0, "", data}
 		status, geoloc, _, obs, _ := ResolveWifiPosition(cont, sigfoxMessage)
 
 		if status == false {
-			fmt.Println("Error while resolving Wisol WiFi location for device: ", sigfoxMessage.SigfoxId, "at ", time.Unix(sigfoxMessage.Timestamp, 0))
+			fmt.Println("Error while resolving Wisol WiFi location for device: ", sigfoxId, "at ", time.Unix(timestamp, 0))
 			return false, nil, nil
 		}
 

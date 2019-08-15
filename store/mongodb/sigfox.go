@@ -42,6 +42,37 @@ func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
 
 	return nil
 }
+func (db *mongo) CreateSigfoxDataAdvancedMessage(message *sigfox.MessageDataAdvanced) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	sigfoxMessages := db.C(sigfox.SigfoxMessagesCollection).With(session)
+
+	message.Id = bson.NewObjectId().Hex()
+
+	err := sigfoxMessages.Insert(message)
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "message_creation_failed", "Failed to insert the sigfox message", err)
+	}
+	devices := db.C(models.DevicesCollection).With(session)
+	device := &models.Device{}
+
+	err = devices.Find(bson.M{"sigfox_id": message.SigfoxId}).One(device)
+	if err != nil {
+		return helpers.NewError(http.StatusPartialContent, "sigfox_device_id_not_found", "Device Sigfox ID not found", err)
+	} else {
+		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
+		if err != nil {
+			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
+		}
+
+		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
+		if err != nil {
+			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
+		}
+	}
+
+	return nil
+}
 
 func (db *mongo) CreateSigfoxLocation(location *sigfox.Location) error {
 	session := db.Session.Copy()

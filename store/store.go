@@ -66,22 +66,20 @@ type Store interface {
 	CountAlerts() (int, error)
 
 	CreateSigfoxMessage(*sigfox.Message) error
+	CreateSigfoxDataAdvancedMessage(*sigfox.MessageDataAdvanced) error
 	CreateSigfoxLocation(*sigfox.Location) error
 	GetSigfoxLocations() ([]sigfox.Location, error)
 	GetGeoJSON() (*models.GeoJSON, error)
 	CountSigfoxMessages() (int, error)
 
 	CreateGeolocation(*models.Geolocation) error
-	//TODO: DANGER: Protect by auth device GeoJSON
+	CountGeolocations() (int, error)
+	//TODO: Protect by auth device GeoJSON
 	GetFleetsGeoJSON( /**models.User*/ string, int, int, int) (*models.GeoJSON, error)
-	//TODO: DANGER: Protect by auth device GeoJSON
 	GetFleetGeoJSON( /* *models.User, */ string, string, int, int, int) (*models.GeoJSON, error)
-	//TODO: DANGER: Protect by auth device GeoJSON
 	GetDeviceGeoJSON( /* *models.User, */ string, string, int, int, int) (*models.GeoJSON, error)
-	//TODO: DANGER: Protect by auth device GeoJSON
 	GetDeviceGeolocation(*models.User, string, string) (*models.Geolocation, error)
 	GetUserFleetsGeoJSON(*models.User) (*models.GeoJSON, error)
-	CountGeolocations() (int, error)
 
 	CreateOrganization(*models.Organization) error
 	GetOrganizationById(string) (*models.Organization, error)

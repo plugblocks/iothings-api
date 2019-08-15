@@ -141,7 +141,7 @@ func (SigfoxController) CreateSigfoxDataAdvancedMessage(c *gin.Context) {
 		return
 	}
 
-	err = store.CreateSigfoxMessage(c, sigfoxMessage)
+	err = store.CreateSigfoxDataAdvancedMessage(c, sigfoxMessage)
 	if err != nil {
 		c.Error(err)
 	}

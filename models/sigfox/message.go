@@ -18,4 +18,25 @@ type Message struct {
 	//Ack for downlink
 }
 
+type MessageDataAdvanced struct {
+	Id               string           `json:"id" bson:"_id,omitempty" valid:"-"`
+	SigfoxId         string           `json:"sigfox_id" bson:"sigfox_id" valid:"-"`
+	Timestamp        int64            `json:"timestamp" bson:"timestamp" valid:"-"`
+	Data             string           `json:"data" bson:"data" valid:"-"`
+	SeqNumber        int              `json:"seqNumber" bson:"seqNumber" valid:"-"`
+	Lqi              string           `json:"lqi" bson:"lqi" valid:"-"`
+	OperatorName     string           `json:"operatorName" bson:"operatorName" valid:"-"`
+	CountryCode      string           `json:"countryCode" bson:"countryCode" valid:"-"`
+	ComputedLocation ComputedLocation `json:"computedLocation" bson:"computedLocation" valid:"-"`
+	Resolver         string           `json:"resolver,omitempty" bson:"resolver" valid:"-"` //Custom: message type to dispatch cases
+}
+
+type ComputedLocation struct {
+	Lat    float64 `json:"lat" bson:"lat" valid:"-"`
+	Lng    float64 `json:"lng" bson:"lng" valid:"-"`
+	Radius int     `json:"radius" bson:"radius" valid:"-"`
+	Source int     `json:"source" bson:"source" valid:"-"`
+	Status int     `json:"status" bson:"status" valid:"-"`
+}
+
 const SigfoxMessagesCollection = "sigfoxMessages"
