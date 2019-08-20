@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/globalsign/mgo/bson"
 	"time"
 )
 
@@ -30,6 +31,7 @@ type Observation struct {
 }
 
 func (o *Observation) BeforeCreate(device *Device) {
+	o.Id = bson.NewObjectId().Hex()
 	device.LastAccess = time.Now().Unix()
 	device.Active = true
 }

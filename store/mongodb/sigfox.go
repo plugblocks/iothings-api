@@ -24,20 +24,21 @@ func (db *mongo) CreateSigfoxMessage(message *sigfox.Message) error {
 	devices := db.C(models.DevicesCollection).With(session)
 	device := &models.Device{}
 
-	//err = devices.Find(params.M{"sigfox_id": message.SigfoxId}).One(device)
 	err = devices.Find(bson.M{"sigfox_id": message.SigfoxId}).One(device)
 	if err != nil {
-		return helpers.NewError(http.StatusPartialContent, "sigfox_device_id_not_found", "Device Sigfox ID not found", err)
-	} else {
-		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
-		if err != nil {
-			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
-		}
+		device := models.Device{SigfoxId: message.SigfoxId}
+		device.BeforeCreate()
+		err = devices.Insert(device)
+	}
 
-		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
-		if err != nil {
-			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
-		}
+	err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
+	}
+
+	err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
 	}
 
 	return nil
@@ -58,17 +59,19 @@ func (db *mongo) CreateSigfoxDataAdvancedMessage(message *sigfox.MessageDataAdva
 
 	err = devices.Find(bson.M{"sigfox_id": message.SigfoxId}).One(device)
 	if err != nil {
-		return helpers.NewError(http.StatusPartialContent, "sigfox_device_id_not_found", "Device Sigfox ID not found", err)
-	} else {
-		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
-		if err != nil {
-			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
-		}
+		device := models.Device{SigfoxId: message.SigfoxId, Name: "Sigfox device " + message.SigfoxId}
+		device.BeforeCreate()
+		err = devices.Insert(device)
+	}
 
-		err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
-		if err != nil {
-			return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
-		}
+	err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"last_access": message.Timestamp}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device last activity", err)
+	}
+
+	err = devices.Update(bson.M{"sigfox_id": message.SigfoxId}, bson.M{"$set": bson.M{"active": true}})
+	if err != nil {
+		return helpers.NewError(http.StatusInternalServerError, "device_update_failed", "Failed to update device status", err)
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"gitlab.com/plugblocks/iothings-api/models/sigfox"
 
 	"gitlab.com/plugblocks/iothings-api/helpers/params"
@@ -10,22 +9,22 @@ import (
 )
 
 func CreateDevice(c context.Context, record *models.Device) error {
-	if c.Value(CurrentKey) == nil {
+	/*if c.Value(CurrentKey) == nil {
 		fmt.Println("Nil context")
-		return FromContext(nil).CreateDevice("", record)
+		return CreateDevice(nil, record)
 	}
 
-	fmt.Println("Context: ", c)
+	fmt.Println("Context: ", c)*/
 	return FromContext(c).CreateDevice(Current(c).OrganizationId, record)
 }
 
 func GetDevices(c context.Context) ([]*models.Device, error) {
-	fmt.Println("Context: ", c)
+	//fmt.Println("Context: ", c)
 	return FromContext(c).GetDevices(Current(c))
 }
 
 func GetAvailableDevices(c context.Context) ([]*models.Device, error) {
-	fmt.Println("Context: ", c)
+	//fmt.Println("Context: ", c)
 	return FromContext(c).GetAvailableDevices(Current(c).OrganizationId)
 }
 

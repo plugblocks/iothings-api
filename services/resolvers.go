@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gitlab.com/plugblocks/iothings-api/utils"
 	"io/ioutil"
 	"log"
 	"math"
@@ -40,15 +39,16 @@ func GoogleWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (resp *m
 
 	resp, err = c.Geolocate(context.Background(), r)
 	if err != nil {
-		fmt.Println("Google WiFi Geolocation: ", err, "ssid1: ", ssid1, "ssid2: ", ssid2)
+		//fmt.Println("Google WiFi Geolocation: ", err, "ssid1: ", ssid1, "ssid2: ", ssid2)
 		return resp, err
 	}
 
+	//fmt.Println("Google wifi position resolved:", resp)
 	return resp, nil
 }
 
-func HereWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (location models.HereLocation) {
-	hereApiId, hereApiCode := config.GetString(cont, "here_api_id"), config.GetString(cont, "here_api_code")
+func HereWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (location models.HereLocation, err error) {
+	hereApiId, hereApiCode := config.GetString(cont, "here_app_id"), config.GetString(cont, "here_app_code")
 
 	client := &http.Client{}
 	wlan1, wlan2 := models.Wlan{Mac: ssid1}, models.Wlan{Mac: ssid2}
@@ -58,19 +58,26 @@ func HereWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (location 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
-	utils.CheckErr(err)
+	if err != nil {
+		fmt.Println("Request error", err)
+		return models.HereLocation{}, err
+	}
 
 	bodyResp, err := ioutil.ReadAll(resp.Body)
-	utils.CheckErr(err)
+	if err != nil {
+		fmt.Println("Read body eror", err)
+		return models.HereLocation{}, err
+	}
 
 	err = json.Unmarshal(bodyResp, &location)
 	if err != nil {
+		fmt.Println("Unmarshal error", err)
 		var hereError = new(models.HereError)
 		err = json.Unmarshal(bodyResp, &hereError)
-		utils.CheckErr(err)
+		return models.HereLocation{}, err
 	}
 
-	return location
+	return location, nil
 }
 
 // These are all a mix of enhancers / resolvers.
@@ -122,41 +129,52 @@ func ResolveWifiPosition(cont *gin.Context, message interface{}) (bool, *models.
 	}
 
 	resp, err := GoogleWifiResolving(cont, ssid1, ssid2)
+	//fmt.Println("Resp:", resp)
+	//fmt.Println("Err:", err)
 
-	wifiLocGoogle.DeviceId = device.Id
-	wifiLocGoogle.Timestamp = msgTime
-	wifiLocGoogle.Source = "wifi-google"
-	wifiLocGoogle.Latitude = resp.Location.Lat
-	wifiLocGoogle.Longitude = resp.Location.Lng
-	wifiLocGoogle.Radius = resp.Accuracy
+	if err != nil || resp.Accuracy == 0 {
+		fmt.Println("Google didn't found geolocation for:", ssid1, "and:", ssid2)
+	} else {
+		wifiLocGoogle.DeviceId = device.Id
+		wifiLocGoogle.Timestamp = msgTime
+		wifiLocGoogle.Source = "wifi-google"
+		wifiLocGoogle.Latitude = resp.Location.Lat
+		wifiLocGoogle.Longitude = resp.Location.Lng
+		wifiLocGoogle.Radius = resp.Accuracy
 
-	defp := &models.SemanticProperty{Context: "wifi-google", Type: "location"}
-	latVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: resp.Location.Lat}
-	lngVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: resp.Location.Lng}
-	accVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: resp.Accuracy}
-	wifiObsGoogle.Values = append(wifiObsGoogle.Values, latVal, lngVal, accVal)
-	wifiObsGoogle.Timestamp = msgTime
-	wifiObsGoogle.DeviceId = device.Id
-	wifiObsGoogle.Resolver = "wifi-google"
+		defp := &models.SemanticProperty{Context: "wifi-google", Type: "location"}
+		latVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: resp.Location.Lat}
+		lngVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: resp.Location.Lng}
+		accVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: resp.Accuracy}
+		wifiObsGoogle.Values = append(wifiObsGoogle.Values, latVal, lngVal, accVal)
+		wifiObsGoogle.Timestamp = msgTime
+		wifiObsGoogle.DeviceId = device.Id
+		wifiObsGoogle.Resolver = "wifi-google"
+	}
 
-	loc := HereWifiResolving(cont, ssid1, ssid2)
+	loc, err := HereWifiResolving(cont, ssid1, ssid2)
+	if err != nil || loc.Location.Accuracy == 0 {
+		fmt.Println("Here didn't found geolocation for:", ssid1, "and:", ssid2, err)
+	} else {
+		wifiLocHere.DeviceId = device.Id
+		wifiLocHere.Timestamp = msgTime
+		wifiLocHere.Source = "wifi-here"
+		wifiLocHere.Latitude = loc.Location.Lat
+		wifiLocHere.Longitude = loc.Location.Lng
+		wifiLocHere.Radius = float64(loc.Location.Accuracy)
 
-	wifiLocHere.DeviceId = device.Id
-	wifiLocHere.Timestamp = msgTime
-	wifiLocHere.Source = "wifi-here"
-	wifiLocHere.Latitude = loc.Location.Lat
-	wifiLocHere.Longitude = loc.Location.Lng
-	wifiLocHere.Radius = float64(loc.Location.Accuracy)
+		defp := &models.SemanticProperty{Context: "wifi-here", Type: "location"}
+		latVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: loc.Location.Lat}
+		lngVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: loc.Location.Lng}
+		accVal := models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: loc.Location.Accuracy}
+		wifiObsHere.Values = append(wifiObsHere.Values, latVal, lngVal, accVal)
+		wifiObsHere.Timestamp = msgTime
+		wifiObsHere.DeviceId = device.Id
+		wifiObsHere.Resolver = "wifi-here"
+	}
 
-	defp = &models.SemanticProperty{Context: "wifi-here", Type: "location"}
-	latVal = models.QuantitativeValue{SemanticProperty: defp, Identifier: "latitude", UnitText: "degrees", Value: loc.Location.Lat}
-	lngVal = models.QuantitativeValue{SemanticProperty: defp, Identifier: "longitude", UnitText: "degrees", Value: loc.Location.Lng}
-	accVal = models.QuantitativeValue{SemanticProperty: defp, Identifier: "accuracy", UnitText: "meters", Value: loc.Location.Accuracy}
-	wifiObsHere.Values = append(wifiObsHere.Values, latVal, lngVal, accVal)
-	wifiObsHere.Timestamp = msgTime
-	wifiObsHere.DeviceId = device.Id
-	wifiObsHere.Resolver = "wifi-here"
-
+	/*fmt.Println("Google:", wifiObsGoogle)
+	fmt.Println("Here:", wifiObsHere)*/
 	return true, wifiLocGoogle, wifiLocHere, wifiObsGoogle, wifiObsHere
 }
 
@@ -634,7 +652,7 @@ func decodeWisolGPSFrame(message interface{}) (models.Geolocation, string, int64
 	return gpsLoc, orientation, moves, temperature, status
 }
 
-func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *models.Observation) {
+func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *models.Geolocation, *models.Observation, *models.Observation) {
 	data, sigfoxId, timestamp := "", "", int64(0)
 	switch msg := message.(type) {
 	case *sigfox.Message:
@@ -650,7 +668,7 @@ func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *
 	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxId)
 	if err != nil {
 		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
-		return false, nil, nil
+		return false, nil, nil, nil, nil
 	}
 
 	geoloc := &models.Geolocation{}
@@ -677,7 +695,7 @@ func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *
 			obs.Resolver = "gps"
 
 			fmt.Println("Wisol GPS Geoloc: ", geoloc, "Obs:", obs)
-			return true, geoloc, obs
+			return true, geoloc, nil, obs, nil
 
 		} else { //No GPS, frame is empty
 			data = "No GPS: " + data
@@ -686,15 +704,15 @@ func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *
 	} else {
 		sigfoxMessage := sigfox.Message{"", sigfoxId, 0, timestamp, 0, 0, 0, "",
 			0, 0, "", data}
-		status, geoloc, _, obs, _ := ResolveWifiPosition(cont, sigfoxMessage)
+		status, loc1, loc2, obs1, obs2 := ResolveWifiPosition(cont, sigfoxMessage)
 
 		if status == false {
 			fmt.Println("Error while resolving Wisol WiFi location for device: ", sigfoxId, "at ", time.Unix(timestamp, 0))
-			return false, nil, nil
+			return false, nil, nil, nil, nil
 		}
 
 		fmt.Println("Wisol WiFi Geoloc: ", geoloc, "Obs:", obs)
-		return true, geoloc, obs
+		return true, loc1, loc2, obs1, obs2
 	}
-	return false, nil, nil
+	return false, nil, nil, nil, nil
 }
