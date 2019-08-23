@@ -49,6 +49,7 @@ func GoogleWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (resp *m
 
 func HereWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (location models.HereLocation, err error) {
 	hereApiId, hereApiCode := config.GetString(cont, "here_app_id"), config.GetString(cont, "here_app_code")
+	fmt.Println("Here credentials: ", hereApiId, hereApiCode)
 
 	client := &http.Client{}
 	wlan1, wlan2 := models.Wlan{Mac: ssid1}, models.Wlan{Mac: ssid2}
@@ -76,6 +77,11 @@ func HereWifiResolving(cont *gin.Context, ssid1 string, ssid2 string) (location 
 		err = json.Unmarshal(bodyResp, &hereError)
 		return models.HereLocation{}, err
 	}
+
+	fmt.Println("req:", req)
+	fmt.Println("resp.StatusCode:", resp.StatusCode)
+	fmt.Println("resp.Body:", resp.Body)
+	fmt.Println("bodyResp:", bodyResp)
 
 	return location, nil
 }
