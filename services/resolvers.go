@@ -102,11 +102,6 @@ func ResolveWifiPosition(cont *gin.Context, message interface{}, resolver string
 		msgTime = msg.Timestamp
 	}
 
-	if len(msgData) <= 12 {
-		fmt.Println("Only one WiFi, frame don't resolve for privacy issues")
-		return false, nil, nil
-	}
-
 	ssid1 := ""
 	for i := 0; i <= 10; i += 2 {
 		if i == 10 {
