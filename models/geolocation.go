@@ -69,7 +69,9 @@ type GeolocationQueryParams struct {
 
 func (l *Geolocation) BeforeCreate() {
 	l.Id = bson.NewObjectId().Hex()
-	l.Timestamp = time.Now().Unix()
+	if l.Timestamp == 0 {
+		l.Timestamp = time.Now().Unix()
+	}
 }
 
 const GeolocationsCollection = "geolocations"

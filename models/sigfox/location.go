@@ -27,7 +27,9 @@ type LastLocation struct {
 
 func (l *Location) BeforeCreate() {
 	l.Id = bson.NewObjectId().Hex()
-	l.Timestamp = time.Now().Unix()
+	if l.Timestamp == 0 {
+		l.Timestamp = time.Now().Unix()
+	}
 }
 
 const SigfoxLocationsCollection = "sigfoxLocations"

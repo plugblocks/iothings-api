@@ -19,7 +19,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
 	github.com/ryankurte/go-mapbox v0.4.2
-	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/sirupsen/logrus v1.4.2
 	github.com/snwfdhmp/errlog v0.0.0-20190419112242-156d20a3e777
 	github.com/spf13/viper v1.3.1
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
