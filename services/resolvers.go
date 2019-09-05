@@ -127,7 +127,7 @@ func ResolveWifiPosition(cont *gin.Context, message interface{}, resolver string
 
 	device, err := store.GetDeviceFromSigfoxId(cont, msgSigfoxId)
 	if err != nil {
-		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		fmt.Println("Wifi Enhancer Sigfox Device ", msgSigfoxId, "ID not found", err)
 		return false, nil, nil
 	}
 
@@ -492,7 +492,7 @@ func DecodeSensitV3Message(cont *gin.Context, sigfoxId string, data string, time
 func SigfoxSpotit(cont *gin.Context, loc *sigfox.Location) (bool, *models.Geolocation, *models.Observation) {
 	device, err := store.GetDeviceFromSigfoxId(cont, loc.SigfoxId)
 	if err != nil {
-		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		fmt.Println("Wifi Enhancer Sigfox Device ", loc.SigfoxId, "ID not found", err)
 		return false, nil, nil
 	}
 
@@ -659,7 +659,7 @@ func Wisol(cont *gin.Context, message interface{}) (bool, *models.Geolocation, *
 
 	device, err := store.GetDeviceFromSigfoxId(cont, sigfoxId)
 	if err != nil {
-		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		fmt.Println("Wifi Enhancer Sigfox Device ", sigfoxId, "ID not found", err)
 		return false, nil, nil, nil, nil
 	}
 

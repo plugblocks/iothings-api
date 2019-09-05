@@ -15,7 +15,12 @@ func CreateDevice(c context.Context, record *models.Device) error {
 	}
 
 	fmt.Println("Context: ", c)*/
-	return FromContext(c).CreateDevice(Current(c).OrganizationId, record)
+	user := Current(c)
+	if user == nil {
+		return FromContext(c).CreateDevice("", record)
+	} else {
+		return FromContext(c).CreateDevice(Current(c).OrganizationId, record)
+	}
 }
 
 func GetDevices(c context.Context) ([]*models.Device, error) {

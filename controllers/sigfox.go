@@ -242,7 +242,7 @@ func (SigfoxController) CreateSigfoxLocation(c *gin.Context) {
 
 	device, err := store.GetDeviceFromSigfoxId(c, sigfoxLocation.SigfoxId)
 	if err != nil {
-		fmt.Println("Wifi Enhancer Sigfox Device ID not found", err)
+		fmt.Println("Wifi Enhancer Sigfox Device ", sigfoxLocation.SigfoxId, "ID not found", err)
 		return
 	}
 
